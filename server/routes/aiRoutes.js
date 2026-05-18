@@ -1,29 +1,28 @@
 // server/routes/aiRoutes.js
 const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const Photo = require('../models/Photo');
 
 // =======================================================
-// 📝 AI 独立路由：照片标题与文艺配文灵感生成器（官方标准直连版）
+// 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）
 // =======================================================
 router.post('/inspiration', async (req, res) => {
   try {
     const { photoId } = req.body;
-    if (!photoId) {
-      return res.status(400).json({ success: false, message: '请传入照片ID(photoId)' });
-    }
+    if (!photoId) return res.status(400).json({ success: false, message: '请传入照片ID' });
 
-    // 1. 去数据库把这张照片的腾讯云 URL 捞出来
+    // 1. 去数据库把照片原图链接捞出来
     const photo = await Photo.findById(photoId);
-    if (!photo) {
-      return res.status(404).json({ success: false, message: '找不到该照片记录' });
-    }
+    if (!photo) return res.status(404).json({ success: false, message: '找不到该照片记录' });
 
-    console.log(`🛰️  [官方直连网关] 正在用 4.6V-Flash 品评照片: ${photo.originalName}`);
+    console.log(`🛰️  [云端极速网关] 正在触发腾讯云实时捏图并通知智谱: ${photo.originalName}`);
 
-    // 2. 严格对齐你 Cherry 成功以及官方 curl 的数据结构
+    // 2. 🎯 核心绝杀：直接在原图链接后面暴力拼接 !small
+    // 这样发过去绝对不带问号，大模型不会过滤它，会乖乖带着 !small 找腾讯云拉 50KB 的缩略图！
+    const optimizedImageUrl = `${photo.imageUrl}!small`;
+
     const requestBody = {
-      model: "glm-4.6v-flash", // 稳稳消耗你那 600 万 Tokens 的新手大礼包
+      model: "glm-4.6v-flash", // 稳稳报销你的 600 万 Tokens 免费券
       messages: [
         {
           role: "user",
@@ -34,54 +33,46 @@ router.post('/inspiration', async (req, res) => {
             },
             {
               type: "image_url",
-              image_url: { url: photo.imageUrl } // 喂给 AI 腾讯云公网原图
+              image_url: { url: optimizedImageUrl }
             }
           ]
         }
       ],
-      response_format: { type: "json_object" } // 强制大模型输出 JSON 对象
+      response_format: { type: "json_object" }
     };
 
-    // 3. 🚀 降维打击：直接用原生 fetch 轰炸官方标准的 completions 终点站
-    // 核心：直接把你在智谱后台拿到的明文 API Key 塞进 Authorization 里面
+    // 3. 原生 fetch 冲锋
     const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer c91cff7c61e7413d863e80e0489de3bf.yIIP9XFEc6fN1TPn'
+        'Authorization': 'Bearer c91cff7c61e7413d863e80e0489de3bf.yIIP9XFEc6fN1TPn' // 你的新直连通行证
       },
       body: JSON.stringify(requestBody)
     });
 
-    // 4. 安全防御检查
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`智谱中枢拒签，状态码: ${response.status}, 原因: ${errorText}`);
+      throw new Error(`智谱中枢拒签: ${errorText}`);
     }
 
     const resData = await response.json();
-
-    // 5. 提取并解析大模型写好的 JSON 灵感数据
     const resultJson = JSON.parse(resData.choices[0].message.content.trim());
 
-    // 6. 各归各位：安全同步存入你打好的数据库地基中
-    photo.userNotes = resultJson.title;  // 写入标题坑
-    photo.aiDiary = resultJson.caption;  // 写入文案坑
+    // 4. 数据全自动同步落盘到你的 userNotes 和 aiDiary 字段
+    photo.userNotes = resultJson.title;
+    photo.aiDiary = resultJson.caption;
     await photo.save();
 
-    // 7. 优雅回传前端，大获全胜！
     return res.status(200).json({
       success: true,
-      message: '✨ 灵感生成并全自动落盘成功！',
-      data: {
-        title: resultJson.title,
-        caption: resultJson.caption
-      }
+      message: '✨ 极速灵感生成并自动落盘成功！',
+      data: { title: resultJson.title, caption: resultJson.caption }
     });
 
   } catch (error) {
-    console.error('❌【AI 灵感网关最终异常】:', error.message);
-    return res.status(500).json({ success: false, message: `AI网络异常: ${error.message}` });
+    console.error('❌【AI 灵感路由异常】:', error.message);
+    return res.status(500).json({ success: false, message: `AI网关异常: ${error.message}` });
   }
 });
 
