@@ -7,6 +7,12 @@ const PhotoSchema = new mongoose.Schema({
   imageUrl: { type: String, required: true },     // 图片在腾讯云 COS 里的公网访问路径
   status: { type: String, enum: ['raw', 'master'], default: 'raw' }, // 状态：原图占坑 / 成片成型
 
+  // 🎯 新增：多版本对比的核心纽带
+  // 如果是原图，这里留空；如果是成片，这里死死指向它原图的 MongoDB _id
+  parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo', default: null },
+  // 给这个版本起个名字，比如 "日落暖调版", "16:9 电影裁剪版"
+  versionName: { type: String, default: '原图' },
+
   // 2. 自动抠出来的硬核硬件参数（EXIF）—— 已完美干掉品牌 Make 字段
   cameraModel: { type: String, default: '未知型号' },// 尼康微单会直接抓出: NIKON Z 30
   shutterSpeed: { type: String },                    // 快门速度，如 1/500s
