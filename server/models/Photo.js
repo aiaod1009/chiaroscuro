@@ -29,8 +29,8 @@ const PhotoSchema = new mongoose.Schema({
   },
 
   // 4. 内容叙事层（留给 AI 和你的碎碎念）
-  userNotes: { type: String, default: '' },   // 你自己当时导照片时的碎碎念
-  aiDiary: { type: String, default: '' },     // 手动点击后，AI 生成的王家卫风光影日记
+  title: { type: String, default: '' },   // 你自己当时导照片时的碎碎念
+  caption: { type: String, default: '' },     // 手动点击后，AI 生成的王家卫风光影日记
   aiAnalysis: { type: String, default: '' },  // 手动点击后，AI 对这张图的构图/修图建议
 
   createdAt: { type: Date, default: Date.now } // 数据入库时间
