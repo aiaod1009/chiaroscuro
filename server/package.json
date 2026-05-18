@@ -11,8 +11,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "cos-nodejs-sdk-v5": "^2.15.4",
     "exif-parser": "^0.1.12",
     "express": "^5.2.1",
-    "mongoose": "^9.6.2"
+    "mongoose": "^9.6.2",
+    "multer": "^2.1.1"
   }
 }
