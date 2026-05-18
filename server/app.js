@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');  // 解决跨域问题
 const photoRoutes = require('./routes/photoRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ mongoose.connect(mongoUri)
 
 // 挂载我们的照片光影传输路由
 app.use('/api/photos', photoRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.send('chiaroscuro 后端大本营运行中...');
