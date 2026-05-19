@@ -170,18 +170,111 @@ router.post('/inspire/first-round', async (req, res) => {
 });
 
 // 接口 2：多轮迭代（只针对当前风格抽屉下的某一个方案进行微调）
+// router.post('/inspire/iterate', async (req, res) => {
+//   try {
+//     const { sessionId, optionId, currentContent, userFeedback } = req.body;
+
+//     // 1. 精准捞出这个专属风格的抽屉记录
+//     const session = await AISession.findById(sessionId);
+//     if (!session) {
+//       return res.status(404).json({ success: false, message: "该 AI 会话不存在" });
+//     }
+
+//     let memoryMessages = [...session.messages];
+//     // 【工业级滑动窗口】：只保留首轮带图的和最近 4 轮的针锋相对，防止对话过长导致大模型视觉疲劳
+//     if (memoryMessages.length > 8) {
+//       const firstRound = memoryMessages[0];
+//       const firstReply = memoryMessages[1];
+//       const recentMems = memoryMessages.slice(-4);
+//       memoryMessages = [firstRound, firstReply, ...recentMems];
+//     }
+
+//     // 2. 精准编写微调指令，明确指出修改哪个方案以及用户的吐槽
+//     const iterateInstruction = `用户看中了刚才生成的第 [${optionId}] 个方案。
+// 该方案当前的内容为：
+// 标题："${currentContent.title}"
+// 配文："${currentContent.caption}"
+
+// 用户的修改意见是："${userFeedback}"。
+// 请继续保持【${session.chosenStyle}】的整体风格，并结合图片意境，严格针对这个方案进行修改优化。直接返回修改后的纯 JSON 对象：
+// { "optionId": ${optionId}, "title": "微调后的新标题", "caption": "微调后的新配文" }`;
+
+//     // 3. 将吐槽追加到这个独立抽屉的记忆链条中
+//     memoryMessages.push({
+//       role: 'user',
+//       content: iterateInstruction
+//     });
+
+//     // 4. 发送给大模型进行定向修图
+//     const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${process.env.ZHIPU_AI_KEY}`
+//       },
+//       body: JSON.stringify({
+//         model: "glm-4.6v-flash",
+//         messages: memoryMessages, // 纯净的同风格历史
+//         response_format: { type: "json_object" }
+//       })
+//     });
+
+//     const replyContent = data.choices[0].message.content;
+//     const updatedResult = JSON.parse(replyContent); // 拿到精准微调后的单个方案
+
+//     // 5. 【状态机同步】：把新对话追加进这个抽屉，同时在备选池（candidates）里把老方案覆盖掉
+//     session.messages.push({ role: 'user', content: iterateInstruction });
+//     session.messages.push({ role: 'assistant', content: replyContent });
+
+//     const index = session.candidates.findIndex(c => c.optionId === Number(optionId));
+//     if (index !== -1) {
+//       session.candidates[index].title = updatedResult.title;
+//       session.candidates[index].caption = updatedResult.caption;
+//     }
+
+//     await session.save();
+
+//     // 6. 返回给前端，前端局部刷新对应的卡片
+//     res.json({
+//       success: true,
+//       updatedCandidate: updatedResult
+//     });
+
+//   } catch (error) {
+//     console.error("方案微调迭代失败:", error);
+//     res.status(500).json({ success: false, message: "服务器内部错误" });
+//   }
+// });
+// 接口 2：多轮迭代（卸载多模态图片，全文本极速微调链路）
 router.post('/inspire/iterate', async (req, res) => {
   try {
     const { sessionId, optionId, currentContent, userFeedback } = req.body;
 
-    // 1. 精准捞出这个专属风格的抽屉记录
+    // 1. 从数据库捞出这笔专属风格的抽屉记录
     const session = await AISession.findById(sessionId);
     if (!session) {
       return res.status(404).json({ success: false, message: "该 AI 会话不存在" });
     }
 
-    let memoryMessages = [...session.messages];
-    // 【工业级滑动窗口】：只保留首轮带图的和最近 4 轮的针锋相对，防止对话过长导致大模型视觉疲劳
+    // 2. 【核心大改动：视文解耦清洗】
+    // 将数据库里存的所有历史消息深拷贝一份出来处理，防止污染数据库本身
+    let memoryMessages = JSON.parse(JSON.stringify(session.messages));
+
+    // 🌟🌟 绝杀逻辑：遍历并卸载掉第一轮里面的 image_url
+    memoryMessages = memoryMessages.map(msg => {
+      // 如果发现某一条历史记录的 content 是一个多模态数组，我们要把它“纯文本化”
+      if (Array.isArray(msg.content)) {
+        // 找到里面类型为 text 的那一段指令
+        const textObj = msg.content.find(item => item.type === 'text');
+        return {
+          role: msg.role,
+          content: textObj ? textObj.text : "分析之前的那张照片" // 扔掉图片URL，只留文本指令
+        };
+      }
+      return msg; // 已经是纯文本的对话保持原样
+    });
+
+    // 3. 【工业级滑动窗口】限制对话长度（保留首轮纯文本化的基础和最近 4 轮拉扯）
     if (memoryMessages.length > 8) {
       const firstRound = memoryMessages[0];
       const firstReply = memoryMessages[1];
@@ -189,23 +282,23 @@ router.post('/inspire/iterate', async (req, res) => {
       memoryMessages = [firstRound, firstReply, ...recentMems];
     }
 
-    // 2. 精准编写微调指令，明确指出修改哪个方案以及用户的吐槽
-    const iterateInstruction = `用户看中了刚才生成的第 [${optionId}] 个方案。
-该方案当前的内容为：
+    // 4. 精准编写微调指令，告诉模型不用看图了，基于记忆修改
+    const iterateInstruction = `你拥有对之前照片的视觉记忆。用户看中了刚才生成的第 [${optionId}] 个方案。
+该方案当前内容为：
 标题："${currentContent.title}"
 配文："${currentContent.caption}"
 
 用户的修改意见是："${userFeedback}"。
-请继续保持【${session.chosenStyle}】的整体风格，并结合图片意境，严格针对这个方案进行修改优化。直接返回修改后的纯 JSON 对象：
+请继续保持【${session.chosenStyle}】的整体风格，并结合你对图片的视觉记忆，严格针对这个方案进行修改优化。直接返回修改后的纯 JSON 对象，不要带任何 markdown 标记：
 { "optionId": ${optionId}, "title": "微调后的新标题", "caption": "微调后的新配文" }`;
 
-    // 3. 将吐槽追加到这个独立抽屉的记忆链条中
+    // 5. 将吐槽追加到纯文本记忆链条中
     memoryMessages.push({
       role: 'user',
       content: iterateInstruction
     });
 
-    // 4. 发送给大模型进行定向修图
+    // 6. 带着【纯文本轻量级记忆】极速请求智谱大模型
     const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
       method: 'POST',
       headers: {
@@ -214,15 +307,24 @@ router.post('/inspire/iterate', async (req, res) => {
       },
       body: JSON.stringify({
         model: "glm-4.6v-flash",
-        messages: memoryMessages, // 纯净的同风格历史
+        messages: memoryMessages,
         response_format: { type: "json_object" }
       })
     });
 
-    const replyContent = data.choices[0].message.content;
-    const updatedResult = JSON.parse(replyContent); // 拿到精准微调后的单个方案
+    const data = await response.json();
 
-    // 5. 【状态机同步】：把新对话追加进这个抽屉，同时在备选池（candidates）里把老方案覆盖掉
+    // 安全防御门：防止智谱异常
+    if (!data.choices || data.choices.length === 0) {
+      console.error("智谱 API 迭代返回了异常数据：", data);
+      return res.status(400).json({ success: false, message: "大模型微调接口报错", errorDetails: data });
+    }
+
+    const replyContent = data.choices[0].message.content;
+    let cleanContent = replyContent.replace(/```json/g, '').replace(/```/g, '').trim();
+    const updatedResult = JSON.parse(cleanContent);
+
+    // 7. 【状态机落盘】：存入数据库的历史消息依然可以保留多模态（或者存文本），把当前修改覆盖到卡片池
     session.messages.push({ role: 'user', content: iterateInstruction });
     session.messages.push({ role: 'assistant', content: replyContent });
 
@@ -234,14 +336,14 @@ router.post('/inspire/iterate', async (req, res) => {
 
     await session.save();
 
-    // 6. 返回给前端，前端局部刷新对应的卡片
+    // 8. 返回给前端，实现前端卡片的局部刷新
     res.json({
       success: true,
       updatedCandidate: updatedResult
     });
 
   } catch (error) {
-    console.error("方案微调迭代失败:", error);
+    console.error("纯文本方案微调迭代失败:", error);
     res.status(500).json({ success: false, message: "服务器内部错误" });
   }
 });
