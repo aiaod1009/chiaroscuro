@@ -3,6 +3,7 @@ const express = require('express');
 const router = require('express').Router();
 const Photo = require('../models/Photo');
 
+const apiKey = process.env.ZHIPU_AI_KEY;
 // =======================================================
 // 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）
 // =======================================================
@@ -46,7 +47,7 @@ router.post('/inspiration', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer c91cff7c61e7413d863e80e0489de3bf.yIIP9XFEc6fN1TPn' // 你的新直连通行证
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify(requestBody)
     });
