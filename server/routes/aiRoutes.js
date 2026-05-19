@@ -169,4 +169,83 @@ router.post('/ai/inspire/first-round', async (req, res) => {
     res.status(500).json({ success: false, message: "服务器内部错误" });
   }
 });
+
+// 接口 2：多轮迭代（只针对当前风格抽屉下的某一个方案进行微调）
+router.post('/ai/inspire/iterate', async (req, res) => {
+  try {
+    const { sessionId, optionId, currentContent, userFeedback } = req.body;
+
+    // 1. 精准捞出这个专属风格的抽屉记录
+    const session = await AISession.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ success: false, message: "该 AI 会话不存在" });
+    }
+
+    let memoryMessages = [...session.messages];
+    // 【工业级滑动窗口】：只保留首轮带图的和最近 4 轮的针锋相对，防止对话过长导致大模型视觉疲劳
+    if (memoryMessages.length > 8) {
+      const firstRound = memoryMessages[0];
+      const firstReply = memoryMessages[1];
+      const recentMems = memoryMessages.slice(-4);
+      memoryMessages = [firstRound, firstReply, ...recentMems];
+    }
+
+    // 2. 精准编写微调指令，明确指出修改哪个方案以及用户的吐槽
+    const iterateInstruction = `用户看中了刚才生成的第 [${optionId}] 个方案。
+该方案当前的内容为：
+标题："${currentContent.title}"
+配文："${currentContent.caption}"
+
+用户的修改意见是："${userFeedback}"。
+请继续保持【${session.chosenStyle}】的整体风格，并结合图片意境，严格针对这个方案进行修改优化。直接返回修改后的纯 JSON 对象：
+{ "optionId": ${optionId}, "title": "微调后的新标题", "caption": "微调后的新配文" }`;
+
+    // 3. 将吐槽追加到这个独立抽屉的记忆链条中
+    memoryMessages.push({
+      role: 'user',
+      content: iterateInstruction
+    });
+
+    // 4. 发送给大模型进行定向修图
+    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.ZHIPU_AI_KEY}`
+      },
+      body: JSON.stringify({
+        model: "glm-4.6v-flash",
+        messages: memoryMessages, // 纯净的同风格历史
+        response_format: { type: "json_object" }
+      })
+    });
+
+    const data = await response.json();
+    const replyContent = data.choices[0].message.content;
+    const updatedResult = JSON.parse(replyContent); // 拿到精准微调后的单个方案
+
+    // 5. 【状态机同步】：把新对话追加进这个抽屉，同时在备选池（candidates）里把老方案覆盖掉
+    session.messages.push({ role: 'user', content: iterateInstruction });
+    session.messages.push({ role: 'assistant', content: replyContent });
+
+    const index = session.candidates.findIndex(c => c.optionId === Number(optionId));
+    if (index !== -1) {
+      session.candidates[index].title = updatedResult.title;
+      session.candidates[index].caption = updatedResult.caption;
+    }
+
+    await session.save();
+
+    // 6. 返回给前端，前端局部刷新对应的卡片
+    res.json({
+      success: true,
+      updatedCandidate: updatedResult
+    });
+
+  } catch (error) {
+    console.error("方案微调迭代失败:", error);
+    res.status(500).json({ success: false, message: "服务器内部错误" });
+  }
+});
+
 module.exports = router;
