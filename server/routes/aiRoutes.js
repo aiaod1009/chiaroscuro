@@ -2,8 +2,9 @@
 const express = require('express');
 const router = require('express').Router();
 const Photo = require('../models/Photo');
+const AISession = require('../models/AISession');
 
-const apiKey = process.env.ZHIPU_AI_KEY;
+// const apiKey = process.env.ZHIPU_AI_KEY;
 // =======================================================
 // 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）
 // =======================================================
@@ -76,12 +77,10 @@ const apiKey = process.env.ZHIPU_AI_KEY;
 //     return res.status(500).json({ success: false, message: `AI网关异常: ${error.message}` });
 //   }
 // });
-const express = require('express');
-const router = express.Router();
-const AISession = require('../models/AISession');
+
 
 // 接口 1：首次触发（根据选定风格生成 3 个备选方案，或直接复用历史记录）
-router.post('/ai/inspire/first-round', async (req, res) => {
+router.post('/inspire/first-round', async (req, res) => {
   try {
     const { photoId, imageUrl, style } = req.body; // style 如 '活泼'、'正式'、'冷酷'
 
@@ -128,7 +127,7 @@ router.post('/ai/inspire/first-round', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${process.env.ZHIPU_AI_KEY}`
       },
       body: JSON.stringify({
         model: "glm-4.6v-flash",
@@ -171,7 +170,7 @@ router.post('/ai/inspire/first-round', async (req, res) => {
 });
 
 // 接口 2：多轮迭代（只针对当前风格抽屉下的某一个方案进行微调）
-router.post('/ai/inspire/iterate', async (req, res) => {
+router.post('/inspire/iterate', async (req, res) => {
   try {
     const { sessionId, optionId, currentContent, userFeedback } = req.body;
 
@@ -220,7 +219,6 @@ router.post('/ai/inspire/iterate', async (req, res) => {
       })
     });
 
-    const data = await response.json();
     const replyContent = data.choices[0].message.content;
     const updatedResult = JSON.parse(replyContent); // 拿到精准微调后的单个方案
 
