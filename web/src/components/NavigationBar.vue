@@ -1,8 +1,9 @@
 <template>
   <nav class="navigation-bar">
-    <div class="logo">
-      <router-link to="/">光影纪 · CHRONICLES</router-link>
-    </div>
+    <router-link to="/" class="logo">
+      <img src="/相机1.svg" alt="Logo" class="logo-img" />
+      <span class="logo-text">光影纪 · CHRONICLES</span>
+    </router-link>
     <div class="nav-links">
       <router-link to="/">HOME</router-link>
       <router-link to="/archive">ARCHIVE</router-link>
@@ -43,15 +44,31 @@ export default {
   z-index: 100;
 }
 
-.logo a {
+.logo {
+  display: inline-flex;
+  align-items: center;
+  color: white;
+  text-decoration: none;
+}
+
+.logo-text {
   color: white;
   text-decoration: none;
   font-size: 1.25rem;
   font-weight: bold;
 }
 
+.logo-img {
+  width: 36px;
+  height: auto;
+  display: inline-block;
+  margin-right: 0.5rem;
+  /* Force SVG/icon to appear white even if its internal color is gray */
+  filter: brightness(0) invert(1);
+}
+
 .nav-links a {
-  color: white;
+  color: #ffffff;
   text-decoration: none;
   margin: 0 1rem;
   font-size: 1rem;
@@ -69,7 +86,7 @@ export default {
 }
 
 .nav-icons a {
-  color: white;
+  color: #ffffff;
   margin-left: 1rem;
 }
 
