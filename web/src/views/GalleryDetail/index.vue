@@ -135,7 +135,7 @@ export default {
 .gallery-detail-page {
   background-color: #0b101e;
   min-height: 100vh;
-  margin-top: -5rem;
+  margin-top: -5rem; 
   padding-top: 8rem;
   padding-bottom: 5rem;
   color: #fff;
@@ -148,17 +148,17 @@ export default {
   padding: 0 2rem;
 }
 
-/* 顶部图像查看区 */
+/* 书本 3D 容器 */
 .hero-viewer {
   width: 100%;
   height: 60vh;
   min-height: 500px;
   position: relative;
-  /* 开启 3D 视图包裹用于书本翻页 */
-  perspective: 2000px;
+  perspective: 2500px; 
   border-radius: 24px;
 }
 
+/* 单张被当做跨页书页的图 */
 .image-slide {
   position: absolute;
   top: 0;
@@ -167,7 +167,8 @@ export default {
   height: 100%;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.5), 0 30px 60px rgba(0,0,0,0.8);
+  background-color: #1a202c;
 }
 
 .hero-img {
@@ -177,56 +178,65 @@ export default {
   display: block;
 }
 
-/* ============== 翻书动画 CSS ================ */
-/* 向后翻 (Next): 像翻开右边的书页 */
-.page-next-enter-active,
-.page-next-leave-active {
-  transition: all 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+/* 伪造的书本中缝和阴影 */
+.image-slide::after {
+  content: '';
+  position: absolute;
+  top: 0; 
+  bottom: 0; 
+  left: 50%;
+  width: 60px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, 
+    rgba(255,255,255,0) 0%, 
+    rgba(0,0,0,0.3) 40%, 
+    rgba(255,255,255,0.15) 50%, 
+    rgba(0,0,0,0.3) 60%, 
+    rgba(255,255,255,0) 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 翻页动画：中心轴旋转模拟翻书 */
+.page-next-enter-active, .page-next-leave-active {
+  transition: all 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
-
 .page-next-enter-from {
-  transform: rotateY(90deg);
-  transform-origin: right center;
+  transform: rotateY(90deg) scale(0.92);
+  transform-origin: 50% 50%;
   opacity: 0;
 }
-
 .page-next-leave-to {
-  transform: rotateY(-90deg);
-  transform-origin: left center;
+  transform: rotateY(-90deg) scale(0.92);
+  transform-origin: 50% 50%;
   opacity: 0;
 }
 
-/* 向前翻 (Prev): 像合上左侧的书页 */
-.page-prev-enter-active,
-.page-prev-leave-active {
-  transition: all 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+.page-prev-enter-active, .page-prev-leave-active {
+  transition: all 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
-
 .page-prev-enter-from {
-  transform: rotateY(-90deg);
-  transform-origin: left center;
+  transform: rotateY(-90deg) scale(0.92);
+  transform-origin: 50% 50%;
   opacity: 0;
 }
-
 .page-prev-leave-to {
-  transform: rotateY(90deg);
-  transform-origin: right center;
+  transform: rotateY(90deg) scale(0.92);
+  transform-origin: 50% 50%;
   opacity: 0;
 }
-
-/* ========================================= */
 
 /* 元数据与播放器区 */
 .meta-section {
   display: flex;
   justify-content: space-between;
-  margin-top: 3rem;
+  margin-top: 4rem;
   padding-bottom: 5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .meta-left {
@@ -253,7 +263,7 @@ export default {
 .gallery-desc {
   color: #a0aec0;
   line-height: 1.8;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   font-size: 0.95rem;
 }
 
@@ -263,8 +273,8 @@ export default {
 }
 
 .player-box {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   display: flex;
   align-items: center;
@@ -285,7 +295,6 @@ export default {
   cursor: pointer;
   transition: opacity 0.3s;
 }
-
 .icon-btn:hover {
   opacity: 0.7;
 }
@@ -307,40 +316,37 @@ export default {
   box-shadow: 0 0 15px rgba(0, 224, 198, 0.4);
   transition: all 0.3s;
 }
-
 .play-btn:hover {
   box-shadow: 0 0 25px rgba(0, 224, 198, 0.8);
   transform: scale(1.05);
 }
 
 .play-icon {
-  margin-left: 2px;
-  /* 小微调三角形居中 */
+  margin-left: 2px; 
 }
 
 .player-text {
-  margin-left: 1rem;
+  margin-left: 1.5rem;
   display: flex;
   flex-direction: column;
 }
-
 .p-title {
   font-size: 0.65rem;
   color: #8c9baf;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   font-weight: bold;
 }
-
 .p-status {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
   margin-top: 0.2rem;
+  color: #e2e8f0;
 }
 
 /* 右侧 Meta */
 .meta-right {
   display: flex;
-  gap: 3rem;
+  gap: 4rem;
   align-items: flex-end;
 }
 
@@ -348,20 +354,17 @@ export default {
   border-left: 1px solid #1e293b;
   padding-left: 1.5rem;
 }
-
 .m-label {
   font-size: 0.65rem;
   color: #64748b;
   letter-spacing: 1px;
   margin-bottom: 0.8rem;
 }
-
 .m-val-primary {
   font-size: 1.1rem;
   font-weight: bold;
   margin-bottom: 0.4rem;
 }
-
 .m-val-sec {
   font-size: 0.85rem;
   color: #94a3b8;
@@ -383,7 +386,6 @@ export default {
   font-size: 1.8rem;
   margin: 0 0 0.5rem;
 }
-
 .w-text p {
   color: #a0aec0;
   font-size: 0.95rem;
@@ -395,26 +397,24 @@ export default {
   display: flex;
   gap: 1rem;
 }
-
 .pill-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.1);
   color: #cbd5e0;
-  padding: 0.5rem 1.5rem;
+  padding: 0.6rem 2rem;
   border-radius: 999px;
   font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
 }
-
-.pill-btn:hover,
-.pill-btn.active {
-  background: rgba(255, 255, 255, 0.1);
+.pill-btn:hover, .pill-btn.active {
+  background: rgba(255,255,255,0.1);
   border-color: #fff;
   color: #fff;
 }
 
-/* 瀑布流 Grid (CSS Multi-column 快速实现) */
+/* 瀑布流 Grid */
 .masonry-grid {
   column-count: 3;
   column-gap: 20px;
@@ -437,9 +437,8 @@ export default {
 
 .masonry-item:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-
 .masonry-item:hover img {
   transform: scale(1.05);
 }
@@ -449,25 +448,22 @@ export default {
     flex-direction: column;
     gap: 2rem;
   }
-
   .meta-right {
     justify-content: flex-start;
   }
-
   .w-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-
   .masonry-grid {
     column-count: 2;
   }
 }
-
 @media (max-width: 600px) {
   .masonry-grid {
     column-count: 1;
   }
 }
 </style>
+
