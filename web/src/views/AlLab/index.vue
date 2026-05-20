@@ -14,10 +14,10 @@
     <main class="main-content">
 
       <header class="darkroom-header">
-        <div class="module-tag">EXPERIMENTAL MODULE</div>
-        <h1 class="main-title">
-          AI 数字暗房 <span class="en-title">AI DARKROOM</span>
-        </h1>
+        <div class="title-block">
+          <h1 class="main-title">AI 数字暗房</h1>
+          <div class="en-title">AI DARKROOM</div>
+        </div>
         <p class="subtitle">
           利用神经网络深度解析每一寸光影，将瞬时感官转化为永恒的叙事文字。我们的 AI 实验室正在探索图像语义与诗意表达的交界。
         </p>
@@ -164,7 +164,11 @@
   background-color: #090d12;
   color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  padding: 40px 40px 40px 100px;
+  margin-top: -5rem;
+  padding-top: 5rem;
+  padding-right: 40px;
+  padding-bottom: 40px;
+  padding-left: 100px;
   position: relative;
   box-sizing: border-box;
 }
@@ -235,40 +239,41 @@
    2. 头部标题区域样式
    ========================================================================== */
 .darkroom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: 36px;
 }
 
-.module-tag {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.25em;
-  color: #22d3ee;
-  margin-bottom: 8px;
+.title-block {
+  display: flex;
+  flex-direction: column;
 }
 
 .main-title {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 3rem;
+  font-style: italic;
+  font-weight: 900;
   color: #ffffff;
-  margin: 0 0 16px 0;
-  letter-spacing: 0.05em;
+  margin: 0;
+  letter-spacing: 2px;
 }
 
 .en-title {
-  font-size: 28px;
-  font-weight: 300;
-  color: #4b5563;
-  margin-left: 12px;
-  font-family: "Times New Roman", serif;
-  letter-spacing: 0.1em;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #8c9baf;
+  letter-spacing: 3px;
+  margin-top: 4px;
 }
 
 .subtitle {
-  font-size: 13px;
-  color: #8b949e;
-  line-height: 1.6;
-  max-width: 680px;
+  font-size: 0.9rem;
+  color: #cbd5e0;
+  line-height: 1.8;
+  max-width: 400px;
   margin: 0;
+  text-align: right;
 }
 
 /* ==========================================================================
