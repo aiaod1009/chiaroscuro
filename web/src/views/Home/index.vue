@@ -18,14 +18,22 @@
       </transition>
 
       <!-- 右侧精选集卡片区域 -->
-      <div class="cards-section">
-        <div class="collection-card" v-for="(card, index) in collections" :key="index"
-          :class="{ 'is-active': index === activeIndex }" @click="selectCard(index)">
-          <img :src="card.image" :alt="card.title" class="card-img" />
-          <div class="card-overlay">
-            <span class="card-subtitle">{{ card.subtitle }}</span>
-            <h3 class="card-title">{{ card.title }}</h3>
+      <div class="cards-container">
+        <div class="cards-section">
+          <div class="collection-card" v-for="(card, index) in collections" :key="index"
+            :class="{ 'is-active': index === activeIndex }" @click="selectCard(index)">
+            <img :src="card.image" :alt="card.title" class="card-img" />
+            <div class="card-overlay">
+              <span class="card-subtitle">{{ card.subtitle }}</span>
+              <h3 class="card-title" v-html="card.title"></h3>
+            </div>
           </div>
+        </div>
+
+        <!-- 轮播控制按钮 -->
+        <div class="carousel-controls">
+          <button class="control-btn" @click="prevCard">&lt;</button>
+          <button class="control-btn" @click="nextCard">&gt;</button>
         </div>
       </div>
     </div>
@@ -55,6 +63,12 @@ export default {
       if (this.activeIndex !== index) {
         this.activeIndex = index;
       }
+    },
+    prevCard() {
+      this.activeIndex = (this.activeIndex - 1 + this.collections.length) % this.collections.length;
+    },
+    nextCard() {
+      this.activeIndex = (this.activeIndex + 1) % this.collections.length;
     }
   }
 };
@@ -94,19 +108,21 @@ export default {
 .hero-content {
   position: relative;
   z-index: 1;
-  width: 95%; 
+  width: 95%;
   max-width: 1700px;
   margin: 0 auto;
-  padding: 8rem 0 10rem 0;
+  padding: 8rem 0 2rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10%; 
+  gap: 5%;
+  min-height: 80vh;
 }
 
 .text-section {
   flex: 1;
   max-width: 600px;
+  margin-top: -3rem;
 }
 
 .pre-title {
@@ -118,7 +134,7 @@ export default {
 }
 
 .main-title {
-  font-size: 4.5rem; 
+  font-size: 4.5rem;
   line-height: 1.2;
   font-weight: 600;
   margin-bottom: 2rem;
@@ -152,10 +168,20 @@ export default {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2rem;
+  flex: 1.2;
+  margin-bottom: -4rem;
+  /* 向下推 */
+  align-self: flex-end;
+}
+
 .cards-section {
   display: flex;
-  gap: 2.5rem; 
-  flex: 1.2; 
+  gap: 2.5rem;
   justify-content: flex-end;
 }
 
@@ -168,24 +194,33 @@ export default {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
-  opacity: 0.5; 
-  transform: scale(0.95); 
+  filter: brightness(0.6);
+  transform: scale(0.95);
   animation: fadeLeft 1s ease forwards;
+  background-color: #0b101e;
 }
 
-.collection-card:nth-child(1) { animation-delay: 0.2s; }
-.collection-card:nth-child(2) { animation-delay: 0.4s; }
-.collection-card:nth-child(3) { animation-delay: 0.6s; }
+.collection-card:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.collection-card:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.collection-card:nth-child(3) {
+  animation-delay: 0.6s;
+}
 
 .collection-card.is-active,
 .collection-card:hover {
-  opacity: 1;
+  filter: brightness(1);
   transform: scale(1) translateY(-15px);
 }
 
 .collection-card.is-active {
   box-shadow: 0 10px 40px rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.6); 
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }
 
 .card-img {
@@ -208,7 +243,7 @@ export default {
   flex-direction: column;
   justify-content: flex-end;
   padding: 1.5rem;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 .card-subtitle {
@@ -226,16 +261,45 @@ export default {
   color: #fff;
 }
 
+.carousel-controls {
+  display: flex;
+  gap: 1rem;
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+}
+
+.control-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
 .bg-fade-enter-active,
 .bg-fade-leave-active {
   transition: opacity 1s ease-in-out;
 }
+
 .bg-fade-enter-from,
 .bg-fade-leave-to {
   opacity: 0;
 }
+
 .bg-fade-leave-active {
-  position: absolute; 
+  position: absolute;
   z-index: -1;
 }
 
@@ -243,23 +307,41 @@ export default {
 .text-fade-leave-active {
   transition: all 0.5s ease;
 }
+
 .text-fade-enter-from {
   opacity: 0;
   transform: translateY(20px);
 }
+
 .text-fade-leave-to {
   opacity: 0;
   transform: translateY(-20px);
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeLeft {
-  from { opacity: 0; transform: translateX(30px) scale(0.95); }
-  to { opacity: 0.5; transform: translateX(0) scale(0.95); }
+  from {
+    opacity: 0;
+    transform: translateX(30px) scale(0.95);
+    filter: brightness(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(0.95);
+    filter: brightness(0.6);
+  }
 }
 
 @media (max-width: 1200px) {
@@ -268,6 +350,13 @@ export default {
     align-items: flex-start;
     padding-top: 4rem;
   }
+
+  .cards-container {
+    width: 100%;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
   .cards-section {
     width: 100%;
     overflow-x: auto;

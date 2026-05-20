@@ -30,8 +30,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  /* 移除生硬背景，使用透明底色 */
-  background: transparent;
+  /* 添加轻微透明底色和毛玻璃效果 */
+  background: rgba(11, 16, 30, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: white;
   width: 100%;
   margin: 0;
