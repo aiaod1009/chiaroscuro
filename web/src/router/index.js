@@ -12,7 +12,7 @@ const routes = [
   { path: '/ai-lab', name: 'AILab', component: AILab },
   { path: '/footprints', name: 'Footprints', component: Footprints },
   { path: '/about', name: 'About', component: About },
-  { path: '/gallery/:id', name: 'GalleryDetail', component: GalleryDetail },
+  { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },
 ];
 
 const router = createRouter({

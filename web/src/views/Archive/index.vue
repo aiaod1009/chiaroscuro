@@ -14,9 +14,13 @@
 
       <!-- 画廊 手风琴区 -->
       <div class="accordion-gallery">
-        <div class="gallery-item" v-for="(img, index) in gallery" :key="index"
-          :class="{ active: activeGallery === index }" @click="activeGallery = index"
-          :style="{ backgroundImage: 'url(' + img + ')' }"></div>
+        <div v-for="(img, index) in gallery" :key="index"
+          class="gallery-item"
+          :class="{ active: activeGallery === index }"
+          @mouseenter="activeGallery = index"
+          @click="$router.push(`/gallery-detail/${index + 1}`)"
+          :style="{ backgroundImage: 'url(' + img + ')' }">
+        </div>
       </div>
 
       <!-- 博客 & 时间轴 -->
@@ -49,7 +53,7 @@
                 <h3 class="blog-title">{{ blog.title }}</h3>
                 <p class="blog-desc">{{ blog.desc }}</p>
                 <!-- 改为 router-link 跳转详情页 -->
-                <router-link :to="`/gallery/${index + 1}`" class="view-entry">View Entry &rarr;</router-link>
+                <router-link :to="`/gallery-detail/${index + 1}`" class="view-entry">View Entry &rarr;</router-link>
               </div>
             </div>
           </div>
@@ -73,7 +77,11 @@ export default {
         '/DSC_6174.jpg',
         '/DSC_6510.jpg',
         '/DSC_6760.JPG',
-        '/DSC_6174.jpg' // 复用作为第4张示意
+        '/DSC_6174.jpg',
+        '/DSC_6510.jpg',
+        '/DSC_6760.JPG',
+        '/DSC_6174.jpg',
+        '/DSC_6510.jpg'
       ],
       timelinePoints: ['Jun 2025', 'Mar 2025', 'Oct 2024', 'Sep 2024', 'Feb 2024'],
       blogs: [
