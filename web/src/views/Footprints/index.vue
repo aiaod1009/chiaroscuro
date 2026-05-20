@@ -1,25 +1,13 @@
 <template>
   <main class="footprints-page">
-    <section
-      ref="mapContainer"
-      class="map-stage"
-      :class="{ 'is-dragging': isDragging }"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseUp"
-      @wheel.prevent="handleWheel"
-    >
+    <section ref="mapContainer" class="map-stage" :class="{ 'is-dragging': isDragging }" @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove" @mouseup="handleMouseUp" @mouseleave="handleMouseUp" @wheel.prevent="handleWheel">
       <svg class="travel-map" :viewBox="`0 0 ${svgWidth} ${svgHeight}`" role="img" aria-label="旅行足迹地图">
         <defs>
-          <filter id="mapGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <filter id="mapGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="8" result="blur" />
-            <feColorMatrix
-              in="blur"
-              type="matrix"
-              values="1 0 0 0 0.96  0 0.62 0 0 0.46  0 0 0 0 0.04  0 0 0 0.9 0"
-              result="glow"
-            />
+            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.96  0 0.62 0 0 0.46  0 0 0 0 0.04  0 0 0 0.9 0"
+              result="glow" />
             <feMerge>
               <feMergeNode in="glow" />
               <feMergeNode in="SourceGraphic" />
@@ -31,52 +19,30 @@
 
         <g :transform="mapTransform">
           <g v-if="worldFeatures.length">
-            <path
-              v-for="country in countryPaths"
-              :key="country.key"
-              :d="country.d"
+            <path v-for="country in countryPaths" :key="country.key" :d="country.d"
               :fill="country.visited ? visitedFill : unvisitedFill"
-              :stroke="country.visited ? visitedStroke : unvisitedStroke"
-              :stroke-width="baseStrokeWidth"
-              :class="{ highlighted: country.visited }"
-            />
+              :stroke="country.visited ? visitedStroke : unvisitedStroke" :stroke-width="baseStrokeWidth"
+              :class="{ highlighted: country.visited }" />
           </g>
 
           <g v-if="chinaFeatures.length">
-            <path
-              v-for="province in provincePaths"
-              :key="province.key"
-              :d="province.d"
-              :fill="province.visited ? visitedFill : unvisitedFill"
-              stroke="#3a4a70"
-              :stroke-width="baseChinaStrokeWidth"
-              :class="{ highlighted: province.visited }"
-              @click.stop="selectProvince(province)"
-            />
+            <path v-for="province in provincePaths" :key="province.key" :d="province.d"
+              :fill="province.visited ? visitedFill : unvisitedFill" stroke="#3a4a70"
+              :stroke-width="baseChinaStrokeWidth" :class="{ highlighted: province.visited }"
+              @click.stop="selectProvince(province)" />
           </g>
         </g>
 
         <g>
-          <g
-            v-for="marker in markerPositions"
-            :key="marker.id"
-            class="map-marker"
-            :transform="`translate(${marker.x}, ${marker.y})`"
-            @click.stop="selectRegion(marker.id)"
-          >
+          <g v-for="marker in markerPositions" :key="marker.id" class="map-marker"
+            :transform="`translate(${marker.x}, ${marker.y})`" @click.stop="selectRegion(marker.id)">
             <circle :r="marker.hovered ? 18 : 12" fill="#f59e0b" :opacity="marker.hovered ? 0.42 : 0.25" />
             <circle :r="marker.hovered ? 6.5 : 4.8" fill="#fbbf24" stroke="#fff" stroke-width="1.2" />
           </g>
         </g>
       </svg>
 
-      <aside
-        v-if="activeRegion"
-        class="location-card"
-        :style="locationCardStyle"
-        @mousedown.stop
-        @wheel.stop
-      >
+      <aside v-if="activeRegion" class="location-card" :style="locationCardStyle" @mousedown.stop @wheel.stop>
         <div class="card-heading">
           <h1>{{ activeRegion.name }}</h1>
           <span>{{ activeRegion.albums }} 个相册 · {{ activeRegion.photoCount }} 张</span>
