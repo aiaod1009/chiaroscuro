@@ -29,29 +29,31 @@
 
         <rect width="100%" height="100%" fill="#050a15" />
 
-        <g v-if="worldFeatures.length">
-          <path
-            v-for="country in countryPaths"
-            :key="country.key"
-            :d="country.d"
-            :fill="country.visited ? visitedFill : unvisitedFill"
-            :stroke="country.visited ? visitedStroke : unvisitedStroke"
-            :stroke-width="strokeWidth"
-            :class="{ highlighted: country.visited }"
-          />
-        </g>
+        <g :transform="mapTransform">
+          <g v-if="worldFeatures.length">
+            <path
+              v-for="country in countryPaths"
+              :key="country.key"
+              :d="country.d"
+              :fill="country.visited ? visitedFill : unvisitedFill"
+              :stroke="country.visited ? visitedStroke : unvisitedStroke"
+              :stroke-width="baseStrokeWidth"
+              :class="{ highlighted: country.visited }"
+            />
+          </g>
 
-        <g v-if="chinaFeatures.length">
-          <path
-            v-for="province in provincePaths"
-            :key="province.key"
-            :d="province.d"
-            :fill="province.visited ? visitedFill : unvisitedFill"
-            stroke="#3a4a70"
-            :stroke-width="chinaStrokeWidth"
-            :class="{ highlighted: province.visited }"
-            @click.stop="focusChina"
-          />
+          <g v-if="chinaFeatures.length">
+            <path
+              v-for="province in provincePaths"
+              :key="province.key"
+              :d="province.d"
+              :fill="province.visited ? visitedFill : unvisitedFill"
+              stroke="#3a4a70"
+              :stroke-width="baseChinaStrokeWidth"
+              :class="{ highlighted: province.visited }"
+              @click.stop="selectProvince(province)"
+            />
+          </g>
         </g>
 
         <g>
@@ -60,8 +62,7 @@
             :key="marker.id"
             class="map-marker"
             :transform="`translate(${marker.x}, ${marker.y})`"
-            @mouseenter="activeRegionId = marker.id"
-            @click.stop="activeRegionId = marker.id"
+            @click.stop="selectRegion(marker.id)"
           >
             <circle :r="marker.hovered ? 18 : 12" fill="#f59e0b" :opacity="marker.hovered ? 0.42 : 0.25" />
             <circle :r="marker.hovered ? 6.5 : 4.8" fill="#fbbf24" stroke="#fff" stroke-width="1.2" />
@@ -69,7 +70,13 @@
         </g>
       </svg>
 
-      <aside v-if="activeRegion" class="location-card" @mousedown.stop @wheel.stop>
+      <aside
+        v-if="activeRegion"
+        class="location-card"
+        :style="locationCardStyle"
+        @mousedown.stop
+        @wheel.stop
+      >
         <div class="card-heading">
           <h1>{{ activeRegion.name }}</h1>
           <span>{{ activeRegion.albums }} 个相册 · {{ activeRegion.photoCount }} 张</span>
@@ -167,7 +174,9 @@ export default {
       panY: 0,
       isDragging: false,
       dragStart: { x: 0, y: 0, panX: 0, panY: 0 },
-      activeRegionId: 'zhejiang',
+      dragFrame: null,
+      pendingPan: null,
+      activeRegionId: null,
       unvisitedFill: '#1a2035',
       unvisitedStroke: '#2a3555',
       visitedFill: '#f59e0b',
@@ -220,14 +229,17 @@ export default {
     };
   },
   computed: {
-    projection() {
+    baseProjection() {
       return geoNaturalEarth1()
-        .scale(BASE_SCALE * this.zoom)
+        .scale(BASE_SCALE)
         .rotate([-150, 0, 0])
-        .translate([SVG_WIDTH / 2 + this.panX, SVG_HEIGHT / 2 + this.panY]);
+        .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2]);
     },
     pathGenerator() {
-      return geoPath().projection(this.projection);
+      return geoPath().projection(this.baseProjection);
+    },
+    mapTransform() {
+      return `translate(${SVG_WIDTH / 2 + this.panX}, ${SVG_HEIGHT / 2 + this.panY}) scale(${this.zoom}) translate(${-SVG_WIDTH / 2}, ${-SVG_HEIGHT / 2})`;
     },
     visitedCountries() {
       return new Set(this.regions.map((region) => region.mapCode).filter((code) => !code.startsWith('CN-')));
@@ -239,11 +251,11 @@ export default {
           .filter(Boolean)
       );
     },
-    strokeWidth() {
-      return Math.max(0.3, Math.min(1.5, 0.5 * Math.sqrt(this.zoom)));
+    baseStrokeWidth() {
+      return 0.5;
     },
-    chinaStrokeWidth() {
-      return Math.max(0.5, Math.min(2, 1.2 * Math.sqrt(this.zoom)));
+    baseChinaStrokeWidth() {
+      return 1.2;
     },
     countryPaths() {
       return this.worldFeatures
@@ -261,10 +273,12 @@ export default {
     provincePaths() {
       return this.chinaFeatures.map((province, index) => {
         const adcode = province.properties?.adcode;
+        const region = this.regions.find((item) => MAP_CODE_TO_ADCODE[item.mapCode] === adcode);
         return {
           key: adcode || `province-${index}`,
           d: this.pathGenerator(province) || '',
           visited: this.visitedProvinces.has(adcode),
+          regionId: region?.id || null,
         };
       });
     },
@@ -281,7 +295,7 @@ export default {
             coordinates = geoCentroid(province);
           }
 
-          const projected = this.projection(coordinates);
+          const projected = this.screenProject(coordinates);
           if (!projected) {
             return null;
           }
@@ -296,7 +310,23 @@ export default {
         .filter(Boolean);
     },
     activeRegion() {
-      return this.regions.find((region) => region.id === this.activeRegionId) || this.regions[0];
+      return this.regions.find((region) => region.id === this.activeRegionId) || null;
+    },
+    activeMarker() {
+      return this.markerPositions.find((marker) => marker.id === this.activeRegionId) || null;
+    },
+    locationCardStyle() {
+      if (!this.activeMarker) {
+        return {};
+      }
+
+      const xPercent = (this.activeMarker.x / SVG_WIDTH) * 100;
+      const yPercent = (this.activeMarker.y / SVG_HEIGHT) * 100;
+
+      return {
+        left: `clamp(20px, calc(${xPercent}% + 18px), calc(100% - 545px))`,
+        top: `clamp(92px, calc(${yPercent}% - 36px), calc(100% - 470px))`,
+      };
     },
   },
   async mounted() {
@@ -307,6 +337,12 @@ export default {
 
     this.worldFeatures = topoFeature(worldTopo, worldTopo.objects.countries).features;
     this.chinaFeatures = chinaGeo.features || topoFeature(chinaGeo, chinaGeo.objects.china).features;
+    this.focusChina();
+  },
+  beforeUnmount() {
+    if (this.dragFrame) {
+      cancelAnimationFrame(this.dragFrame);
+    }
   },
   methods: {
     calcMaxPan(mapSize, viewportSize, currentZoom, basePadding, zoomScale) {
@@ -347,12 +383,23 @@ export default {
 
       const dx = event.clientX - this.dragStart.x;
       const dy = event.clientY - this.dragStart.y;
-      const clamped = this.clampPan(this.dragStart.panX + dx, this.dragStart.panY + dy, this.zoom);
-      this.panX = clamped.x;
-      this.panY = clamped.y;
+      this.pendingPan = this.clampPan(this.dragStart.panX + dx, this.dragStart.panY + dy, this.zoom);
+
+      if (this.dragFrame) {
+        return;
+      }
+
+      this.dragFrame = requestAnimationFrame(() => {
+        if (this.pendingPan) {
+          this.panX = this.pendingPan.x;
+          this.panY = this.pendingPan.y;
+        }
+        this.dragFrame = null;
+      });
     },
     handleMouseUp() {
       this.isDragging = false;
+      this.pendingPan = null;
     },
     handleWheel(event) {
       const rect = event.currentTarget.getBoundingClientRect();
@@ -378,24 +425,43 @@ export default {
     },
     focusChina() {
       const nextZoom = 7;
-      const projection = geoNaturalEarth1()
-        .scale(BASE_SCALE * nextZoom)
-        .rotate([-150, 0, 0])
-        .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2]);
-      const chinaCenter = projection([105, 35]);
+      const chinaCenter = this.baseProjection([105, 35]);
 
       if (!chinaCenter) {
         return;
       }
 
       this.zoom = nextZoom;
-      this.panX = SVG_WIDTH / 2 - chinaCenter[0];
-      this.panY = SVG_HEIGHT / 2 - chinaCenter[1];
+      this.panX = (SVG_WIDTH / 2 - chinaCenter[0]) * nextZoom;
+      this.panY = (SVG_HEIGHT / 2 - chinaCenter[1]) * nextZoom;
     },
     resetWorld() {
       this.zoom = 1.8;
       this.panX = 0;
       this.panY = 0;
+      this.activeRegionId = null;
+    },
+    selectProvince(province) {
+      if (!province.regionId) {
+        this.activeRegionId = null;
+        return;
+      }
+
+      this.activeRegionId = province.regionId;
+    },
+    selectRegion(regionId) {
+      this.activeRegionId = regionId;
+    },
+    screenProject(coordinates) {
+      const projected = this.baseProjection(coordinates);
+      if (!projected) {
+        return null;
+      }
+
+      return [
+        SVG_WIDTH / 2 + this.panX + (projected[0] - SVG_WIDTH / 2) * this.zoom,
+        SVG_HEIGHT / 2 + this.panY + (projected[1] - SVG_HEIGHT / 2) * this.zoom,
+      ];
     },
   },
 };
@@ -447,8 +513,6 @@ path.highlighted {
 
 .location-card {
   position: absolute;
-  right: 6vw;
-  top: 29%;
   width: min(525px, 34vw);
   padding: 28px 30px 30px;
   border: 1px solid rgba(245, 158, 11, 0.58);
