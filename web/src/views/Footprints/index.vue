@@ -3,18 +3,6 @@
     <section ref="mapContainer" class="map-stage" :class="{ 'is-dragging': isDragging }" @mousedown="handleMouseDown"
       @mousemove="handleMouseMove" @mouseup="handleMouseUp" @mouseleave="handleMouseUp" @wheel.prevent="handleWheel">
       <svg class="travel-map" :viewBox="`0 0 ${svgWidth} ${svgHeight}`" role="img" aria-label="旅行足迹地图">
-        <defs>
-          <filter id="mapGlow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
-            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0.96  0 0.62 0 0 0.46  0 0 0 0 0.04  0 0 0 0.9 0"
-              result="glow" />
-            <feMerge>
-              <feMergeNode in="glow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
         <rect width="100%" height="100%" fill="#050a15" />
 
         <g :transform="mapTransform">
@@ -238,7 +226,7 @@ export default {
     },
     provincePaths() {
       return this.chinaFeatures.map((province, index) => {
-        const adcode = province.properties?.adcode;
+        const adcode = Number(province.properties?.adcode);
         const region = this.regions.find((item) => MAP_CODE_TO_ADCODE[item.mapCode] === adcode);
         return {
           key: adcode || `province-${index}`,
@@ -468,7 +456,9 @@ path {
 }
 
 path.highlighted {
-  filter: url(#mapGlow);
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.85))
+    drop-shadow(0 0 12px rgba(245, 158, 11, 0.45))
+    drop-shadow(0 0 24px rgba(234, 88, 12, 0.25));
 }
 
 .map-marker {
