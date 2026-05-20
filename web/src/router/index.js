@@ -5,6 +5,7 @@ import AILab from '../views/AlLab/index.vue';
 import Footprints from '../views/Footprints/index.vue';
 import About from '../views/About/index.vue';
 import GalleryDetail from '../views/GalleryDetail/index.vue';
+import PhotoDetail from '../views/PhotoDetail/index.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -13,6 +14,7 @@ const routes = [
   { path: '/footprints', name: 'Footprints', component: Footprints },
   { path: '/about', name: 'About', component: About },
   { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },
+  { path: '/photo-detail/:id', name: 'PhotoDetail', component: PhotoDetail },
 ];
 
 const router = createRouter({

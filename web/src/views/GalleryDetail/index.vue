@@ -66,7 +66,8 @@
         </div>
 
         <div class="masonry-grid">
-          <div class="masonry-item" v-for="(img, idx) in waterfallImages" :key="idx" @click="setIndex(idx)">
+          <div class="masonry-item" v-for="(img, idx) in waterfallImages" :key="idx"
+            @click="$router.push({ path: `/photo-detail/${idx + 1}`, query: { src: img } })">
             <img :src="img" alt="Waterfall Image" />
           </div>
         </div>

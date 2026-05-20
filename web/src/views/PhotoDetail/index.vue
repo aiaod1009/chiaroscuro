@@ -19,13 +19,13 @@
       <div class="grid-left-col">
 
         <div class="comparison-viewer">
-          <img src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=1200&q=80"
+          <img :src="imageSrc"
             alt="AI Version" class="image-layer" />
           <div class="badge badge-right">AI VERSION - CINEMATIC 04</div>
 
           <div class="original-layer-wrapper"
             :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
-            <img src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=1200&q=80"
+            <img :src="imageSrc"
               alt="Original Input" class="image-layer original-img" />
             <div class="badge badge-left">ORIGINAL - RAW INPUT</div>
           </div>
@@ -59,7 +59,7 @@
             <div class="version-card">
               <div class="card-thumb">
                 <img
-                  src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=150&q=80" />
+                  :src="imageSrc" />
               </div>
               <div class="card-title-zh">版本 04</div>
               <div class="card-title-en">Active Selection</div>
@@ -68,7 +68,7 @@
             <div class="version-card">
               <div class="card-thumb grayscale-thumb">
                 <img
-                  src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=150&q=80" />
+                  :src="imageSrc" />
               </div>
               <div class="card-title-zh">版本 03</div>
               <div class="card-title-en">Cinematic Noir</div>
@@ -147,7 +147,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const imageSrc = computed(() => route.query.src || '/DSC_6510.jpg')
 
 const sliderPosition = ref(53)
 
@@ -169,7 +173,11 @@ const exifData = ref([
   min-height: 100vh;
   background-color: #0d1117;
   color: #adb5bd;
-  padding: 32px;
+  margin-top: -5rem;
+  padding-top: 8rem;
+  padding-bottom: 5rem;
+  padding-left: 32px;
+  padding-right: 32px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
 }
@@ -183,6 +191,9 @@ const exifData = ref([
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .header-left {
@@ -236,6 +247,8 @@ const exifData = ref([
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 @media (max-width: 1024px) {
@@ -246,7 +259,6 @@ const exifData = ref([
 
 .grid-left-col {
   display: flex;
-  flex-col: column;
   flex-direction: column;
   gap: 24px;
 }
