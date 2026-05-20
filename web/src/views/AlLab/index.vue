@@ -1,765 +1,670 @@
 <template>
-  <div class="scifi-container">
-    <header class="scifi-header">
-      <div class="header-left">
-        <span class="section-tag">Section 03</span>
-        <div class="divider-line"></div>
+  <div class="darkroom-container">
+
+    <aside class="sidebar-scroll">
+      <span class="scroll-text">SCROLL</span>
+      <div class="scroll-dots">
+        <span class="dot"></span>
+        <span class="dot active"></span>
+        <span class="dot"></span>
       </div>
-      <button class="upload-btn">
-        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-        </svg>
-        <span>上传图片 UPLOAD RAW</span>
-      </button>
-    </header>
+      <span class="section-num">03</span>
+    </aside>
 
-    <div class="scifi-grid">
+    <main class="main-content">
 
-      <div class="grid-left-col">
+      <header class="darkroom-header">
+        <div class="module-tag">EXPERIMENTAL MODULE</div>
+        <h1 class="main-title">
+          AI 数字暗房 <span class="en-title">AI DARKROOM</span>
+        </h1>
+        <p class="subtitle">
+          利用神经网络深度解析每一寸光影，将瞬时感官转化为永恒的叙事文字。我们的 AI 实验室正在探索图像语义与诗意表达的交界。
+        </p>
+      </header>
 
-        <div class="comparison-viewer">
-          <img src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=1200&q=80"
-            alt="AI Version" class="image-layer" />
-          <div class="badge badge-right">AI VERSION - CINEMATIC 04</div>
+      <div class="workspace-grid">
 
-          <div class="original-layer-wrapper"
-            :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
-            <img src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=1200&q=80"
-              alt="Original Input" class="image-layer original-img" />
-            <div class="badge badge-left">ORIGINAL - RAW INPUT</div>
+        <div class="viewer-column">
+          <div class="image-viewer">
+            <div class="analyzing-tag">
+              <span class="pulse-dot"></span>
+              ANALYZING PIXELS...
+            </div>
+
+            <img src="/DSC_6510.jpg" alt="Darkroom Analysis Source" class="source-img" />
+
+            <div class="scan-line"></div>
           </div>
 
-          <div class="slider-handle" :style="{ left: `${sliderPosition}%` }">
-            <div class="handle-button">Unfold</div>
-          </div>
+          <div class="viewer-controls">
+            <div class="action-buttons">
+              <button class="btn-secondary">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                REPLACE IMAGE
+              </button>
+              <button class="btn-primary">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                GENERATE INSIGHTS
+              </button>
+            </div>
 
-          <input type="range" min="0" max="100" v-model="sliderPosition" class="hidden-range-input" />
+            <div class="meta-specs">
+              <div class="spec-item">
+                <span class="spec-label">RESOLUTION</span>
+                <span class="spec-value">7680 × 4320</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-label">MODEL</span>
+                <span class="spec-value">LUMEN-V2 PRO</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="versions-section">
-          <div class="section-title-bar">
-            <div class="title-group">
-              <span class="title-zh">版本记录</span>
-              <span class="title-en">Versions</span>
+        <div class="data-column">
+
+          <div class="insight-panel">
+            <div class="data-group">
+              <span class="panel-label">AI-GENERATED TITLE</span>
+              <h2 class="insight-title">寂静之巅的低语</h2>
             </div>
-            <div class="carousel-arrows">
-              <button class="arrow-btn">&lt;</button>
-              <button class="arrow-btn">&gt;</button>
+
+            <div class="data-group">
+              <span class="panel-label">POETIC INTERPRETATION</span>
+              <p class="poetic-text">
+                "当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸，记录着冰川与星辰的古老约定。"
+              </p>
+            </div>
+
+            <div class="analysis-metrics">
+              <span class="panel-label">COMPOSITION ANALYSIS</span>
+
+              <div class="metric-item">
+                <div class="metric-info">
+                  <span>Atmospheric Depth</span>
+                  <span>94%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 94%"></div>
+                </div>
+              </div>
+
+              <div class="metric-item">
+                <div class="metric-info">
+                  <span>Emotional Weight</span>
+                  <span>87%</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 87%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="color-contrast-grid">
+              <div class="cc-item">
+                <span class="panel-label">DOMINANT HUE</span>
+                <div class="color-badge">
+                  <span class="color-preview"></span>
+                  <span class="font-mono">#1A2533</span>
+                </div>
+              </div>
+              <div class="cc-item">
+                <span class="panel-label">KEY CONTRAST</span>
+                <div class="contrast-badge">
+                  <span class="dot-white"></span>
+                  <span class="font-mono">HIGH KEY</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="cards-list">
-            <div class="version-card active-card">
-              <div class="card-thumb empty-thumb">RAW THUMB</div>
-              <div class="card-title-zh">原图</div>
-              <div class="card-title-en">Original Raw</div>
-            </div>
-
-            <div class="version-card">
-              <div class="card-thumb">
-                <img
-                  src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=150&q=80" />
+          <div class="export-bar">
+            <div class="export-left">
+              <div class="export-icon-box">
+                <svg class="export-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </div>
-              <div class="card-title-zh">版本 04</div>
-              <div class="card-title-en">Active Selection</div>
-            </div>
-
-            <div class="version-card">
-              <div class="card-thumb grayscale-thumb">
-                <img
-                  src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=150&q=80" />
+              <div class="export-text">
+                <span class="export-title">EXPORT METADATA</span>
+                <span class="export-subtitle">JSON, TXT, XMP Compatible</span>
               </div>
-              <div class="card-title-zh">版本 03</div>
-              <div class="card-title-en">Cinematic Noir</div>
             </div>
-
-            <div class="version-card rendering-card">
-              <div class="card-thumb loading-thumb">
-                <div class="spinner"></div>
-                <span class="spinner-text">Rendering</span>
-              </div>
-              <div class="card-title-zh">版本 05</div>
-              <div class="card-title-en">AI Generating...</div>
-            </div>
+            <div class="export-arrow">&gt;</div>
           </div>
+
         </div>
 
       </div>
+    </main>
 
-      <div class="grid-right-col">
+    <button class="floating-prev-btn">&lt;</button>
 
-        <div class="scifi-panel exif-panel">
-          <div class="panel-main-content">
-            <div class="panel-header">
-              <div class="title-group">
-                <span class="panel-title-zh">EXIF 信息</span>
-                <span class="panel-title-en">Exif Data</span>
-              </div>
-              <span class="info-icon">ⓘ</span>
-            </div>
-
-            <div class="exif-list">
-              <div v-for="item in exifData" :key="item.label" class="exif-item">
-                <span class="exif-label">{{ item.label }}</span>
-                <span class="exif-value">{{ item.value }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-actions">
-            <button class="btn-reset">Reset</button>
-            <button class="btn-export">Export</button>
-          </div>
-        </div>
-
-        <div class="scifi-panel analysis-panel">
-          <div class="panel-header">
-            <div class="title-group">
-              <span class="panel-title-zh">AI 构图分析</span>
-              <span class="panel-title-en">Analysis</span>
-            </div>
-            <svg class="analysis-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-
-          <div class="composition-grid-box">
-            <div class="grid-lines-bg">
-              <div v-for="n in 16" :key="n" class="grid-cell"></div>
-            </div>
-            <div class="golden-ratio-box"></div>
-
-            <div class="focus-dot dot-primary"></div>
-            <div class="focus-dot dot-secondary"></div>
-
-            <span class="grid-data-tag">Golden Ratio Optimized</span>
-          </div>
-
-          <button class="btn-reanalyze">重新分析构图</button>
-        </div>
-
-      </div>
-
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const sliderPosition = ref(53)
-
-const exifData = ref([
-  { label: 'Camera', value: 'SONY ILCE-7M4' },
-  { label: 'Lens', value: 'FE 35mm F1.4 GM' },
-  { label: 'ISO', value: '100' },
-  { label: 'Shutter', value: '1/250s' },
-  { label: 'Aperture', value: 'f/1.4' },
-  { label: 'Focal Length', value: '35mm' },
-])
+// 纯静态面板展示，无需复杂逻辑处理
 </script>
 
 <style scoped>
 /* ==========================================================================
-   1. 基础版面样式 (Base & Layout)
+   1. 基础版面结构 & 变量全局复刻
    ========================================================================== */
-.scifi-container {
+.darkroom-container {
   min-height: 100vh;
-  background-color: #0d1117;
-  color: #adb5bd;
-  padding: 32px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #090d12;
+  color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 40px 40px 40px 100px;
+  position: relative;
   box-sizing: border-box;
 }
 
-.scifi-container * {
+.darkroom-container * {
   box-sizing: border-box;
 }
 
-.scifi-header {
+/* 左侧垂直侧边栏 */
+.sidebar-scroll {
+  position: absolute;
+  left: 32px;
+  top: 120px;
+  bottom: 40px;
+  width: 40px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 24px;
+  justify-content: flex-start;
+  gap: 32px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.section-tag {
-  font-size: 12px;
+.scroll-text {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #4b5563;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
   font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #22d3ee;
-  text-transform: uppercase;
 }
 
-.divider-line {
-  height: 1px;
-  width: 48px;
-  background-color: #374151;
-}
-
-.upload-btn {
+.scroll-dots {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: rgba(31, 41, 55, 0.5);
-  border: 1px solid rgba(55, 65, 81, 0.5);
-  border-radius: 9999px;
+}
+
+.scroll-dots .dot {
+  width: 4px;
+  height: 4px;
+  background-color: #374151;
+  border-radius: 50%;
+}
+
+.scroll-dots .dot.active {
+  background-color: #22d3ee;
+  box-shadow: 0 0 8px #22d3ee;
+  width: 6px;
+  height: 6px;
+}
+
+.section-num {
+  font-size: 11px;
+  font-weight: 700;
   color: #e5e7eb;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+  margin-top: auto;
+  font-family: monospace;
 }
 
-.upload-btn:hover {
-  background-color: #1f2937;
-  border-color: #4b5563;
+/* 主内容包裹层 */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.upload-icon {
-  width: 16px;
-  height: 16px;
+/* ==========================================================================
+   2. 头部标题区域样式
+   ========================================================================== */
+.darkroom-header {
+  margin-bottom: 36px;
+}
+
+.module-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.25em;
   color: #22d3ee;
+  margin-bottom: 8px;
 }
 
-/* 栅格网格 */
-.scifi-grid {
+.main-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  letter-spacing: 0.05em;
+}
+
+.en-title {
+  font-size: 28px;
+  font-weight: 300;
+  color: #4b5563;
+  margin-left: 12px;
+  font-family: "Times New Roman", serif;
+  letter-spacing: 0.1em;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #8b949e;
+  line-height: 1.6;
+  max-width: 680px;
+  margin: 0;
+}
+
+/* ==========================================================================
+   3. 工作区两栏栅格
+   ========================================================================== */
+.workspace-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 32px;
 }
 
-@media (max-width: 1024px) {
-  .scifi-grid {
+@media (max-width: 1150px) {
+  .workspace-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.grid-left-col {
-  display: flex;
-  flex-col: column;
-  flex-direction: column;
-  gap: 24px;
-}
-
 /* ==========================================================================
-   2. 图片对比核心组件样式 (Comparison Split Viewer)
+   4. 左侧：图片分析主视图
    ========================================================================== */
-.comparison-viewer {
+.image-viewer {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
   border-radius: 24px;
   overflow: hidden;
-  border: 1px solid #1f2937;
-  background-color: #111827;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  background-color: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
 }
 
-.image-layer {
-  position: absolute;
-  inset: 0;
+.source-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.original-layer-wrapper {
+/* 正在分析像素标签 */
+.analyzing-tag {
   position: absolute;
-  inset: 0;
-  user-select: none;
-  pointer-events: none;
-}
-
-.original-img {
-  filter: grayscale(100%) brightness(70%);
-}
-
-.badge {
-  position: absolute;
-  top: 16px;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  padding: 6px 12px;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  padding: 6px 14px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 10px;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   color: #d1d5db;
-}
-
-.badge-left {
-  left: 16px;
-}
-
-.badge-right {
-  right: 16px;
-}
-
-/* 拖拽中心中轴 */
-.slider-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #22d3ee;
-  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.handle-button {
-  width: 48px;
-  height: 48px;
-  border-radius: 50px;
-  background-color: #083344;
-  border: 2px solid #22d3ee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: #22d3ee;
-  text-transform: uppercase;
-  transform: translateX(-50%);
-  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
-}
-
-/* 隐藏的原生拖动滑块覆盖整张图 */
-.hidden-range-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: ew-resize;
-  z-index: 10;
-  margin: 0;
-}
-
-/* ==========================================================================
-   3. 版本历史卡片 (Versions Carousel)
-   ========================================================================== */
-.versions-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.section-title-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.title-group {
-  display: flex;
-  align-items: baseline;
   gap: 8px;
+  z-index: 2;
 }
 
-.title-zh {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.title-en {
-  font-size: 12px;
-  color: #6b7280;
-  font-family: monospace;
-  text-transform: uppercase;
-}
-
-.carousel-arrows {
-  display: flex;
-  gap: 8px;
-}
-
-.arrow-btn {
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background-color: #111827;
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.arrow-btn:hover {
-  border-color: #374151;
-  color: #ffffff;
-}
-
-.cards-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  .cards-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.version-card {
-  background-color: rgba(17, 24, 39, 0.3);
-  border: 1px solid rgba(31, 41, 55, 0.8);
-  padding: 8px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.version-card:hover {
-  border-color: #374151;
-}
-
-/* 激活选中的原图卡片样式 */
-.active-card {
-  background-color: rgba(17, 24, 39, 0.5);
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.2);
-}
-
-.card-thumb {
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.card-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.empty-thumb {
-  background: linear-gradient(135deg, #374151, #111827);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: #4b5563;
-}
-
-.grayscale-thumb img {
-  filter: saturate(50%);
-}
-
-.card-title-zh {
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.card-title-en {
-  font-size: 9px;
-  color: #6b7280;
-  font-family: monospace;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-/* 渲染状态卡片 */
-.rendering-card {
-  opacity: 0.6;
-}
-
-.loading-thumb {
-  background-color: #030712;
-  border: 1px solid #1f2937;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #4b5563;
-  border-top-color: #22d3ee;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.spinner-text {
-  font-size: 8px;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transform: scale(0.9);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ==========================================================================
-   4. 右侧科幻面板样式 (Panels & EXIF & Analysis)
-   ========================================================================== */
-.scifi-panel {
-  background-color: rgba(18, 24, 36, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 41, 55, 0.8);
-  border-radius: 24px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.exif-panel {
-  justify-content: space-between;
-  min-height: 380px;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.panel-title-zh {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.05em;
-}
-
-.panel-title-en {
-  font-size: 12px;
-  color: #6b7280;
-  font-family: monospace;
-  text-transform: uppercase;
-}
-
-.info-icon {
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.info-icon:hover {
-  color: #d1d5db;
-}
-
-/* EXIF 数据明细 */
-.exif-list {
-  display: flex;
-  flex-direction: column;
-  font-family: monospace;
-  font-size: 12px;
-}
-
-.exif-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(31, 41, 55, 0.6);
-}
-
-.exif-item:last-child {
-  border-bottom: none;
-}
-
-.exif-label {
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 11px;
-}
-
-.exif-value {
-  color: #e5e7eb;
-  font-weight: 500;
-}
-
-/* 按钮组 */
-.panel-actions {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn-reset {
-  padding: 12px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-reset:hover {
-  border-color: #4b5563;
-  color: #ffffff;
-}
-
-.btn-export {
-  padding: 12px;
-  border-radius: 12px;
-  background: linear-gradient(to right, #67e8f9, #a7f3d0);
-  border: none;
-  color: #000000;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.1);
-}
-
-.btn-export:hover {
-  background: linear-gradient(to right, #22d3ee, #6ee7b7);
-}
-
-/* AI 构图分析 */
-.analysis-panel {
-  gap: 20px;
-}
-
-.analysis-icon {
-  width: 16px;
-  height: 16px;
-  color: #22d3ee;
-}
-
-.composition-grid-box {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 16px;
-  background-color: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(17, 24, 39, 0.6);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 4x4 网格背景线 */
-.grid-lines-bg {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.grid-cell {
-  border: 0.5px solid #4b5563;
-}
-
-/* 核心黄金分割矩形框 */
-.golden-ratio-box {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  border: 1px dashed rgba(34, 211, 238, 0.2);
-  pointer-events: none;
-}
-
-/* 构图焦点 */
-.focus-dot {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.dot-primary {
-  top: 35%;
-  left: 40%;
-  width: 12px;
-  height: 12px;
-  background-color: #22d3ee;
-  box-shadow: 0 0 15px #22d3ee;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.dot-secondary {
-  top: 55%;
-  left: 55%;
-  width: 8px;
-  height: 8px;
+.pulse-dot {
+  width: 6px;
+  height: 6px;
   background-color: #9ca3af;
-  opacity: 0.6;
+  border-radius: 50%;
+  animation: pulse-gray 2s infinite;
 }
 
-@keyframes pulse {
+@keyframes pulse-gray {
 
   0%,
   100% {
     opacity: 1;
-    transform: scale(1);
   }
 
   50% {
-    opacity: .5;
-    transform: scale(1.1);
+    opacity: 0.4;
   }
 }
 
-.grid-data-tag {
+/* 科技感动态扫描线 */
+.scan-line {
   position: absolute;
-  bottom: 16px;
-  font-family: monospace;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #22d3ee;
-  background-color: rgba(8, 51, 68, 0.4);
-  backdrop-filter: blur(4px);
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(34, 211, 238, 0.2);
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0) 0%, rgba(34, 211, 238, 0.4) 50%, rgba(34, 211, 238, 0) 100%);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+  animation: scan 4s linear infinite;
+  pointer-events: none;
 }
 
-.btn-reanalyze {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background-color: rgba(17, 24, 39, 0.8);
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 500;
+@keyframes scan {
+  0% {
+    top: 10%;
+  }
+
+  50% {
+    top: 90%;
+  }
+
+  100% {
+    top: 10%;
+  }
+}
+
+/* 底部控制器与规格 */
+.viewer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: rgba(31, 41, 55, 0.2);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  border-radius: 9999px;
+  color: #e5e7eb;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-reanalyze:hover {
-  background-color: #1a2232;
-  border-color: #374151;
+.btn-secondary:hover {
+  background-color: rgba(31, 41, 55, 0.5);
+  border-color: #4b5563;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #e0f7fa;
+  border: none;
+  border-radius: 9999px;
+  color: #083344;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #22d3ee;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+}
+
+.meta-specs {
+  display: flex;
+  gap: 24px;
+  font-family: monospace;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.spec-label {
+  font-size: 9px;
+  color: #4b5563;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.spec-value {
+  font-size: 12px;
   color: #ffffff;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   5. 右侧：AI 洞察数据面板
+   ========================================================================== */
+.insight-panel {
+  background-color: rgba(17, 22, 32, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 24px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.panel-label {
+  font-size: 9px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #4b5563;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.insight-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  padding-left: 8px;
+  border-left: 2px solid #22d3ee;
+}
+
+.poetic-text {
+  font-size: 13px;
+  color: #acb5bd;
+  line-height: 1.7;
+  font-style: italic;
+  margin: 0;
+  background-color: rgba(0, 0, 0, 0.15);
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* 进度条样式 */
+.analysis-metrics {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-item {
+  margin-top: 14px;
+}
+
+.metric-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+}
+
+/* 底部标签分布 */
+.color-contrast-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 20px;
+}
+
+.color-badge,
+.contrast-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #ffffff;
+  width: fit-content;
+}
+
+.color-preview {
+  width: 10px;
+  height: 10px;
+  background-color: #1A2533;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-white {
+  width: 6px;
+  height: 6px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.font-mono {
+  font-family: monospace;
+}
+
+/* 元数据导出块 */
+.export-bar {
+  background-color: rgba(17, 22, 32, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-bar:hover {
+  background-color: rgba(26, 34, 49, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.export-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.export-icon-box {
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-icon {
+  width: 18px;
+  height: 18px;
+  color: #9ca3af;
+}
+
+.export-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.export-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.export-subtitle {
+  font-size: 10px;
+  color: #4b5563;
+  margin-top: 2px;
+}
+
+.export-arrow {
+  color: #4b5563;
+  font-size: 14px;
+  font-family: monospace;
+}
+
+/* ==========================================================================
+   6. 其他浮动微动效元素
+   ========================================================================== */
+.floating-prev-btn {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(31, 41, 55, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.floating-prev-btn:hover {
+  background-color: rgba(55, 65, 81, 0.6);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 </style>
