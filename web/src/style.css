@@ -14,5 +14,6 @@ body,
 }
 
 body {
-  background: transparent;
+  background-color: #576c90;
+  min-height: 100vh;
 }

@@ -29,20 +29,27 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background: linear-gradient(to right, #18212f, #2c3e50);
+  padding: 1.5rem 2rem;
+  /* 移除生硬背景，使用透明底色 */
+  background: transparent;
   color: white;
   width: 100%;
   margin: 0;
-  /* remove external spacing */
   box-sizing: border-box;
-  /* ensure padding doesn't cause overflow */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
+  transition: background 0.3s ease;
 }
+
+/* （可选）如果你以后想要用户滚动时变成不透明，可以在这加上一个 .scrolled class */
+.navigation-bar.scrolled {
+  background: rgba(11, 16, 30, 0.9);
+  backdrop-filter: blur(10px);
+}
+
 
 .logo {
   display: inline-flex;
