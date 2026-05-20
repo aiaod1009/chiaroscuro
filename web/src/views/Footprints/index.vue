@@ -1,14 +1,23 @@
 <template>
   <main class="footprints-page">
-    <section class="map-stage" aria-label="旅行足迹地图">
-      <svg class="travel-map" :viewBox="`0 0 ${mapWidth} ${mapHeight}`" role="img">
+    <section
+      ref="mapContainer"
+      class="map-stage"
+      :class="{ 'is-dragging': isDragging }"
+      @mousedown="handleMouseDown"
+      @mousemove="handleMouseMove"
+      @mouseup="handleMouseUp"
+      @mouseleave="handleMouseUp"
+      @wheel.prevent="handleWheel"
+    >
+      <svg class="travel-map" :viewBox="`0 0 ${svgWidth} ${svgHeight}`" role="img" aria-label="旅行足迹地图">
         <defs>
-          <filter id="regionGlow" x="-35%" y="-35%" width="170%" height="170%">
+          <filter id="mapGlow" x="-40%" y="-40%" width="180%" height="180%">
             <feGaussianBlur stdDeviation="8" result="blur" />
             <feColorMatrix
               in="blur"
               type="matrix"
-              values="1 0 0 0 1  0 0.56 0 0 0.52  0 0 0 0 0  0 0 0 0.85 0"
+              values="1 0 0 0 0.96  0 0.62 0 0 0.46  0 0 0 0 0.04  0 0 0 0.9 0"
               result="glow"
             />
             <feMerge>
@@ -16,188 +25,377 @@
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id="pinGlow" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="7" result="pinBlur" />
-            <feMerge>
-              <feMergeNode in="pinBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
 
-        <g v-if="countryPaths.length" class="world-layer">
+        <rect width="100%" height="100%" fill="#050a15" />
+
+        <g v-if="worldFeatures.length">
           <path
             v-for="country in countryPaths"
             :key="country.key"
             :d="country.d"
-            :class="{ 'is-highlighted': highlightedCountryIds.has(country.id) }"
+            :fill="country.visited ? visitedFill : unvisitedFill"
+            :stroke="country.visited ? visitedStroke : unvisitedStroke"
+            :stroke-width="strokeWidth"
+            :class="{ highlighted: country.visited }"
           />
         </g>
 
-        <g v-if="provincePaths.length" class="china-layer">
+        <g v-if="chinaFeatures.length">
           <path
             v-for="province in provincePaths"
             :key="province.key"
             :d="province.d"
-            :class="{ 'is-highlighted': highlightedProvinceNames.has(province.name) }"
+            :fill="province.visited ? visitedFill : unvisitedFill"
+            stroke="#3a4a70"
+            :stroke-width="chinaStrokeWidth"
+            :class="{ highlighted: province.visited }"
+            @click.stop="focusChina"
           />
         </g>
 
-        <g class="marker-layer">
+        <g>
           <g
-            v-for="spot in travelSpots"
-            :key="spot.name"
+            v-for="marker in markerPositions"
+            :key="marker.id"
             class="map-marker"
-            :transform="`translate(${project(spot.coords)[0]} ${project(spot.coords)[1]})`"
+            :transform="`translate(${marker.x}, ${marker.y})`"
+            @mouseenter="activeRegionId = marker.id"
+            @click.stop="activeRegionId = marker.id"
           >
-            <circle class="marker-halo" r="16" />
-            <circle class="marker-dot" r="7" />
-            <circle class="marker-core" r="4" />
+            <circle :r="marker.hovered ? 18 : 12" fill="#f59e0b" :opacity="marker.hovered ? 0.42 : 0.25" />
+            <circle :r="marker.hovered ? 6.5 : 4.8" fill="#fbbf24" stroke="#fff" stroke-width="1.2" />
           </g>
         </g>
       </svg>
 
-      <aside class="location-card">
+      <aside v-if="activeRegion" class="location-card" @mousedown.stop @wheel.stop>
         <div class="card-heading">
-          <h1>浙江</h1>
-          <span>1 个相册 · 21 张</span>
+          <h1>{{ activeRegion.name }}</h1>
+          <span>{{ activeRegion.albums }} 个相册 · {{ activeRegion.photoCount }} 张</span>
         </div>
         <div class="photo-grid">
-          <img v-for="photo in zhejiangPhotos" :key="photo.src" :src="photo.src" :alt="photo.alt" />
+          <img v-for="photo in activeRegion.photos" :key="photo.src" :src="photo.src" :alt="photo.alt" />
         </div>
         <button class="view-all" type="button">查看全部 →</button>
       </aside>
+
+      <div class="map-controls" @mousedown.stop @wheel.stop>
+        <button type="button" @click="resetWorld">世界视图</button>
+        <span></span>
+        <button type="button" @click="focusChina">中国视图</button>
+        <span></span>
+        <p>滚轮缩放 · 拖拽移动</p>
+      </div>
     </section>
   </main>
 </template>
 
 <script>
-const MAP_WIDTH = 1440;
-const MAP_HEIGHT = 820;
+import { geoCentroid, geoNaturalEarth1, geoPath } from 'd3-geo';
+import { feature as topoFeature } from 'topojson-client';
+
+const SVG_WIDTH = 1400;
+const SVG_HEIGHT = 820;
+const MAP_ASPECT_RATIO = 0.6;
+const EDGE_PADDING_X = 80;
+const EDGE_PADDING_Y = 80;
+const ZOOM_SCALE_X = 1;
+const ZOOM_SCALE_Y = 1.4;
+const BASE_SCALE = Math.min(
+  SVG_WIDTH / (2 * Math.PI),
+  SVG_HEIGHT / (2 * Math.PI * MAP_ASPECT_RATIO)
+) * 0.8;
+
+const COUNTRY_NAME_TO_CODE = {
+  China: 'CN',
+  Japan: 'JP',
+  Iceland: 'IS',
+  'United States': 'US',
+  'United States of America': 'US',
+  'South Korea': 'KR',
+  Singapore: 'SG',
+};
+
+const MAP_CODE_TO_ADCODE = {
+  'CN-11': 110000,
+  'CN-12': 120000,
+  'CN-13': 130000,
+  'CN-14': 140000,
+  'CN-15': 150000,
+  'CN-21': 210000,
+  'CN-22': 220000,
+  'CN-23': 230000,
+  'CN-31': 310000,
+  'CN-32': 320000,
+  'CN-33': 330000,
+  'CN-34': 340000,
+  'CN-35': 350000,
+  'CN-36': 360000,
+  'CN-37': 370000,
+  'CN-41': 410000,
+  'CN-42': 420000,
+  'CN-43': 430000,
+  'CN-44': 440000,
+  'CN-45': 450000,
+  'CN-46': 460000,
+  'CN-50': 500000,
+  'CN-51': 510000,
+  'CN-52': 520000,
+  'CN-53': 530000,
+  'CN-54': 540000,
+  'CN-61': 610000,
+  'CN-62': 620000,
+  'CN-63': 630000,
+  'CN-64': 640000,
+  'CN-65': 650000,
+  'CN-HK': 810000,
+  'CN-MO': 820000,
+  'CN-TW': 710000,
+};
 
 export default {
   name: 'FootprintsView',
   data() {
     return {
-      mapWidth: MAP_WIDTH,
-      mapHeight: MAP_HEIGHT,
-      countryPaths: [],
-      provincePaths: [],
-      highlightedCountryIds: new Set(['156', '840']),
-      highlightedProvinceNames: new Set(['浙江省', '四川省', '重庆市']),
-      travelSpots: [
-        { name: '浙江', coords: [120.15, 30.27] },
-        { name: '上海', coords: [121.47, 31.23] },
-        { name: '北京', coords: [116.4, 39.9] },
-        { name: '重庆', coords: [106.55, 29.56] },
-        { name: '成都', coords: [104.06, 30.67] },
-        { name: '曼谷', coords: [100.5, 13.76] },
-        { name: '旧金山', coords: [-122.42, 37.77] },
-      ],
-      zhejiangPhotos: [
-        { src: '/DSC_6174.jpg', alt: '浙江旅行照片 1' },
-        { src: '/DSC_6510.jpg', alt: '浙江旅行照片 2' },
-        { src: '/DSC_6760.JPG', alt: '浙江旅行照片 3' },
-        { src: '/pashan.JPG', alt: '浙江旅行照片 4' },
-        { src: '/DSC_6174.jpg', alt: '浙江旅行照片 5' },
-        { src: '/DSC_6510.jpg', alt: '浙江旅行照片 6' },
+      svgWidth: SVG_WIDTH,
+      svgHeight: SVG_HEIGHT,
+      worldFeatures: [],
+      chinaFeatures: [],
+      zoom: 1.8,
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      dragStart: { x: 0, y: 0, panX: 0, panY: 0 },
+      activeRegionId: 'zhejiang',
+      unvisitedFill: '#1a2035',
+      unvisitedStroke: '#2a3555',
+      visitedFill: '#f59e0b',
+      visitedStroke: '#2d3a55',
+      regions: [
+        {
+          id: 'zhejiang',
+          name: '浙江',
+          coordinates: [120.15, 30.27],
+          mapCode: 'CN-33',
+          albums: 1,
+          photoCount: 21,
+          photos: [
+            { src: '/DSC_6174.jpg', alt: '浙江旅行照片 1' },
+            { src: '/DSC_6510.jpg', alt: '浙江旅行照片 2' },
+            { src: '/DSC_6760.JPG', alt: '浙江旅行照片 3' },
+            { src: '/pashan.JPG', alt: '浙江旅行照片 4' },
+            { src: '/DSC_6174.jpg', alt: '浙江旅行照片 5' },
+            { src: '/DSC_6510.jpg', alt: '浙江旅行照片 6' },
+          ],
+        },
+        {
+          id: 'sichuan',
+          name: '四川',
+          coordinates: [104.06, 30.67],
+          mapCode: 'CN-51',
+          albums: 1,
+          photoCount: 8,
+          photos: [
+            { src: '/DSC_6510.jpg', alt: '四川旅行照片 1' },
+            { src: '/DSC_6760.JPG', alt: '四川旅行照片 2' },
+            { src: '/DSC_6174.jpg', alt: '四川旅行照片 3' },
+            { src: '/pashan.JPG', alt: '四川旅行照片 4' },
+          ],
+        },
+        {
+          id: 'usa',
+          name: '美国',
+          coordinates: [-122.42, 37.77],
+          mapCode: 'US',
+          albums: 1,
+          photoCount: 12,
+          photos: [
+            { src: '/DSC_6760.JPG', alt: '美国旅行照片 1' },
+            { src: '/DSC_6510.jpg', alt: '美国旅行照片 2' },
+            { src: '/DSC_6174.jpg', alt: '美国旅行照片 3' },
+          ],
+        },
       ],
     };
   },
+  computed: {
+    projection() {
+      return geoNaturalEarth1()
+        .scale(BASE_SCALE * this.zoom)
+        .rotate([-150, 0, 0])
+        .translate([SVG_WIDTH / 2 + this.panX, SVG_HEIGHT / 2 + this.panY]);
+    },
+    pathGenerator() {
+      return geoPath().projection(this.projection);
+    },
+    visitedCountries() {
+      return new Set(this.regions.map((region) => region.mapCode).filter((code) => !code.startsWith('CN-')));
+    },
+    visitedProvinces() {
+      return new Set(
+        this.regions
+          .map((region) => MAP_CODE_TO_ADCODE[region.mapCode])
+          .filter(Boolean)
+      );
+    },
+    strokeWidth() {
+      return Math.max(0.3, Math.min(1.5, 0.5 * Math.sqrt(this.zoom)));
+    },
+    chinaStrokeWidth() {
+      return Math.max(0.5, Math.min(2, 1.2 * Math.sqrt(this.zoom)));
+    },
+    countryPaths() {
+      return this.worldFeatures
+        .filter((country) => country.properties?.name !== 'China')
+        .map((country, index) => {
+          const code = COUNTRY_NAME_TO_CODE[country.properties?.name];
+          const visited = Boolean(code && this.visitedCountries.has(code));
+          return {
+            key: country.id || `country-${index}`,
+            d: this.pathGenerator(country) || '',
+            visited,
+          };
+        });
+    },
+    provincePaths() {
+      return this.chinaFeatures.map((province, index) => {
+        const adcode = province.properties?.adcode;
+        return {
+          key: adcode || `province-${index}`,
+          d: this.pathGenerator(province) || '',
+          visited: this.visitedProvinces.has(adcode),
+        };
+      });
+    },
+    markerPositions() {
+      return this.regions
+        .map((region) => {
+          let coordinates = region.coordinates;
+          const adcode = MAP_CODE_TO_ADCODE[region.mapCode];
+          const province = adcode
+            ? this.chinaFeatures.find((feature) => feature.properties?.adcode === adcode)
+            : null;
+
+          if (province) {
+            coordinates = geoCentroid(province);
+          }
+
+          const projected = this.projection(coordinates);
+          if (!projected) {
+            return null;
+          }
+
+          return {
+            ...region,
+            x: projected[0],
+            y: projected[1],
+            hovered: this.activeRegionId === region.id,
+          };
+        })
+        .filter(Boolean);
+    },
+    activeRegion() {
+      return this.regions.find((region) => region.id === this.activeRegionId) || this.regions[0];
+    },
+  },
   async mounted() {
-    const [world, china] = await Promise.all([
+    const [worldTopo, chinaGeo] = await Promise.all([
       fetch('/maps/world.json').then((response) => response.json()),
       fetch('/maps/china.json').then((response) => response.json()),
     ]);
 
-    this.countryPaths = this.topologyToFeatures(world, 'countries')
-      .filter((feature) => feature.properties?.name !== 'Antarctica')
-      .map((feature, index) => ({
-        key: `${feature.id || 'country'}-${index}`,
-        id: String(feature.id || ''),
-        d: this.featureToPath(feature),
-      }));
-
-    this.provincePaths = china.features.map((feature, index) => ({
-      key: `${feature.properties?.adcode || 'province'}-${index}`,
-      name: feature.properties?.name || '',
-      d: this.featureToPath(feature),
-    }));
+    this.worldFeatures = topoFeature(worldTopo, worldTopo.objects.countries).features;
+    this.chinaFeatures = chinaGeo.features || topoFeature(chinaGeo, chinaGeo.objects.china).features;
   },
   methods: {
-    project([longitude, latitude]) {
-      const x = ((longitude + 180) / 360) * this.mapWidth;
-      const y = ((90 - latitude) / 180) * this.mapHeight;
-      return [x, y];
+    calcMaxPan(mapSize, viewportSize, currentZoom, basePadding, zoomScale) {
+      const effectivePadding = basePadding * currentZoom * zoomScale;
+      if (mapSize <= viewportSize) {
+        return (viewportSize - mapSize) / 2 + effectivePadding;
+      }
+      return (mapSize - viewportSize) / 2 + effectivePadding;
     },
-    featureToPath(feature) {
-      const geometry = feature.geometry;
+    clampPan(px, py, z) {
+      const mapWidth = BASE_SCALE * 2 * Math.PI * z;
+      const mapHeight = mapWidth * MAP_ASPECT_RATIO;
+      const maxPanX = this.calcMaxPan(mapWidth, SVG_WIDTH, z, EDGE_PADDING_X, ZOOM_SCALE_X);
+      const maxPanY = this.calcMaxPan(mapHeight, SVG_HEIGHT, z, EDGE_PADDING_Y, ZOOM_SCALE_Y);
 
-      if (!geometry) {
-        return '';
+      return {
+        x: Math.max(-maxPanX, Math.min(maxPanX, px)),
+        y: Math.max(-maxPanY, Math.min(maxPanY, py)),
+      };
+    },
+    handleMouseDown(event) {
+      if (event.button !== 0) {
+        return;
       }
 
-      const polygons = geometry.type === 'Polygon'
-        ? [geometry.coordinates]
-        : geometry.coordinates;
-
-      return polygons
-        .map((polygon) => polygon
-          .map((ring) => this.ringToPath(ring))
-          .join(' '))
-        .join(' ');
+      this.isDragging = true;
+      this.dragStart = {
+        x: event.clientX,
+        y: event.clientY,
+        panX: this.panX,
+        panY: this.panY,
+      };
     },
-    ringToPath(ring) {
-      if (!ring?.length) {
-        return '';
+    handleMouseMove(event) {
+      if (!this.isDragging) {
+        return;
       }
 
-      return ring
-        .map((point, index) => {
-          const [x, y] = this.project(point);
-          return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
-        })
-        .join(' ')
-        .concat(' Z');
+      const dx = event.clientX - this.dragStart.x;
+      const dy = event.clientY - this.dragStart.y;
+      const clamped = this.clampPan(this.dragStart.panX + dx, this.dragStart.panY + dy, this.zoom);
+      this.panX = clamped.x;
+      this.panY = clamped.y;
     },
-    topologyToFeatures(topology, objectName) {
-      const transform = topology.transform;
-      const arcs = topology.arcs.map((arc) => {
-        let x = 0;
-        let y = 0;
-
-        return arc.map(([dx, dy]) => {
-          x += dx;
-          y += dy;
-          return [
-            x * transform.scale[0] + transform.translate[0],
-            y * transform.scale[1] + transform.translate[1],
-          ];
-        });
-      });
-
-      return topology.objects[objectName].geometries.map((geometry) => ({
-        type: 'Feature',
-        id: geometry.id,
-        properties: geometry.properties,
-        geometry: {
-          type: geometry.type,
-          coordinates: this.arcsToCoordinates(geometry.arcs, geometry.type, arcs),
-        },
-      }));
+    handleMouseUp() {
+      this.isDragging = false;
     },
-    arcsToCoordinates(sourceArcs, type, arcs) {
-      if (type === 'Polygon') {
-        return sourceArcs.map((ring) => this.joinArcs(ring, arcs));
+    handleWheel(event) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const mouseX = ((event.clientX - rect.left) / rect.width) * SVG_WIDTH;
+      const mouseY = ((event.clientY - rect.top) / rect.height) * SVG_HEIGHT;
+      const offsetX = mouseX - SVG_WIDTH / 2 - this.panX;
+      const offsetY = mouseY - SVG_HEIGHT / 2 - this.panY;
+      const delta = event.deltaY > 0 ? 0.9 : 1.1;
+      const nextZoom = Math.max(1.5, Math.min(10, this.zoom * delta));
+
+      if (nextZoom === this.zoom) {
+        return;
       }
 
-      return sourceArcs.map((polygon) => polygon.map((ring) => this.joinArcs(ring, arcs)));
+      const zoomRatio = nextZoom / this.zoom;
+      const nextPanX = this.panX - offsetX * (zoomRatio - 1);
+      const nextPanY = this.panY - offsetY * (zoomRatio - 1);
+      const clamped = this.clampPan(nextPanX, nextPanY, nextZoom);
+
+      this.zoom = nextZoom;
+      this.panX = clamped.x;
+      this.panY = clamped.y;
     },
-    joinArcs(ring, arcs) {
-      return ring.flatMap((arcIndex, index) => {
-        const arc = arcIndex >= 0 ? arcs[arcIndex] : [...arcs[-arcIndex - 1]].reverse();
-        return index === 0 ? arc : arc.slice(1);
-      });
+    focusChina() {
+      const nextZoom = 7;
+      const projection = geoNaturalEarth1()
+        .scale(BASE_SCALE * nextZoom)
+        .rotate([-150, 0, 0])
+        .translate([SVG_WIDTH / 2, SVG_HEIGHT / 2]);
+      const chinaCenter = projection([105, 35]);
+
+      if (!chinaCenter) {
+        return;
+      }
+
+      this.zoom = nextZoom;
+      this.panX = SVG_WIDTH / 2 - chinaCenter[0];
+      this.panY = SVG_HEIGHT / 2 - chinaCenter[1];
+    },
+    resetWorld() {
+      this.zoom = 1.8;
+      this.panX = 0;
+      this.panY = 0;
     },
   },
 };
@@ -208,7 +406,7 @@ export default {
   min-height: 100vh;
   margin-top: -5rem;
   padding-top: 5rem;
-  background: #050a14;
+  background: #050a15;
   color: #fff;
   overflow: hidden;
 }
@@ -217,71 +415,48 @@ export default {
   position: relative;
   min-height: calc(100vh - 5rem);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 70% 36%, rgba(245, 158, 11, 0.08), transparent 18rem),
-    #050a14;
+  background: #050a15;
+  cursor: grab;
+  user-select: none;
+}
+
+.map-stage.is-dragging {
+  cursor: grabbing;
 }
 
 .travel-map {
   width: 100%;
   height: calc(100vh - 5rem);
-  min-height: 620px;
+  min-height: 720px;
   display: block;
 }
 
-.world-layer path {
-  fill: #1b2439;
-  stroke: #2d3d63;
-  stroke-width: 1.1;
+path {
   vector-effect: non-scaling-stroke;
-  transition: fill 0.25s ease, filter 0.25s ease;
 }
 
-.world-layer path.is-highlighted,
-.china-layer path.is-highlighted {
-  fill: #f7a20b;
-  stroke: #ffbd32;
-  filter: url(#regionGlow);
+path.highlighted {
+  filter: url(#mapGlow);
 }
 
-.china-layer path {
-  fill: transparent;
-  stroke: #34476f;
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.marker-layer {
-  pointer-events: none;
-}
-
-.marker-halo {
-  fill: rgba(247, 162, 11, 0.28);
-  filter: url(#pinGlow);
-}
-
-.marker-dot {
-  fill: #f5a012;
-  stroke: rgba(255, 255, 255, 0.9);
-  stroke-width: 1.5;
-}
-
-.marker-core {
-  fill: #fff4c7;
+.map-marker {
+  cursor: pointer;
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.55));
+  transition: opacity 0.2s ease;
 }
 
 .location-card {
   position: absolute;
-  right: 4.2vw;
-  top: 28%;
-  width: min(525px, 36vw);
+  right: 6vw;
+  top: 29%;
+  width: min(525px, 34vw);
   padding: 28px 30px 30px;
-  border: 1px solid rgba(247, 162, 11, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.58);
   border-radius: 12px;
-  background: rgba(3, 7, 14, 0.9);
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(12px);
+  background: rgba(4, 7, 13, 0.9);
+  box-shadow: 0 0 24px rgba(234, 88, 12, 0.22), 0 22px 70px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  cursor: default;
 }
 
 .card-heading {
@@ -294,13 +469,13 @@ export default {
 
 .card-heading h1 {
   margin: 0;
-  font-size: 1.8rem;
+  font-size: 1.85rem;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .card-heading span {
-  color: #9ba9c0;
+  color: #9ca7b8;
   font-size: 0.95rem;
   white-space: nowrap;
 }
@@ -323,32 +498,66 @@ export default {
   width: 100%;
   height: 38px;
   margin-top: 20px;
-  border: 1px solid rgba(247, 162, 11, 0.48);
+  border: 1px solid rgba(245, 158, 11, 0.38);
   border-radius: 8px;
-  background: rgba(247, 162, 11, 0.28);
+  background: rgba(245, 158, 11, 0.28);
   color: #ffc84a;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.view-all:hover {
-  background: rgba(247, 162, 11, 0.38);
-  transform: translateY(-1px);
+.map-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(5, 10, 21, 0.88);
+  border-top: 1px solid rgba(42, 53, 85, 0.82);
+  backdrop-filter: blur(10px);
+  cursor: default;
+}
+
+.map-controls button {
+  border: 0;
+  background: transparent;
+  color: #8e98aa;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.map-controls button:hover {
+  color: #e5e7eb;
+}
+
+.map-controls span {
+  width: 1px;
+  height: 14px;
+  background: #293247;
+}
+
+.map-controls p {
+  margin: 0;
+  color: #6f7a8d;
+  font-size: 0.82rem;
 }
 
 @media (max-width: 1100px) {
   .travel-map {
-    width: 1320px;
+    width: 1250px;
     max-width: none;
-    transform: translateX(-260px);
+    transform: translateX(-250px);
     transform-origin: left center;
   }
 
   .location-card {
     top: auto;
     right: 20px;
-    bottom: 24px;
+    bottom: 72px;
     left: 20px;
     width: auto;
     padding: 22px;
@@ -356,18 +565,10 @@ export default {
 }
 
 @media (max-width: 680px) {
-  .map-stage {
-    min-height: 100vh;
-  }
-
   .travel-map {
     width: 1120px;
-    min-height: 560px;
-    transform: translateX(-400px);
-  }
-
-  .location-card {
-    padding: 18px;
+    min-height: 620px;
+    transform: translateX(-420px);
   }
 
   .card-heading {
@@ -377,12 +578,12 @@ export default {
     margin-bottom: 16px;
   }
 
-  .card-heading h1 {
-    font-size: 1.45rem;
-  }
-
   .photo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .map-controls {
     gap: 10px;
   }
 }
