@@ -3,7 +3,7 @@ import Home from '../views/Home/index.vue';
 import Archive from '../views/Archive/index.vue';
 import AILab from '../views/AlLab/index.vue';
 import Footprints from '../views/Footprints/index.vue';
-import About from '../views/About.vue';
+import About from '../views/About/index.vue';
 import GalleryDetail from '../views/GalleryDetail/index.vue';
 
 const routes = [
