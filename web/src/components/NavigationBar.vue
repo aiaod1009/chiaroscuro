@@ -7,7 +7,7 @@
     <div class="nav-links">
       <router-link to="/">HOME</router-link>
       <router-link to="/archive">ARCHIVE</router-link>
-      <router-link to="/ai-lab">AI LAB</router-link>
+      <router-link to="/console">CONSOLE</router-link>
       <router-link to="/footprints">FOOTPRINTS</router-link>
       <router-link to="/about">ABOUT</router-link>
     </div>
