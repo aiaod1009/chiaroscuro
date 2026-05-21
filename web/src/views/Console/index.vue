@@ -1,551 +1,739 @@
 <template>
-  <div class="darkroom-bg-preview">
+  <div class="drafts-dashboard">
+    <aside class="sidebar-panel">
+      <div class="brand-header">
+        <h1 class="main-title-zh">草稿箱</h1>
+        <div class="brand-sub">
+          <span class="sub-en">CONSOLE</span>
+          <span class="sub-count">Drafts <span class="highlight-num">03</span></span>
+        </div>
+      </div>
 
-    <div class="modal-overlay">
-      <div class="upload-modal-glass">
+      <p class="panel-desc">
+        Manage your photographic narratives and unprocessed visual footprints.
+      </p>
 
-        <header class="modal-header">
-          <div class="header-title">
-            <h2 class="title-zh">上传影像</h2>
-            <span class="title-en">UPLOAD IMAGES</span>
+      <div class="upload-box-card">
+        <div class="cloud-icon-circle">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
+          </svg>
+        </div>
+        <span class="upload-title">Upload visual assets</span>
+        <span class="upload-formats">JPG / PNG / RAW</span>
+        <button class="btn-batch-upload">Batch Upload</button>
+      </div>
+
+      <div class="ai-queue-card">
+        <div class="queue-info">
+          <div class="queue-left">
+            <span class="sparkle-icon">✦</span>
+            <span class="queue-label">AI QUEUE</span>
           </div>
-          <button class="btn-close" @click="$emit('close')">✕</button>
-        </header>
+          <span class="queue-value">12 Frames</span>
+        </div>
+        <div class="queue-progress-track">
+          <div class="queue-progress-bar" style="width: 45%;"></div>
+        </div>
+      </div>
 
-        <div class="modal-body">
-
-          <div class="upload-left-col">
-            <div class="outer-dash-bounds" :class="{ 'is-dragover': isDragOver }" @dragover.prevent="isDragOver = true"
-              @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="triggerFileInput">
-              <input type="file" ref="fileInputRef" multiple accept=".raw,.jpg,.jpeg,.png,.tiff"
-                class="hidden-file-input" @change="handleFileChange" />
-
-              <div class="inner-glass-card">
-                <div class="upload-icon-wrapper">
-                  <svg class="upload-cloud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
-                      d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
-                  </svg>
-                </div>
-                <p class="dropzone-hint-main">拖拽文件到此处，或<span>点击选择</span></p>
-                <p class="dropzone-hint-sub">支持 RAW / JPG / PNG / TIFF 格式</p>
-              </div>
-            </div>
-
-            <div class="upload-status-bar-glass">
-              <button class="btn-select-file" @click.stop="triggerFileInput">选择文件</button>
-              <div class="file-summary" v-if="selectedFilesCount > 0">
-                <span class="summary-text">已选择 {{ selectedFilesCount }} 个文件</span>
-                <span class="summary-size">共 {{ totalFilesSize }}</span>
-              </div>
-              <button class="btn-continue-add" v-if="selectedFilesCount > 0" @click.stop="triggerFileInput">
-                继续添加
-              </button>
-            </div>
+      <nav class="filter-navigation">
+        <button v-for="nav in filterNavs" :key="nav.id" class="nav-item" :class="{ active: currentCategory === nav.id }"
+          @click="currentCategory = nav.id">
+          <div class="nav-left">
+            <span class="status-dot" :style="{ backgroundColor: nav.dotColor }"></span>
+            <span class="nav-name">{{ nav.name }}</span>
           </div>
+          <span class="nav-count">{{ nav.count }}</span>
+        </button>
+      </nav>
+    </aside>
 
-          <div class="upload-right-col">
+    <main class="content-main">
+      <header class="top-filter-bar">
+        <div class="dropdown-filters">
+          <div class="custom-dropdown">
+            <span>Time</span> <span class="arrow-down">▼</span>
+          </div>
+          <div class="custom-dropdown">
+            <span>Location</span> <span class="arrow-down">▼</span>
+          </div>
+        </div>
 
-            <div class="form-fields-stack">
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">上传到作品集</span>
-                  <span class="label-en">SELECT COLLECTION</span>
-                </label>
-                <div class="select-wrapper">
-                  <select v-model="formData.collection">
-                    <option value="秘境之巅">秘境之巅</option>
-                    <option value="极地光影">极地光影</option>
-                    <option value="城市漫步">城市漫步</option>
-                  </select>
-                  <span class="select-arrow"></span>
-                </div>
-              </div>
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search visual chronicles..." v-model="searchQuery" />
+        </div>
 
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">拍摄地点</span>
-                  <span class="label-en">LOCATION</span>
-                </label>
-                <input type="text" v-model="formData.location" placeholder="请输入拍摄地点" class="form-input" />
-              </div>
+        <div class="view-toggle-btns">
+          <button class="view-btn active">
+            <svg class="v-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
+            </svg>
+          </button>
+          <button class="view-btn">
+            <svg class="v-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
 
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">省份 / 区域</span>
-                  <span class="label-en">PROVINCE / REGION</span>
-                </label>
-                <div class="select-wrapper">
-                  <select v-model="formData.region">
-                    <option value="雷克雅未克 Reykjaík">雷克雅未克 Reykjaík</option>
-                    <option value="阿克雷里 Akureyri">阿克雷里 Akureyri</option>
-                    <option value="维克 Vík">维克 Vík</option>
-                  </select>
-                  <span class="select-arrow"></span>
-                </div>
-              </div>
-            </div>
+      <div class="assets-grid-flow">
 
-            <div class="form-actions">
-              <button class="btn-cancel" @click="$emit('close')">取消</button>
-              <button class="btn-submit" :disabled="selectedFilesCount === 0" @click="handleUpload">
-                开始上传
-              </button>
-            </div>
-
+        <div v-for="item in mockDrafts" :key="item.id" class="asset-card">
+          <div class="card-top-overlay">
+            <div class="checkbox-hollow"></div>
+            <button class="btn-more-actions">•••</button>
           </div>
 
+          <img :src="item.imgUrl" :alt="item.title" class="asset-img" />
+
+          <div class="card-bottom-glass">
+            <div class="info-left">
+              <h3 class="asset-title">{{ item.title }}</h3>
+              <p class="asset-meta">{{ item.date }} • {{ item.location }}</p>
+            </div>
+            <span class="format-badge">{{ item.format }}</span>
+          </div>
+        </div>
+
+        <div class="asset-empty-placeholder-card">
+          <div class="placeholder-content">
+            <div class="folder-icon">📂</div>
+            <span class="placeholder-main">0 selected assets</span>
+            <div class="placeholder-actions">
+              <button class="btn-p-action">SELECT ALL</button>
+              <button class="btn-p-action">CLEAR</button>
+            </div>
+          </div>
         </div>
 
       </div>
-    </div>
 
+      <footer class="pagination-footer">
+        <button class="page-arrow" :disabled="currentPage === 1" @click="currentPage--">&lt;</button>
+        <div class="page-numbers">
+          <button v-for="p in pageRange" :key="p" class="page-num-btn"
+            :class="{ active: currentPage === p, 'is-dot': p === '...' }" :disabled="p === '...'"
+            @click="currentPage = p">
+            {{ p }}
+          </button>
+        </div>
+        <button class="page-arrow" :disabled="currentPage === 12" @click="currentPage++">&gt;</button>
+      </footer>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 
-const isDragOver = ref(false)
-const fileInputRef = ref(null)
+const currentCategory = ref('all')
+const searchQuery = ref('')
+const currentPage = ref(1)
 
-// 深度对齐设计稿的初始状态数据
-const selectedFilesCount = ref(12)
-const totalFilesSize = ref('68.4 MB')
+// 左侧分类过滤器源
+const filterNavs = ref([
+  { id: 'all', name: 'All Drafts', count: 24, dotColor: '#ffffff' },
+  { id: 'processing', name: 'Processing', count: '08', dotColor: '#64748b' },
+  { id: 'ready', name: 'Ready', count: 13, dotColor: '#475569' }
+])
 
-const formData = reactive({
-  collection: '秘境之巅',
-  location: '冰岛',
-  region: '雷克雅未克 Reykjaík'
-})
+// 底部分页模拟数组
+const pageRange = ref([1, 2, 3, '...', 12])
 
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
-
-const handleFileChange = (event) => {
-  const files = event.target.files
-  if (files && files.length > 0) {
-    processFiles(files)
-  }
-}
-
-const handleDrop = (event) => {
-  isDragOver.value = false
-  const files = event.dataTransfer?.files
-  if (files && files.length > 0) {
-    processFiles(files)
-  }
-}
-
-const processFiles = (files) => {
-  selectedFilesCount.value = files.length
-  let fakeSize = (files.length * 5.7).toFixed(1)
-  totalFilesSize.value = `${fakeSize} MB`
-}
-
-const handleUpload = () => {
-  console.log('提交队列:', selectedFilesCount.value, { ...formData })
-  alert('开始上传影像序列...')
-}
+// 深度还原设计稿中 5 张图片的元数据（包含特定格式与路径）
+const mockDrafts = ref([
+  { id: 1, title: 'DSC_6510', date: 'JUNE 03, 2025', location: 'ICELAND', format: 'RAW', imgUrl: '/DSC_6510.jpg' },
+  { id: 2, title: 'DSC_0920', date: 'JUNE 02, 2025', location: 'PASHAN', format: 'JPG', imgUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80' },
+  { id: 3, title: 'DSC_6174', date: 'MAY 31, 2025', location: 'SWISS ALPS', format: 'RAW', imgUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80' },
+  { id: 4, title: 'DSC_0917', date: 'MAY 30, 2025', location: 'DOLOMITES', format: 'RAW', imgUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80' },
+  { id: 5, title: 'DSC_0916', date: 'MAY 29, 2025', location: 'NORWAY', format: 'JPG', imgUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80' }
+])
 </script>
 
 <style scoped>
 /* ==========================================================================
-   1. 预览底衬与弹窗基础毛玻璃设置
+   1. 页面大框架基座 Layout
    ========================================================================== */
-.darkroom-bg-preview {
-  position: relative;
-  width: 100%;
+.drafts-dashboard {
   min-height: 100vh;
-  background-color: #0b0f17;
-  /* 模拟后方有模糊的自然/风景大图打底，以完美展现前端的毛玻璃穿透感 */
-  background-image: radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.15), transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(15, 23, 42, 0.8), transparent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.darkroom-bg-preview * {
-  box-sizing: border-box;
-}
-
-.modal-overlay {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-/* 主面板高阶毛玻璃 */
-.upload-modal-glass {
-  width: 100%;
-  max-width: 920px;
-  background: rgba(23, 30, 43, 0.65);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-  padding: 40px;
-  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* ==========================================================================
-   2. 头部标题排版
-   ========================================================================== */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 32px;
-}
-
-.header-title {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.title-zh {
-  font-size: 22px;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: 0.04em;
-}
-
-.title-en {
-  font-size: 11px;
-  font-family: monospace;
-  color: #64748b;
-  letter-spacing: 0.18em;
-  font-weight: 700;
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  color: #64748b;
-  font-size: 16px;
-  cursor: pointer;
-  transition: color 0.2s;
-  padding: 4px;
-}
-
-.btn-close:hover {
-  color: #ffffff;
-}
-
-/* ==========================================================================
-   3. 双栏栅格
-   ========================================================================== */
-.modal-body {
+  background-color: #0d0f12;
+  color: #c9d1d9;
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 40px;
+  grid-template-columns: 280px 1fr;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  margin-top: -5rem;
+  padding: 5rem 60px 0 60px;
 }
 
-@media (max-width: 820px) {
-  .modal-body {
+.drafts-dashboard * {
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .drafts-dashboard {
     grid-template-columns: 1fr;
   }
 }
 
 /* ==========================================================================
-   4. 左侧：圆角双层嵌套拖拽区
+   2. 左侧控制面板样式栏 (Sidebar Panel)
    ========================================================================== */
-.upload-left-col {
+.sidebar-panel {
+  padding: 40px 24px;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
-/* 外层白虚线轮廓 */
-.outer-dash-bounds {
-  width: 100%;
-  aspect-ratio: 1.42 / 1;
-  border: 1.5px dashed rgba(255, 255, 255, 0.25);
-  border-radius: 20px;
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.brand-header {
+  margin-bottom: 12px;
 }
 
-.outer-dash-bounds:hover,
-.outer-dash-bounds.is-dragover {
-  border-color: #93c5fd;
+.main-title-zh {
+  font-size: 34px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.04em;
 }
 
-/* 内层悬浮磨砂质感玻璃卡片 */
-.inner-glass-card {
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+.brand-sub {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.sub-en {
+  color: #4b5563;
+  letter-spacing: 0.1em;
+}
+
+.sub-count {
+  color: #8b949e;
+}
+
+.highlight-num {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.panel-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #57606a;
+  margin: 0 0 32px 0;
+}
+
+/* 上传控制模块卡片 */
+.upload-box-card {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cloud-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  transition: background-color 0.3s;
+  color: #8b949e;
+  margin-bottom: 16px;
 }
 
-.outer-dash-bounds:hover .inner-glass-card {
-  background-color: rgba(255, 255, 255, 0.07);
+.icon-svg {
+  width: 22px;
+  height: 22px;
 }
 
-.upload-icon-wrapper {
-  margin-bottom: 20px;
-  color: #93c5fd;
-  /* 切换为指定的亮蓝发光色 */
-  filter: drop-shadow(0 0 10px rgba(147, 197, 253, 0.5));
+.upload-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e5e7eb;
 }
 
-.upload-cloud-icon {
-  width: 60px;
-  height: 60px;
-}
-
-.dropzone-hint-main {
-  font-size: 14px;
-  color: #cbd5e1;
-  margin: 0 0 8px 0;
-  letter-spacing: 0.02em;
-}
-
-.dropzone-hint-main span {
-  color: #93c5fd;
-  font-weight: 500;
-}
-
-.dropzone-hint-sub {
-  font-size: 11px;
-  color: #64748b;
-  margin: 0;
+.upload-formats {
+  font-size: 10px;
+  font-family: monospace;
+  color: #4b5563;
+  margin-top: 4px;
   letter-spacing: 0.05em;
 }
 
-/* 左侧底部：整合式毛玻璃数据条 */
-.upload-status-bar-glass {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(8px);
-  padding: 8px;
-  border-radius: 14px;
+.btn-batch-upload {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 0;
+  color: #d1d5db;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-batch-upload:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* AI 队列条 */
+.ai-queue-card {
+  background-color: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 32px;
+}
+
+.queue-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.queue-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+}
+
+.sparkle-icon {
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.queue-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4b5563;
+  letter-spacing: 0.1em;
+}
+
+.queue-value {
+  font-size: 11px;
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.queue-progress-track {
+  width: 100%;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
+}
+
+.queue-progress-bar {
+  height: 100%;
+  background-color: #57606a;
+  border-radius: 2px;
+}
+
+/* 左侧分类过滤器组 */
+.filter-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.nav-name {
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.nav-count {
+  font-size: 12px;
+  font-family: monospace;
+  color: #4b5563;
+}
+
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item.active .nav-name {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.nav-item.active .nav-count {
+  color: #8b949e;
+}
+
+/* ==========================================================================
+   3. 右侧：工作流面板主内容区 (Main Panel)
+   ========================================================================== */
+.content-main {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部过滤器行 */
+.top-filter-bar {
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-bottom: 32px;
 }
 
-.btn-select-file {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: all 0.2s;
-}
-
-.btn-select-file:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-}
-
-.file-summary {
+.dropdown-filters {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.summary-text {
-  font-size: 12px;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.summary-size {
-  font-size: 11px;
-  color: #64748b;
-  font-family: monospace;
-}
-
-.btn-continue-add {
-  background: none;
-  border: none;
-  color: #93c5fd;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 6px 12px;
-  margin-left: auto;
-  transition: opacity 0.2s;
-}
-
-.btn-continue-add:hover {
-  opacity: 0.8;
-}
-
-.hidden-file-input {
-  display: none;
-}
-
-/* ==========================================================================
-   5. 右侧：精细表单与下拉项
-   ========================================================================== */
-.upload-right-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.form-fields-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.form-item {
-  display: flex;
-  flex-direction: column;
   gap: 10px;
 }
 
-.form-label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.label-zh {
-  font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
-  letter-spacing: 0.02em;
-}
-
-.label-en {
-  font-size: 9px;
-  font-family: monospace;
-  color: #475569;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-}
-
-/* 输入框与选择栏的磨砂化设计 */
-.form-input,
-.select-wrapper select {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.25);
+.custom-dropdown {
+  background-color: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 13px;
-  color: #f1f5f9;
-  outline: none;
-  transition: all 0.25s ease;
-}
-
-.form-input:focus,
-.select-wrapper select:focus {
-  border-color: rgba(147, 197, 253, 0.4);
-  background: rgba(0, 0, 0, 0.35);
-  box-shadow: 0 0 10px rgba(147, 197, 253, 0.15);
-}
-
-.select-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.select-wrapper select {
-  appearance: none;
-  -webkit-appearance: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #8b949e;
   cursor: pointer;
-  padding-right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* 自定义右侧利落的微型三角箭头 */
-.select-arrow {
+.arrow-down {
+  font-size: 8px;
+  color: #4b5563;
+  transform: scale(0.8);
+}
+
+/* 搜索框 */
+.search-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+  max-width: 320px;
+  margin-left: auto;
+}
+
+.search-icon {
   position: absolute;
-  right: 18px;
+  left: 14px;
   top: 50%;
-  transform: translateY(-30%);
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid #64748b;
-  pointer-events: none;
+  transform: translateY(-50%) scale(0.85);
+  opacity: 0.4;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px 14px 10px 38px;
+  font-size: 12px;
+  color: #ffffff;
+  outline: none;
+}
+
+/* 视图切换键 */
+.view-toggle-btns {
+  display: flex;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  color: #4b5563;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.view-btn.active {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.v-icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* ==========================================================================
-   6. 底部控制台：取消与极客蓝发光主按键
+   4. 图片内容流列表 (Assets Flow Grid)
    ========================================================================== */
-.form-actions {
+.assets-grid-flow {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 14px;
-  margin-top: auto;
-  padding-top: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  flex-grow: 1;
 }
 
-.btn-cancel {
-  padding: 14px 0;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #94a3b8;
-  font-size: 14px;
-  font-weight: 600;
+.asset-card {
+  position: relative;
+  aspect-ratio: 1.4 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.asset-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.asset-card:hover .asset-img {
+  transform: scale(1.02);
+}
+
+/* 卡片顶部绝对层：多选单选框与扩展按键 */
+.card-top-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 3;
+}
+
+.checkbox-hollow {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.btn-more-actions {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 卡片底部：毛玻璃技术层 */
+.card-bottom-glass {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 2;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.asset-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  font-family: monospace;
+}
+
+.asset-meta {
+  font-size: 9px;
+  font-family: monospace;
+  color: #8b949e;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* RAW/JPG 格式胶囊角标 */
+.format-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* ==========================================================================
+   5. 空态占位控制卡片 (Empty Placeholder Card)
+   ========================================================================== */
+.asset-empty-placeholder-card {
+  aspect-ratio: 1.4 / 1;
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.005);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.folder-icon {
+  font-size: 24px;
+  color: #21262d;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.placeholder-main {
+  font-size: 12px;
+  color: #485260;
+  margin-bottom: 16px;
+}
+
+.placeholder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-p-action {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #485260;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.08);
+.btn-p-action:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #8b949e;
+}
+
+/* ==========================================================================
+   6. 底部科技感分页器 (Pagination)
+   ========================================================================== */
+.pagination-footer {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.page-arrow {
+  background: transparent;
+  border: none;
+  color: #4b5563;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+.page-arrow:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-num-btn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #8b949e;
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.page-num-btn:hover:not(:disabled) {
   color: #ffffff;
 }
 
-/* 核心高光发光按键 */
-.btn-submit {
-  padding: 14px 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
-  border: none;
-  color: #0f172a;
-  font-size: 14px;
+.page-num-btn.active {
+  background-color: #ffffff;
+  color: #0d0f12;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  box-shadow: 0 8px 24px -6px rgba(147, 197, 253, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-submit:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -4px rgba(147, 197, 253, 0.65);
-  filter: brightness(1.05);
-}
-
-.btn-submit:active {
-  transform: translateY(0);
-}
-
-.btn-submit:disabled {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.02);
-  color: #475569;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-  filter: none;
+.page-num-btn.is-dot {
+  color: #4b5563;
+  cursor: default;
 }
 </style>
