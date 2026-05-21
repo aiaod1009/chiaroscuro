@@ -1,6 +1,7 @@
 <template>
-  <!-- 浮动触发按钮 -->
-  <button v-if="!isOpen" class="floating-trigger" @click="isOpen = true">
+  <!-- 可拖拽浮动触发按钮 -->
+  <button v-if="!isOpen" class="floating-trigger" :style="triggerStyle" ref="triggerRef"
+    @mousedown="startTriggerDrag" @click="handleTriggerClick">
     <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
         d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
@@ -115,11 +116,17 @@ const isOpen = ref(false)
 const isDragOver = ref(false)
 const fileInputRef = ref(null)
 const windowRef = ref(null)
+const triggerRef = ref(null)
 
-// 拖拽位置状态
+// 悬浮窗拖拽
 const position = ref({ x: -1, y: -1 })
 const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
+
+// 触发按钮拖拽
+const triggerPos = ref({ x: -1, y: -1 })
+const triggerDragging = ref(false)
+const triggerMoved = ref(false)
 
 const windowStyle = computed(() => {
   if (position.value.x === -1) {
@@ -127,6 +134,42 @@ const windowStyle = computed(() => {
   }
   return { top: position.value.y + 'px', left: position.value.x + 'px', transform: 'none' }
 })
+
+const triggerStyle = computed(() => {
+  if (triggerPos.value.x === -1) {
+    return {}
+  }
+  return { position: 'fixed', top: triggerPos.value.y + 'px', left: triggerPos.value.x + 'px', right: 'auto', bottom: 'auto' }
+})
+
+const handleTriggerClick = () => {
+  if (!triggerMoved.value) {
+    isOpen.value = true
+  }
+}
+
+const startTriggerDrag = (e) => {
+  triggerMoved.value = false
+  const rect = triggerRef.value.getBoundingClientRect()
+  const offsetX = e.clientX - rect.left
+  const offsetY = e.clientY - rect.top
+
+  const onMove = (ev) => {
+    triggerMoved.value = true
+    triggerPos.value = {
+      x: ev.clientX - offsetX,
+      y: ev.clientY - offsetY
+    }
+  }
+
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
 
 const startDrag = (e) => {
   if (e.target.closest('.btn-close')) return
@@ -196,7 +239,7 @@ const handleUpload = () => {
 </script>
 
 <style scoped>
-/* 浮动触发按钮 */
+/* 浮动触发按钮 - 毛玻璃 */
 .floating-trigger {
   position: fixed;
   bottom: 32px;
@@ -204,11 +247,14 @@ const handleUpload = () => {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
-  border: none;
-  color: #0f172a;
+  background: rgba(147, 197, 253, 0.15);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #93c5fd;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(147, 197, 253, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: all 0.25s ease;
   z-index: 999;
   display: flex;
@@ -217,8 +263,11 @@ const handleUpload = () => {
 }
 
 .floating-trigger:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(147, 197, 253, 0.55);
+  background: rgba(147, 197, 253, 0.25);
+  border-color: rgba(147, 197, 253, 0.4);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(147, 197, 253, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .trigger-icon {
