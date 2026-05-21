@@ -1,675 +1,551 @@
 <template>
-  <div class="darkroom-container">
+  <div class="darkroom-bg-preview">
 
-    <aside class="sidebar-scroll">
-      <span class="scroll-text">SCROLL</span>
-      <div class="scroll-dots">
-        <span class="dot"></span>
-        <span class="dot active"></span>
-        <span class="dot"></span>
-      </div>
-      <span class="section-num">03</span>
-    </aside>
+    <div class="modal-overlay">
+      <div class="upload-modal-glass">
 
-    <main class="main-content">
+        <header class="modal-header">
+          <div class="header-title">
+            <h2 class="title-zh">上传影像</h2>
+            <span class="title-en">UPLOAD IMAGES</span>
+          </div>
+          <button class="btn-close" @click="$emit('close')">✕</button>
+        </header>
 
-      <header class="darkroom-header">
-        <div class="title-block">
-          <h1 class="main-title">AI 数字暗房</h1>
-          <div class="en-title">AI DARKROOM</div>
-        </div>
-        <p class="subtitle">
-          利用神经网络深度解析每一寸光影，将瞬时感官转化为永恒的叙事文字。我们的 AI 实验室正在探索图像语义与诗意表达的交界。
-        </p>
-      </header>
+        <div class="modal-body">
 
-      <div class="workspace-grid">
+          <div class="upload-left-col">
+            <div class="outer-dash-bounds" :class="{ 'is-dragover': isDragOver }" @dragover.prevent="isDragOver = true"
+              @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="triggerFileInput">
+              <input type="file" ref="fileInputRef" multiple accept=".raw,.jpg,.jpeg,.png,.tiff"
+                class="hidden-file-input" @change="handleFileChange" />
 
-        <div class="viewer-column">
-          <div class="image-viewer">
-            <div class="analyzing-tag">
-              <span class="pulse-dot"></span>
-              ANALYZING PIXELS...
+              <div class="inner-glass-card">
+                <div class="upload-icon-wrapper">
+                  <svg class="upload-cloud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                      d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
+                  </svg>
+                </div>
+                <p class="dropzone-hint-main">拖拽文件到此处，或<span>点击选择</span></p>
+                <p class="dropzone-hint-sub">支持 RAW / JPG / PNG / TIFF 格式</p>
+              </div>
             </div>
 
-            <img src="/DSC_6510.jpg" alt="Darkroom Analysis Source" class="source-img" />
-
-            <div class="scan-line"></div>
-          </div>
-
-          <div class="viewer-controls">
-            <div class="action-buttons">
-              <button class="btn-secondary">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                REPLACE IMAGE
-              </button>
-              <button class="btn-primary">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                GENERATE INSIGHTS
+            <div class="upload-status-bar-glass">
+              <button class="btn-select-file" @click.stop="triggerFileInput">选择文件</button>
+              <div class="file-summary" v-if="selectedFilesCount > 0">
+                <span class="summary-text">已选择 {{ selectedFilesCount }} 个文件</span>
+                <span class="summary-size">共 {{ totalFilesSize }}</span>
+              </div>
+              <button class="btn-continue-add" v-if="selectedFilesCount > 0" @click.stop="triggerFileInput">
+                继续添加
               </button>
             </div>
-
-            <div class="meta-specs">
-              <div class="spec-item">
-                <span class="spec-label">RESOLUTION</span>
-                <span class="spec-value">7680 × 4320</span>
-              </div>
-              <div class="spec-item">
-                <span class="spec-label">MODEL</span>
-                <span class="spec-value">LUMEN-V2 PRO</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="data-column">
-
-          <div class="insight-panel">
-            <div class="data-group">
-              <span class="panel-label">AI-GENERATED TITLE</span>
-              <h2 class="insight-title">寂静之巅的低语</h2>
-            </div>
-
-            <div class="data-group">
-              <span class="panel-label">POETIC INTERPRETATION</span>
-              <p class="poetic-text">
-                "当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸，记录着冰川与星辰的古老约定。"
-              </p>
-            </div>
-
-            <div class="analysis-metrics">
-              <span class="panel-label">COMPOSITION ANALYSIS</span>
-
-              <div class="metric-item">
-                <div class="metric-info">
-                  <span>Atmospheric Depth</span>
-                  <span>94%</span>
-                </div>
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill" style="width: 94%"></div>
-                </div>
-              </div>
-
-              <div class="metric-item">
-                <div class="metric-info">
-                  <span>Emotional Weight</span>
-                  <span>87%</span>
-                </div>
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill" style="width: 87%"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="color-contrast-grid">
-              <div class="cc-item">
-                <span class="panel-label">DOMINANT HUE</span>
-                <div class="color-badge">
-                  <span class="color-preview"></span>
-                  <span class="font-mono">#1A2533</span>
-                </div>
-              </div>
-              <div class="cc-item">
-                <span class="panel-label">KEY CONTRAST</span>
-                <div class="contrast-badge">
-                  <span class="dot-white"></span>
-                  <span class="font-mono">HIGH KEY</span>
-                </div>
-              </div>
-            </div>
           </div>
 
-          <div class="export-bar">
-            <div class="export-left">
-              <div class="export-icon-box">
-                <svg class="export-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+          <div class="upload-right-col">
+
+            <div class="form-fields-stack">
+              <div class="form-item">
+                <label class="form-label">
+                  <span class="label-zh">上传到作品集</span>
+                  <span class="label-en">SELECT COLLECTION</span>
+                </label>
+                <div class="select-wrapper">
+                  <select v-model="formData.collection">
+                    <option value="秘境之巅">秘境之巅</option>
+                    <option value="极地光影">极地光影</option>
+                    <option value="城市漫步">城市漫步</option>
+                  </select>
+                  <span class="select-arrow"></span>
+                </div>
               </div>
-              <div class="export-text">
-                <span class="export-title">EXPORT METADATA</span>
-                <span class="export-subtitle">JSON, TXT, XMP Compatible</span>
+
+              <div class="form-item">
+                <label class="form-label">
+                  <span class="label-zh">拍摄地点</span>
+                  <span class="label-en">LOCATION</span>
+                </label>
+                <input type="text" v-model="formData.location" placeholder="请输入拍摄地点" class="form-input" />
+              </div>
+
+              <div class="form-item">
+                <label class="form-label">
+                  <span class="label-zh">省份 / 区域</span>
+                  <span class="label-en">PROVINCE / REGION</span>
+                </label>
+                <div class="select-wrapper">
+                  <select v-model="formData.region">
+                    <option value="雷克雅未克 Reykjaík">雷克雅未克 Reykjaík</option>
+                    <option value="阿克雷里 Akureyri">阿克雷里 Akureyri</option>
+                    <option value="维克 Vík">维克 Vík</option>
+                  </select>
+                  <span class="select-arrow"></span>
+                </div>
               </div>
             </div>
-            <div class="export-arrow">&gt;</div>
+
+            <div class="form-actions">
+              <button class="btn-cancel" @click="$emit('close')">取消</button>
+              <button class="btn-submit" :disabled="selectedFilesCount === 0" @click="handleUpload">
+                开始上传
+              </button>
+            </div>
+
           </div>
 
         </div>
 
       </div>
-    </main>
-
-    <button class="floating-prev-btn">&lt;</button>
+    </div>
 
   </div>
 </template>
 
 <script setup>
-// 纯静态面板展示，无需复杂逻辑处理
+import { ref, reactive } from 'vue'
+
+const isDragOver = ref(false)
+const fileInputRef = ref(null)
+
+// 深度对齐设计稿的初始状态数据
+const selectedFilesCount = ref(12)
+const totalFilesSize = ref('68.4 MB')
+
+const formData = reactive({
+  collection: '秘境之巅',
+  location: '冰岛',
+  region: '雷克雅未克 Reykjaík'
+})
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
+
+const handleFileChange = (event) => {
+  const files = event.target.files
+  if (files && files.length > 0) {
+    processFiles(files)
+  }
+}
+
+const handleDrop = (event) => {
+  isDragOver.value = false
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
+    processFiles(files)
+  }
+}
+
+const processFiles = (files) => {
+  selectedFilesCount.value = files.length
+  let fakeSize = (files.length * 5.7).toFixed(1)
+  totalFilesSize.value = `${fakeSize} MB`
+}
+
+const handleUpload = () => {
+  console.log('提交队列:', selectedFilesCount.value, { ...formData })
+  alert('开始上传影像序列...')
+}
 </script>
 
 <style scoped>
 /* ==========================================================================
-   1. 基础版面结构 & 变量全局复刻
+   1. 预览底衬与弹窗基础毛玻璃设置
    ========================================================================== */
-.darkroom-container {
-  min-height: 100vh;
-  background-color: #090d12;
-  color: #c9d1d9;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin-top: -5rem;
-  padding-top: 5rem;
-  padding-right: 40px;
-  padding-bottom: 40px;
-  padding-left: 100px;
+.darkroom-bg-preview {
   position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #0b0f17;
+  /* 模拟后方有模糊的自然/风景大图打底，以完美展现前端的毛玻璃穿透感 */
+  background-image: radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.15), transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(15, 23, 42, 0.8), transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
   box-sizing: border-box;
 }
 
-.darkroom-container * {
+.darkroom-bg-preview * {
   box-sizing: border-box;
 }
 
-/* 左侧垂直侧边栏 */
-.sidebar-scroll {
-  position: absolute;
-  left: 32px;
-  top: 120px;
-  bottom: 40px;
-  width: 40px;
+.modal-overlay {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 32px;
+  justify-content: center;
 }
 
-.scroll-text {
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: #4b5563;
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-  font-weight: 700;
-}
-
-.scroll-dots {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-}
-
-.scroll-dots .dot {
-  width: 4px;
-  height: 4px;
-  background-color: #374151;
-  border-radius: 50%;
-}
-
-.scroll-dots .dot.active {
-  background-color: #22d3ee;
-  box-shadow: 0 0 8px #22d3ee;
-  width: 6px;
-  height: 6px;
-}
-
-.section-num {
-  font-size: 11px;
-  font-weight: 700;
-  color: #e5e7eb;
-  margin-top: auto;
-  font-family: monospace;
-}
-
-/* 主内容包裹层 */
-.main-content {
-  max-width: 1400px;
-  margin: 0 auto;
+/* 主面板高阶毛玻璃 */
+.upload-modal-glass {
+  width: 100%;
+  max-width: 920px;
+  background: rgba(23, 30, 43, 0.65);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 40px;
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* ==========================================================================
-   2. 头部标题区域样式
+   2. 头部标题排版
    ========================================================================== */
-.darkroom-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 36px;
+  align-items: flex-start;
+  margin-bottom: 32px;
 }
 
-.title-block {
+.header-title {
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
-.main-title {
-  font-size: 3rem;
-  font-style: italic;
-  font-weight: 900;
+.title-zh {
+  font-size: 22px;
+  font-weight: 600;
   color: #ffffff;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 0.04em;
 }
 
-.en-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #8c9baf;
-  letter-spacing: 3px;
-  margin-top: 4px;
+.title-en {
+  font-size: 11px;
+  font-family: monospace;
+  color: #64748b;
+  letter-spacing: 0.18em;
+  font-weight: 700;
 }
 
-.subtitle {
-  font-size: 0.9rem;
-  color: #cbd5e0;
-  line-height: 1.8;
-  max-width: 400px;
-  margin: 0;
-  text-align: right;
+.btn-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 4px;
+}
+
+.btn-close:hover {
+  color: #ffffff;
 }
 
 /* ==========================================================================
-   3. 工作区两栏栅格
+   3. 双栏栅格
    ========================================================================== */
-.workspace-grid {
+.modal-body {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 32px;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 40px;
 }
 
-@media (max-width: 1150px) {
-  .workspace-grid {
+@media (max-width: 820px) {
+  .modal-body {
     grid-template-columns: 1fr;
   }
 }
 
 /* ==========================================================================
-   4. 左侧：图片分析主视图
+   4. 左侧：圆角双层嵌套拖拽区
    ========================================================================== */
-.image-viewer {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 24px;
-  overflow: hidden;
-  background-color: #020617;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
-}
-
-.source-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* 正在分析像素标签 */
-.analyzing-tag {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  padding: 6px 14px;
-  border-radius: 9999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #d1d5db;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 2;
-}
-
-.pulse-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #9ca3af;
-  border-radius: 50%;
-  animation: pulse-gray 2s infinite;
-}
-
-@keyframes pulse-gray {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.4;
-  }
-}
-
-/* 科技感动态扫描线 */
-.scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(34, 211, 238, 0) 0%, rgba(34, 211, 238, 0.4) 50%, rgba(34, 211, 238, 0) 100%);
-  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-  animation: scan 4s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes scan {
-  0% {
-    top: 10%;
-  }
-
-  50% {
-    top: 90%;
-  }
-
-  100% {
-    top: 10%;
-  }
-}
-
-/* 底部控制器与规格 */
-.viewer-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.btn-icon {
-  width: 14px;
-  height: 14px;
-}
-
-.btn-secondary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background-color: rgba(31, 41, 55, 0.2);
-  border: 1px solid rgba(55, 65, 81, 0.5);
-  border-radius: 9999px;
-  color: #e5e7eb;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background-color: rgba(31, 41, 55, 0.5);
-  border-color: #4b5563;
-}
-
-.btn-primary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background-color: #e0f7fa;
-  border: none;
-  border-radius: 9999px;
-  color: #083344;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background-color: #22d3ee;
-  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
-}
-
-.meta-specs {
-  display: flex;
-  gap: 24px;
-  font-family: monospace;
-}
-
-.spec-item {
+.upload-left-col {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  gap: 20px;
 }
 
-.spec-label {
-  font-size: 9px;
-  color: #4b5563;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  margin-bottom: 2px;
-}
-
-.spec-value {
-  font-size: 12px;
-  color: #ffffff;
-  font-weight: 600;
-}
-
-/* ==========================================================================
-   5. 右侧：AI 洞察数据面板
-   ========================================================================== */
-.insight-panel {
-  background-color: rgba(17, 22, 32, 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 24px;
-  padding: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 16px;
-}
-
-.panel-label {
-  font-size: 9px;
-  font-family: monospace;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #4b5563;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.insight-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  padding-left: 8px;
-  border-left: 2px solid #22d3ee;
-}
-
-.poetic-text {
-  font-size: 13px;
-  color: #acb5bd;
-  line-height: 1.7;
-  font-style: italic;
-  margin: 0;
-  background-color: rgba(0, 0, 0, 0.15);
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
-}
-
-/* 进度条样式 */
-.analysis-metrics {
-  display: flex;
-  flex-direction: column;
-}
-
-.metric-item {
-  margin-top: 14px;
-}
-
-.metric-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #e5e7eb;
-  margin-bottom: 6px;
-}
-
-.progress-bar-bg {
+/* 外层白虚线轮廓 */
+.outer-dash-bounds {
   width: 100%;
-  height: 3px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background-color: #e5e7eb;
-  border-radius: 2px;
-}
-
-/* 底部标签分布 */
-.color-contrast-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 20px;
-}
-
-.color-badge,
-.contrast-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 11px;
-  color: #ffffff;
-  width: fit-content;
-}
-
-.color-preview {
-  width: 10px;
-  height: 10px;
-  background-color: #1A2533;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.dot-white {
-  width: 6px;
-  height: 6px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.font-mono {
-  font-family: monospace;
-}
-
-/* 元数据导出块 */
-.export-bar {
-  background-color: rgba(17, 22, 32, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  aspect-ratio: 1.42 / 1;
+  border: 1.5px dashed rgba(255, 255, 255, 0.25);
   border-radius: 20px;
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
-.export-bar:hover {
-  background-color: rgba(26, 34, 49, 0.8);
-  border-color: rgba(255, 255, 255, 0.1);
+.outer-dash-bounds:hover,
+.outer-dash-bounds.is-dragover {
+  border-color: #93c5fd;
 }
 
-.export-left {
+/* 内层悬浮磨砂质感玻璃卡片 */
+.inner-glass-card {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.export-icon-box {
-  background-color: rgba(255, 255, 255, 0.04);
-  padding: 8px;
-  border-radius: 10px;
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.3s;
 }
 
-.export-icon {
-  width: 18px;
-  height: 18px;
-  color: #9ca3af;
+.outer-dash-bounds:hover .inner-glass-card {
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
-.export-text {
-  display: flex;
-  flex-direction: column;
+.upload-icon-wrapper {
+  margin-bottom: 20px;
+  color: #93c5fd;
+  /* 切换为指定的亮蓝发光色 */
+  filter: drop-shadow(0 0 10px rgba(147, 197, 253, 0.5));
 }
 
-.export-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #ffffff;
+.upload-cloud-icon {
+  width: 60px;
+  height: 60px;
+}
+
+.dropzone-hint-main {
+  font-size: 14px;
+  color: #cbd5e1;
+  margin: 0 0 8px 0;
+  letter-spacing: 0.02em;
+}
+
+.dropzone-hint-main span {
+  color: #93c5fd;
+  font-weight: 500;
+}
+
+.dropzone-hint-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0;
   letter-spacing: 0.05em;
 }
 
-.export-subtitle {
-  font-size: 10px;
-  color: #4b5563;
-  margin-top: 2px;
-}
-
-.export-arrow {
-  color: #4b5563;
-  font-size: 14px;
-  font-family: monospace;
-}
-
-/* ==========================================================================
-   6. 其他浮动微动效元素
-   ========================================================================== */
-.floating-prev-btn {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background-color: rgba(31, 41, 55, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #9ca3af;
-  font-size: 16px;
-  cursor: pointer;
+/* 左侧底部：整合式毛玻璃数据条 */
+.upload-status-bar-glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  padding: 8px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 16px;
+}
+
+.btn-select-file {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
   transition: all 0.2s;
 }
 
-.floating-prev-btn:hover {
-  background-color: rgba(55, 65, 81, 0.6);
+.btn-select-file:hover {
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.file-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-text {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.summary-size {
+  font-size: 11px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.btn-continue-add {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  margin-left: auto;
+  transition: opacity 0.2s;
+}
+
+.btn-continue-add:hover {
+  opacity: 0.8;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+/* ==========================================================================
+   5. 右侧：精细表单与下拉项
+   ========================================================================== */
+.upload-right-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.form-fields-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label-zh {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.label-en {
+  font-size: 9px;
+  font-family: monospace;
+  color: #475569;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+/* 输入框与选择栏的磨砂化设计 */
+.form-input,
+.select-wrapper select {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #f1f5f9;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.form-input:focus,
+.select-wrapper select:focus {
+  border-color: rgba(147, 197, 253, 0.4);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 10px rgba(147, 197, 253, 0.15);
+}
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+}
+
+/* 自定义右侧利落的微型三角箭头 */
+.select-arrow {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-30%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #64748b;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   6. 底部控制台：取消与极客蓝发光主按键
+   ========================================================================== */
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.btn-cancel {
+  padding: 14px 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* 核心高光发光按键 */
+.btn-submit {
+  padding: 14px 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+  border: none;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -6px rgba(147, 197, 253, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -4px rgba(147, 197, 253, 0.65);
+  filter: brightness(1.05);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  color: #475569;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  filter: none;
 }
 </style>
