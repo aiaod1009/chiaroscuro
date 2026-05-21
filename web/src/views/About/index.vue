@@ -209,7 +209,8 @@ const handleSave = () => {
   background-color: #090d12;
   color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding: 40px;
+  margin-top: -5rem;
+  padding: 5rem 160px 40px 160px;
   box-sizing: border-box;
 }
 
