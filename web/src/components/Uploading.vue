@@ -1,115 +1,160 @@
 <template>
-  <div class="darkroom-bg-preview">
+  <!-- 浮动触发按钮 -->
+  <button v-if="!isOpen" class="floating-trigger" @click="isOpen = true">
+    <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
+    </svg>
+  </button>
 
-    <div class="modal-overlay">
-      <div class="upload-modal-glass">
+  <!-- 可拖拽悬浮窗 -->
+  <div v-if="isOpen" class="float-window" :style="windowStyle" ref="windowRef">
+    <div class="upload-modal-glass">
 
-        <header class="modal-header">
-          <div class="header-title">
-            <h2 class="title-zh">上传影像</h2>
-            <span class="title-en">UPLOAD IMAGES</span>
-          </div>
-          <button class="btn-close" @click="$emit('close')">✕</button>
-        </header>
+      <header class="modal-header" @mousedown="startDrag">
+        <div class="header-title">
+          <h2 class="title-zh">上传影像</h2>
+          <span class="title-en">UPLOAD IMAGES</span>
+        </div>
+        <button class="btn-close" @click="isOpen = false">✕</button>
+      </header>
 
-        <div class="modal-body">
+      <div class="modal-body">
 
-          <div class="upload-left-col">
-            <div class="outer-dash-bounds" :class="{ 'is-dragover': isDragOver }" @dragover.prevent="isDragOver = true"
-              @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="triggerFileInput">
-              <input type="file" ref="fileInputRef" multiple accept=".raw,.jpg,.jpeg,.png,.tiff"
-                class="hidden-file-input" @change="handleFileChange" />
+        <div class="upload-left-col">
+          <div class="outer-dash-bounds" :class="{ 'is-dragover': isDragOver }" @dragover.prevent="isDragOver = true"
+            @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop" @click="triggerFileInput">
+            <input type="file" ref="fileInputRef" multiple accept=".raw,.jpg,.jpeg,.png,.tiff"
+              class="hidden-file-input" @change="handleFileChange" />
 
-              <div class="inner-glass-card">
-                <div class="upload-icon-wrapper">
-                  <svg class="upload-cloud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
-                      d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
-                  </svg>
-                </div>
-                <p class="dropzone-hint-main">拖拽文件到此处，或<span>点击选择</span></p>
-                <p class="dropzone-hint-sub">支持 RAW / JPG / PNG / TIFF 格式</p>
+            <div class="inner-glass-card">
+              <div class="upload-icon-wrapper">
+                <svg class="upload-cloud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                    d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
+                </svg>
               </div>
-            </div>
-
-            <div class="upload-status-bar-glass">
-              <button class="btn-select-file" @click.stop="triggerFileInput">选择文件</button>
-              <div class="file-summary" v-if="selectedFilesCount > 0">
-                <span class="summary-text">已选择 {{ selectedFilesCount }} 个文件</span>
-                <span class="summary-size">共 {{ totalFilesSize }}</span>
-              </div>
-              <button class="btn-continue-add" v-if="selectedFilesCount > 0" @click.stop="triggerFileInput">
-                继续添加
-              </button>
+              <p class="dropzone-hint-main">拖拽文件到此处，或<span>点击选择</span></p>
+              <p class="dropzone-hint-sub">支持 RAW / JPG / PNG / TIFF 格式</p>
             </div>
           </div>
 
-          <div class="upload-right-col">
+          <div class="upload-status-bar-glass">
+            <button class="btn-select-file" @click.stop="triggerFileInput">选择文件</button>
+            <div class="file-summary" v-if="selectedFilesCount > 0">
+              <span class="summary-text">已选择 {{ selectedFilesCount }} 个文件</span>
+              <span class="summary-size">共 {{ totalFilesSize }}</span>
+            </div>
+            <button class="btn-continue-add" v-if="selectedFilesCount > 0" @click.stop="triggerFileInput">
+              继续添加
+            </button>
+          </div>
+        </div>
 
-            <div class="form-fields-stack">
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">上传到作品集</span>
-                  <span class="label-en">SELECT COLLECTION</span>
-                </label>
-                <div class="select-wrapper">
-                  <select v-model="formData.collection">
-                    <option value="秘境之巅">秘境之巅</option>
-                    <option value="极地光影">极地光影</option>
-                    <option value="城市漫步">城市漫步</option>
-                  </select>
-                  <span class="select-arrow"></span>
-                </div>
-              </div>
+        <div class="upload-right-col">
 
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">拍摄地点</span>
-                  <span class="label-en">LOCATION</span>
-                </label>
-                <input type="text" v-model="formData.location" placeholder="请输入拍摄地点" class="form-input" />
-              </div>
-
-              <div class="form-item">
-                <label class="form-label">
-                  <span class="label-zh">省份 / 区域</span>
-                  <span class="label-en">PROVINCE / REGION</span>
-                </label>
-                <div class="select-wrapper">
-                  <select v-model="formData.region">
-                    <option value="雷克雅未克 Reykjaík">雷克雅未克 Reykjaík</option>
-                    <option value="阿克雷里 Akureyri">阿克雷里 Akureyri</option>
-                    <option value="维克 Vík">维克 Vík</option>
-                  </select>
-                  <span class="select-arrow"></span>
-                </div>
+          <div class="form-fields-stack">
+            <div class="form-item">
+              <label class="form-label">
+                <span class="label-zh">上传到作品集</span>
+                <span class="label-en">SELECT COLLECTION</span>
+              </label>
+              <div class="select-wrapper">
+                <select v-model="formData.collection">
+                  <option value="秘境之巅">秘境之巅</option>
+                  <option value="极地光影">极地光影</option>
+                  <option value="城市漫步">城市漫步</option>
+                </select>
+                <span class="select-arrow"></span>
               </div>
             </div>
 
-            <div class="form-actions">
-              <button class="btn-cancel" @click="$emit('close')">取消</button>
-              <button class="btn-submit" :disabled="selectedFilesCount === 0" @click="handleUpload">
-                开始上传
-              </button>
+            <div class="form-item">
+              <label class="form-label">
+                <span class="label-zh">拍摄地点</span>
+                <span class="label-en">LOCATION</span>
+              </label>
+              <input type="text" v-model="formData.location" placeholder="请输入拍摄地点" class="form-input" />
             </div>
 
+            <div class="form-item">
+              <label class="form-label">
+                <span class="label-zh">省份 / 区域</span>
+                <span class="label-en">PROVINCE / REGION</span>
+              </label>
+              <div class="select-wrapper">
+                <select v-model="formData.region">
+                  <option value="雷克雅未克 Reykjaík">雷克雅未克 Reykjaík</option>
+                  <option value="阿克雷里 Akureyri">阿克雷里 Akureyri</option>
+                  <option value="维克 Vík">维克 Vík</option>
+                </select>
+                <span class="select-arrow"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-cancel" @click="isOpen = false">取消</button>
+            <button class="btn-submit" :disabled="selectedFilesCount === 0" @click="handleUpload">
+              开始上传
+            </button>
           </div>
 
         </div>
 
       </div>
-    </div>
 
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 
+const isOpen = ref(false)
 const isDragOver = ref(false)
 const fileInputRef = ref(null)
+const windowRef = ref(null)
 
-// 深度对齐设计稿的初始状态数据
+// 拖拽位置状态
+const position = ref({ x: -1, y: -1 })
+const isDragging = ref(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+const windowStyle = computed(() => {
+  if (position.value.x === -1) {
+    return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
+  }
+  return { top: position.value.y + 'px', left: position.value.x + 'px', transform: 'none' }
+})
+
+const startDrag = (e) => {
+  if (e.target.closest('.btn-close')) return
+  isDragging.value = true
+  const rect = windowRef.value.getBoundingClientRect()
+  dragOffset.value = {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  }
+
+  const onMove = (ev) => {
+    if (!isDragging.value) return
+    position.value = {
+      x: ev.clientX - dragOffset.value.x,
+      y: ev.clientY - dragOffset.value.y
+    }
+  }
+
+  const onUp = () => {
+    isDragging.value = false
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
+
 const selectedFilesCount = ref(12)
 const totalFilesSize = ref('68.4 MB')
 
@@ -151,39 +196,53 @@ const handleUpload = () => {
 </script>
 
 <style scoped>
-/* ==========================================================================
-   1. 预览底衬与弹窗基础毛玻璃设置
-   ========================================================================== */
-.darkroom-bg-preview {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
-  background-color: #0b0f17;
-  /* 模拟后方有模糊的自然/风景大图打底，以完美展现前端的毛玻璃穿透感 */
-  background-image: radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.15), transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(15, 23, 42, 0.8), transparent);
+/* 浮动触发按钮 */
+.floating-trigger {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(147, 197, 253, 0.4);
+  transition: all 0.25s ease;
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
 }
 
-.darkroom-bg-preview * {
-  box-sizing: border-box;
+.floating-trigger:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 12px 32px rgba(147, 197, 253, 0.55);
 }
 
-.modal-overlay {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+.trigger-icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* 可拖拽悬浮窗 */
+.float-window {
+  position: fixed;
+  z-index: 1000;
+  width: 920px;
+  max-width: 92vw;
+  user-select: none;
+}
+
+.float-window * {
+  box-sizing: border-box;
 }
 
 /* 主面板高阶毛玻璃 */
 .upload-modal-glass {
   width: 100%;
-  max-width: 920px;
-  background: rgba(23, 30, 43, 0.65);
+  background: rgba(23, 30, 43, 0.85);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -193,14 +252,13 @@ const handleUpload = () => {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* ==========================================================================
-   2. 头部标题排版
-   ========================================================================== */
+/* 头部标题排版 */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 32px;
+  cursor: move;
 }
 
 .header-title {
@@ -239,9 +297,7 @@ const handleUpload = () => {
   color: #ffffff;
 }
 
-/* ==========================================================================
-   3. 双栏栅格
-   ========================================================================== */
+/* 双栏栅格 */
 .modal-body {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
@@ -254,16 +310,13 @@ const handleUpload = () => {
   }
 }
 
-/* ==========================================================================
-   4. 左侧：圆角双层嵌套拖拽区
-   ========================================================================== */
+/* 左侧：圆角双层嵌套拖拽区 */
 .upload-left-col {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* 外层白虚线轮廓 */
 .outer-dash-bounds {
   width: 100%;
   aspect-ratio: 1.42 / 1;
@@ -279,7 +332,6 @@ const handleUpload = () => {
   border-color: #93c5fd;
 }
 
-/* 内层悬浮磨砂质感玻璃卡片 */
 .inner-glass-card {
   width: 100%;
   height: 100%;
@@ -302,7 +354,6 @@ const handleUpload = () => {
 .upload-icon-wrapper {
   margin-bottom: 20px;
   color: #93c5fd;
-  /* 切换为指定的亮蓝发光色 */
   filter: drop-shadow(0 0 10px rgba(147, 197, 253, 0.5));
 }
 
@@ -330,7 +381,6 @@ const handleUpload = () => {
   letter-spacing: 0.05em;
 }
 
-/* 左侧底部：整合式毛玻璃数据条 */
 .upload-status-bar-glass {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -398,9 +448,7 @@ const handleUpload = () => {
   display: none;
 }
 
-/* ==========================================================================
-   5. 右侧：精细表单与下拉项
-   ========================================================================== */
+/* 右侧：精细表单 */
 .upload-right-col {
   display: flex;
   flex-direction: column;
@@ -440,7 +488,6 @@ const handleUpload = () => {
   font-weight: 700;
 }
 
-/* 输入框与选择栏的磨砂化设计 */
 .form-input,
 .select-wrapper select {
   width: 100%;
@@ -473,7 +520,6 @@ const handleUpload = () => {
   padding-right: 40px;
 }
 
-/* 自定义右侧利落的微型三角箭头 */
 .select-arrow {
   position: absolute;
   right: 18px;
@@ -485,9 +531,7 @@ const handleUpload = () => {
   pointer-events: none;
 }
 
-/* ==========================================================================
-   6. 底部控制台：取消与极客蓝发光主按键
-   ========================================================================== */
+/* 底部控制台 */
 .form-actions {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -513,7 +557,6 @@ const handleUpload = () => {
   color: #ffffff;
 }
 
-/* 核心高光发光按键 */
 .btn-submit {
   padding: 14px 0;
   border-radius: 12px;
