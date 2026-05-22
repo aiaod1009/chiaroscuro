@@ -1,78 +1,44 @@
 // server/routes/photoRoutes.js
 const express = require('express');
 const router = express.Router();
-const ExifParser = require('exif-parser');
 const { cos } = require('../config/cos');
-const { upload } = require('../config/cos'); // 引入安检闸机
+const { upload } = require('../config/cos');
 const Photo = require('../models/Photo');
 
 // ==========================================
-// 📸 接口 1：上传微单原图（占坑 + 抠参数）
+// 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
 // ==========================================
-// server/routes/photoRoutes.js 的第一个原图接口
-
-// server/routes/photoRoutes.js 的第一个原图接口
-
-router.post('/upload-raw', upload.single('photo'), async (req, res) => {
+router.post('/upload-raw', async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: '没收到原图' });
+    const { albumId, imageUrl, fileName, exif } = req.body;
 
-    // 提前把我们需要的数据从 req.file 里抠出来固化，防止后台线程找不到变量
-    const fileBuffer = req.file.buffer;
-    const originalName = req.file.originalname;
+    if (!imageUrl) return res.status(400).json({ success: false, message: '没收到图片链接' });
 
-    // 1. ⚡ 毫秒级剥离 EXIF 元数据
-    let exifData = {};
-    try {
-      const parser = ExifParser.create(fileBuffer);
-      exifData = parser.parse().tags;
-    } catch (e) {
-      console.log('EXIF 解析失败');
-    }
-    const shutterSpeed = exifData.ExposureTime ? (exifData.ExposureTime < 1 ? `1/${Math.round(1 / exifData.ExposureTime)}s` : `${exifData.ExposureTime}s`) : '未知';
-
-    // 2. ⚡ 提前算好云端门牌号
-    const filename = `raw-${Date.now()}-${originalName}`;
-    const finalImageUrl = `https://${process.env.COS_BUCKET}.cos.${process.env.COS_REGION}.myqcloud.com/gallery/${filename}`;
-
-    // 3. ⚡ 数据直接落地 MongoDB
-    const rawPhoto = await Photo.create({
-      originalName,
-      imageUrl: finalImageUrl,
-      status: 'raw',
-      versionName: '原始RAW基底',
-      cameraModel: exifData.Model || '未知型号',
-      shutterSpeed,
-      fNumber: exifData.FNumber || null,
-      focalLength: exifData.FocalLength ? `${exifData.FocalLength}mm` : '未知',
-      iso: exifData.ISO || null,
+    const newPhotoDraft = new Photo({
+      albumId: albumId || 'none',
+      imageUrl,
+      fileName: fileName || 'UNTITLED.webp',
+      isDraft: true,
+      exif: {
+        camera: exif?.camera || 'Unknown Camera',
+        lens: exif?.lens || 'Unknown Lens',
+        aperture: exif?.aperture || 'f/0.0',
+        iso: exif?.iso || '0',
+        shutterSpeed: exif?.shutterSpeed || '0s',
+        focalLength: exif?.focalLength || '0mm',
+      },
     });
 
-    // 4. 🔥 【核心救命大招】把腾讯云上传强行丢进“平行宇宙”，彻底不占用当前的 HTTP 响应管道
-    setImmediate(() => {
-      console.log('🛰️  [后台线程激活] 开启独立网络通道投递 6.6MB 照片...');
-      cos.putObject({
-        Bucket: process.env.COS_BUCKET,
-        Region: process.env.COS_REGION,
-        Key: `gallery/${filename}`,
-        Body: fileBuffer
-      }, (err, data) => {
-        if (err) console.error('❌ [后台传输失败]:', err.message);
-        else console.log('🍃 [后台传输成功] 照片已安全抵达腾讯云广州桶！');
-      });
-    });
+    await newPhotoDraft.save();
 
-    // 5. 🚀 斩断执念！因为管道已经干净了，这一行会以 0.05 秒的速度瞬间秒回前端！
-    return res.status(200).json({
+    res.json({
       success: true,
-      message: '📸 拍照元数据已秒级捕获，图片正在后台同步云端...',
-      data: rawPhoto
+      message: 'WebP 资产与 EXIF 刻录成功，已放入草稿箱！',
+      data: newPhotoDraft
     });
-
   } catch (error) {
-    if (!res.headersSent) {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    console.error('上传落盘异常:', error);
+    res.status(500).json({ success: false, message: '服务器入库失败' });
   }
 });
 // ==========================================
@@ -104,15 +70,9 @@ router.post('/upload-master', upload.single('photo'), async (req, res) => {
       originalName,
       imageUrl: finalImageUrl,
       status: 'master',
-      parentId: parentPhoto._id, // 刻上妈妈的胎记，连上线了！
+      parentId: parentPhoto._id,
       versionName: versionName || '未命名调色版',
-
-      // ✨ 华丽的灵魂继承：直接从母体记录里把参数抄过来
-      cameraModel: parentPhoto.cameraModel,
-      shutterSpeed: parentPhoto.shutterSpeed,
-      fNumber: parentPhoto.fNumber,
-      focalLength: parentPhoto.focalLength,
-      iso: parentPhoto.iso,
+      exif: { ...parentPhoto.exif?.toObject?.() || parentPhoto.exif },
     });
 
     res.status(200).json({ success: true, message: `成片【${versionName}】发布成功，已与原图绑定纽带！`, data: masterPhoto });
