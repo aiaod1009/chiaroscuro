@@ -1,7 +1,6 @@
 <template>
-  <!-- 可拖拽浮动触发按钮 -->
-  <button v-if="!isOpen" class="floating-trigger" :style="triggerStyle" ref="triggerRef" @mousedown="startTriggerDrag"
-    @click="handleTriggerClick">
+  <!-- 浮动触发按钮 -->
+  <button v-if="!isOpen" class="floating-trigger" @click="isOpen = true">
     <svg class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
         d="M12 16v-8m0 0l-3 3m3-3l3 3M4.033 14.77a8 8 0 1115.348-4.762" />
@@ -142,12 +141,6 @@ const triggerStyle = computed(() => {
   return { position: 'fixed', top: triggerPos.value.y + 'px', left: triggerPos.value.x + 'px', right: 'auto', bottom: 'auto' }
 })
 
-const handleTriggerClick = () => {
-  if (!triggerMoved.value) {
-    isOpen.value = true
-  }
-}
-
 const startTriggerDrag = (e) => {
   triggerMoved.value = false
   const rect = triggerRef.value.getBoundingClientRect()
@@ -271,14 +264,10 @@ defineExpose({ isOpen })
 const isDragOver = ref(false)
 const fileInputRef = ref(null)
 const windowRef = ref(null)
-const triggerRef = ref(null)
 
 const position = ref({ x: -1, y: -1 })
 const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
-const triggerPos = ref({ x: -1, y: -1 })
-const triggerDragging = ref(false)
-const triggerMoved = ref(false)
 
 // --- 2. 新增：边缘计算与上传状态管理 ---
 const rawFilesQueue = ref([])         // 本地原始文件暂存队列
@@ -431,26 +420,6 @@ const windowStyle = computed(() => {
   if (position.value.x === -1) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
   return { top: position.value.y + 'px', left: position.value.x + 'px', transform: 'none' }
 })
-const triggerStyle = computed(() => {
-  if (triggerPos.value.x === -1) return {}
-  return { position: 'fixed', top: triggerPos.value.y + 'px', left: triggerPos.value.x + 'px', right: 'auto', bottom: 'auto' }
-})
-const startTriggerDrag = (e) => {
-  triggerMoved.value = false
-  const startX = e.clientX
-  const startY = e.clientY
-  const rect = triggerRef.value.getBoundingClientRect()
-  const offsetX = e.clientX - rect.left
-  const offsetY = e.clientY - rect.top
-  const onMove = (ev) => {
-    const dx = ev.clientX - startX
-    const dy = ev.clientY - startY
-    if (dx * dx + dy * dy > 25) triggerMoved.value = true
-    triggerPos.value = { x: ev.clientX - offsetX, y: ev.clientY - offsetY }
-  }
-  const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
-  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp)
-}
 const startDrag = (e) => {
   if (e.target.closest('.btn-close')) return
   isDragging.value = true

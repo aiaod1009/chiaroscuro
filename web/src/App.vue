@@ -5,18 +5,30 @@
       <router-view />
     </main>
     <AppFooter />
+    <Uploading ref="uploadRef" />
   </div>
 </template>
 
 <script>
+import { ref, provide } from 'vue'
 import NavigationBar from './components/NavigationBar.vue';
 import AppFooter from './components/AppFooter.vue';
+import Uploading from './components/Uploading.vue';
 
 export default {
   name: 'App',
   components: {
     NavigationBar,
     AppFooter,
+    Uploading,
+  },
+  setup() {
+    const uploadRef = ref(null)
+    const openUpload = () => {
+      if (uploadRef.value) uploadRef.value.isOpen = true
+    }
+    provide('openUpload', openUpload)
+    return { uploadRef }
   },
 };
 </script>
