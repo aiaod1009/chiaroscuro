@@ -5,7 +5,7 @@
         <h1 class="main-title-zh">草稿箱</h1>
         <div class="brand-sub">
           <span class="sub-en">CONSOLE</span>
-          <span class="sub-count">Drafts <span class="highlight-num">03</span></span>
+          <span class="sub-count">Drafts <span class="highlight-num">{{ String(drafts.length).padStart(2, '0') }}</span></span>
         </div>
       </div>
 
@@ -83,20 +83,20 @@
 
       <div class="assets-grid-flow">
 
-        <div v-for="item in mockDrafts" :key="item.id" class="asset-card">
+        <div v-for="item in drafts" :key="item._id" class="asset-card">
           <div class="card-top-overlay">
             <div class="checkbox-hollow"></div>
             <button class="btn-more-actions">•••</button>
           </div>
 
-          <img :src="item.imgUrl" :alt="item.title" class="asset-img" />
+          <img :src="item.imageUrl" :alt="item.fileName" class="asset-img" />
 
           <div class="card-bottom-glass">
             <div class="info-left">
-              <h3 class="asset-title">{{ item.title }}</h3>
-              <p class="asset-meta">{{ item.date }} • {{ item.location }}</p>
+              <h3 class="asset-title">{{ item.fileName }}</h3>
+              <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
             </div>
-            <span class="format-badge">{{ item.format }}</span>
+            <span class="format-badge">WEBP</span>
           </div>
         </div>
 
@@ -129,12 +129,24 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, onMounted } from 'vue'
+import axios from 'axios'
 
 const openUpload = inject('openUpload')
 const currentCategory = ref('all')
 const searchQuery = ref('')
 const currentPage = ref(1)
+
+const drafts = ref([])
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('/api/photos/drafts')
+    if (data.success) drafts.value = data.data
+  } catch (err) {
+    console.error('加载草稿失败:', err)
+  }
+})
 
 // 左侧分类过滤器源
 const filterNavs = ref([
@@ -145,15 +157,6 @@ const filterNavs = ref([
 
 // 底部分页模拟数组
 const pageRange = ref([1, 2, 3, '...', 12])
-
-// 深度还原设计稿中 5 张图片的元数据（包含特定格式与路径）
-const mockDrafts = ref([
-  { id: 1, title: 'DSC_6510', date: 'JUNE 03, 2025', location: 'ICELAND', format: 'RAW', imgUrl: '/DSC_6510.jpg' },
-  { id: 2, title: 'DSC_0920', date: 'JUNE 02, 2025', location: 'PASHAN', format: 'JPG', imgUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80' },
-  { id: 3, title: 'DSC_6174', date: 'MAY 31, 2025', location: 'SWISS ALPS', format: 'RAW', imgUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80' },
-  { id: 4, title: 'DSC_0917', date: 'MAY 30, 2025', location: 'DOLOMITES', format: 'RAW', imgUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80' },
-  { id: 5, title: 'DSC_0916', date: 'MAY 29, 2025', location: 'NORWAY', format: 'JPG', imgUrl: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80' }
-])
 </script>
 
 <style scoped>

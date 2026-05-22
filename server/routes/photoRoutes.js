@@ -6,6 +6,18 @@ const { upload } = require('../config/cos');
 const Photo = require('../models/Photo');
 
 // ==========================================
+// 📋 获取草稿箱列表
+// ==========================================
+router.get('/drafts', async (req, res) => {
+  try {
+    const drafts = await Photo.find({ isDraft: true }).sort({ createdAt: -1 })
+    res.json({ success: true, data: drafts })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
 // ==========================================
 router.post('/upload-raw', async (req, res) => {
