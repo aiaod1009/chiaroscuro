@@ -400,19 +400,12 @@ const handleUpload = async () => {
 
   const results = await Promise.all(uploadTasks)
   const successLen = results.filter(r => r.success).length
-  const failures = results.filter(r => !r.success)
 
-  if (failures.length > 0) {
-    const failList = failures.map(f => `${f.name}: ${f.error}`).join('\n')
-    alert(`成功 ${successLen} 张，失败 ${failures.length} 张:\n${failList}`)
-  } else {
-    alert(`🎉 传输工程完毕！共成功摄入 ${successLen} 张超清 WebP 资产至草稿舱。`)
-  }
-
-  // 收尾工作：清空队列，关闭面板
+  // 收尾工作：清空队列，关闭面板，通知外部刷新
   rawFilesQueue.value = []
   isUploading.value = false
   isOpen.value = false
+  if (successLen > 0) window.dispatchEvent(new CustomEvent('upload-complete'))
 }
 
 // --- 以下为原本悬浮窗拖拽交互逻辑，一字未动 ---

@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue'
+import { ref, inject, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 const openUpload = inject('openUpload')
@@ -139,13 +139,21 @@ const currentPage = ref(1)
 
 const drafts = ref([])
 
-onMounted(async () => {
+const fetchDrafts = async () => {
   try {
     const { data } = await axios.get('/api/photos/drafts')
     if (data.success) drafts.value = data.data
   } catch (err) {
     console.error('加载草稿失败:', err)
   }
+}
+
+onMounted(() => {
+  fetchDrafts()
+  window.addEventListener('upload-complete', fetchDrafts)
+})
+onUnmounted(() => {
+  window.removeEventListener('upload-complete', fetchDrafts)
 })
 
 // 左侧分类过滤器源
