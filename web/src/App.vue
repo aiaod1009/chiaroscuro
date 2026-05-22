@@ -5,21 +5,18 @@
       <router-view />
     </main>
     <AppFooter />
-    <Uploading />
   </div>
 </template>
 
 <script>
 import NavigationBar from './components/NavigationBar.vue';
 import AppFooter from './components/AppFooter.vue';
-import Uploading from './components/Uploading.vue';
 
 export default {
   name: 'App',
   components: {
     NavigationBar,
     AppFooter,
-    Uploading,
   },
 };
 </script>

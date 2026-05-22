@@ -22,7 +22,7 @@
         </div>
         <span class="upload-title">Upload visual assets</span>
         <span class="upload-formats">JPG / PNG / RAW</span>
-        <button class="btn-batch-upload">Batch Upload</button>
+        <button class="btn-batch-upload" @click="uploadRef.isOpen = true">Batch Upload</button>
       </div>
 
       <div class="ai-queue-card">
@@ -125,12 +125,15 @@
         <button class="page-arrow" :disabled="currentPage === 12" @click="currentPage++">&gt;</button>
       </footer>
     </main>
+    <Uploading ref="uploadRef" />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import Uploading from '../../components/Uploading.vue'
 
+const uploadRef = ref(null)
 const currentCategory = ref('all')
 const searchQuery = ref('')
 const currentPage = ref(1)

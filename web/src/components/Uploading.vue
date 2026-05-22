@@ -241,28 +241,33 @@ const handleUpload = () => {
 import { ref, reactive, computed } from 'vue'
 import exifr from 'exifr'
 import axios from 'axios'
-import COS from 'cos-js-sdk-v5'
 
-// COS 浏览器 SDK 实例，STS 凭证自动续签
-const cos = new COS({
-  getAuthorization: (options, callback) => {
-    axios.get('/api/cos/sts').then(({ data }) => {
-      if (!data.success) throw new Error(data.message)
-      callback({
-        TmpSecretId: data.tmpSecretId,
-        TmpSecretKey: data.tmpSecretKey,
-        SecurityToken: data.sessionToken,
-        StartTime: data.startTime,
-        ExpiredTime: data.expiredTime,
+let cosInstance = null
+const getCosInstance = async () => {
+  if (cosInstance) return cosInstance
+  const COS = (await import('cos-js-sdk-v5')).default
+  cosInstance = new COS({
+    getAuthorization: (options, callback) => {
+      axios.get('/api/cos/sts').then(({ data }) => {
+        if (!data.success) throw new Error(data.message)
+        callback({
+          TmpSecretId: data.tmpSecretId,
+          TmpSecretKey: data.tmpSecretKey,
+          SecurityToken: data.sessionToken,
+          StartTime: data.startTime,
+          ExpiredTime: data.expiredTime,
+        })
+      }).catch(err => {
+        console.error('STS 签发请求失败:', err)
       })
-    }).catch(err => {
-      console.error('STS 签发请求失败:', err)
-    })
-  },
-})
+    },
+  })
+  return cosInstance
+}
 
 // --- 1. 悬浮窗原有 UI 状态保持不变 ---
 const isOpen = ref(false)
+defineExpose({ isOpen })
 const isDragOver = ref(false)
 const fileInputRef = ref(null)
 const windowRef = ref(null)
@@ -332,7 +337,7 @@ const extractExifData = async (file) => {
   try {
     const rawExif = await exifr.parse(file)
     if (!rawExif) return null
-    return {
+    const result = {
       camera: (rawExif.Make || '') + ' ' + (rawExif.Model || 'Unknown Camera'),
       lens: rawExif.LensModel || 'Unknown Lens',
       aperture: rawExif.FNumber ? `f/${rawExif.FNumber}` : 'f/0.0',
@@ -342,6 +347,7 @@ const extractExifData = async (file) => {
         : 'Unknown',
       focalLength: rawExif.FocalLength ? `${rawExif.FocalLength}mm` : 'Unknown'
     }
+    return result
   } catch (e) {
     console.warn(`[Exif 剥离] ${file.name} 元数据读取失败，可能非单反原片`)
     return null
@@ -373,6 +379,7 @@ const handleUpload = async () => {
 
       // 步骤 C：通过 STS 临时凭证直传腾讯云 COS
       uploadProgressText.value = `[${index + 1}/${selectedFilesCount.value}] 正在直传腾讯云 COS...`
+      const cos = await getCosInstance()
       const cosKey = `gallery/${Date.now()}-${webpFile.name}`
       const cosData = await new Promise((resolve, reject) => {
         cos.putObject({
@@ -398,15 +405,20 @@ const handleUpload = async () => {
       return { success: true }
     } catch (err) {
       console.error(`${rawFile.name} 调度中断:`, err)
-      return { success: false, name: rawFile.name }
+      return { success: false, name: rawFile.name, error: err.message || String(err) }
     }
   })
 
-  // 轰炸发射！并发执行所有图片的直传与建档
   const results = await Promise.all(uploadTasks)
   const successLen = results.filter(r => r.success).length
+  const failures = results.filter(r => !r.success)
 
-  alert(`🎉 传输工程完毕！共成功摄入 ${successLen} 张超清 WebP 资产至草稿舱。`)
+  if (failures.length > 0) {
+    const failList = failures.map(f => `${f.name}: ${f.error}`).join('\n')
+    alert(`成功 ${successLen} 张，失败 ${failures.length} 张:\n${failList}`)
+  } else {
+    alert(`🎉 传输工程完毕！共成功摄入 ${successLen} 张超清 WebP 资产至草稿舱。`)
+  }
 
   // 收尾工作：清空队列，关闭面板
   rawFilesQueue.value = []
@@ -425,10 +437,17 @@ const triggerStyle = computed(() => {
 })
 const startTriggerDrag = (e) => {
   triggerMoved.value = false
+  const startX = e.clientX
+  const startY = e.clientY
   const rect = triggerRef.value.getBoundingClientRect()
   const offsetX = e.clientX - rect.left
   const offsetY = e.clientY - rect.top
-  const onMove = (ev) => { triggerMoved.value = true; triggerPos.value = { x: ev.clientX - offsetX, y: ev.clientY - offsetY } }
+  const onMove = (ev) => {
+    const dx = ev.clientX - startX
+    const dy = ev.clientY - startY
+    if (dx * dx + dy * dy > 25) triggerMoved.value = true
+    triggerPos.value = { x: ev.clientX - offsetX, y: ev.clientY - offsetY }
+  }
   const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp) }
   document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp)
 }
