@@ -26,6 +26,7 @@ const PhotoSchema = new mongoose.Schema({
   },
 
   // 3. 地图足迹
+  region: { type: String, default: '' },
   locationName: { type: String, default: '未标记地点' },
   coordinates: {
     lat: { type: Number },

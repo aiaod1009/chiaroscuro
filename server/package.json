@@ -18,6 +18,7 @@
     "express": "^5.2.1",
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
+    "tencentcloud-sdk-nodejs-sts": "^4.1.100",
     "zhipuai": "^2.0.0"
   }
 }

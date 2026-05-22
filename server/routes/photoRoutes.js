@@ -10,7 +10,7 @@ const Photo = require('../models/Photo');
 // ==========================================
 router.post('/upload-raw', async (req, res) => {
   try {
-    const { albumId, imageUrl, fileName, exif } = req.body;
+    const { albumId, imageUrl, fileName, locationName, region, exif } = req.body;
 
     if (!imageUrl) return res.status(400).json({ success: false, message: '没收到图片链接' });
 
@@ -19,6 +19,8 @@ router.post('/upload-raw', async (req, res) => {
       imageUrl,
       fileName: fileName || 'UNTITLED.webp',
       isDraft: true,
+      locationName: locationName || '未标记地点',
+      region: region || '',
       exif: {
         camera: exif?.camera || 'Unknown Camera',
         lens: exif?.lens || 'Unknown Lens',
