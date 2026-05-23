@@ -450,7 +450,7 @@ const handleSave = () => {
   color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin-top: -5rem;
-  padding: 5rem 200px 40px 200px;
+  padding: 6.5rem 200px 40px 200px;
   box-sizing: border-box;
 }
 
@@ -549,8 +549,8 @@ const handleSave = () => {
 .image-viewer {
   position: relative;
   width: 100%;
-  max-height: 70vh;
-  border-radius: 24px;
+  max-height: 60vh;
+  border-radius: 20px;
   overflow: hidden;
   background-color: #020617;
   border: 1px solid rgba(255, 255, 255, 0.04);
@@ -560,7 +560,7 @@ const handleSave = () => {
   width: 100%;
   display: block;
   object-fit: contain;
-  max-height: 70vh;
+  max-height: 60vh;
 }
 
 .tags-row {
