@@ -38,17 +38,17 @@
             </div>
           </div>
 
-          <img src="/DSC_6510.jpg" alt="Visual Notes Source" class="source-img" />
+          <img :src="currentPhoto.imageUrl || '/DSC_6510.jpg'" alt="Visual Notes Source" class="source-img" />
 
           <div class="scan-line"></div>
         </div>
 
         <div class="meta-spec-bar">
-          <button class="btn-ai-generate">
+          <button class="btn-ai-generate" :disabled="isGenerating" @click="handleAiGenerate">
             <svg class="sparkle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            AI GENERATE
+            {{ isGenerating ? 'GENERATING...' : 'AI GENERATE' }}
           </button>
 
           <div class="specs-group">
@@ -94,27 +94,34 @@
               </div>
             </div>
 
+            <div v-if="candidates.length" class="candidate-tabs">
+              <button v-for="(c, i) in candidates" :key="c.optionId" class="candidate-tab"
+                :class="{ active: activeCandidateIndex === i }" @click="selectCandidate(i)">
+                方案{{ c.optionId }}
+              </button>
+            </div>
+
             <div class="output-narrative">
-              <h2 class="narrative-title">寂静之巅的低语</h2>
+              <h2 class="narrative-title">{{ activeCandidate.title }}</h2>
               <p class="narrative-body">
-                "当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸。"
+                "{{ activeCandidate.caption }}"
               </p>
             </div>
 
             <div class="optimize-section">
               <div class="optimize-header">
                 <span class="panel-label">DISS/OPTIMIZE GENERATION?</span>
-                <span class="btn-redraft">
+                <span class="btn-redraft" @click="handleOptimize">
                   <svg class="mini-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19" />
                   </svg>
-                  RE-DRAFT
+                  {{ isIterating ? 'RE-DRAFTING...' : 'RE-DRAFT' }}
                 </span>
               </div>
               <div class="input-wrapper">
-                <input type="text" v-model="aiPrompt" placeholder="例如：再冷酷一点，减少抒情..." @keyup.enter="handleOptimize" />
-                <button class="send-btn" @click="handleOptimize">➔</button>
+                <input type="text" v-model="aiPrompt" :disabled="isIterating" placeholder="例如：再冷酷一点，减少抒情..." @keyup.enter="handleOptimize" />
+                <button class="send-btn" :disabled="isIterating" @click="handleOptimize">➔</button>
               </div>
             </div>
           </div>
@@ -162,7 +169,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
 
 // 核心状态：'creator' (手写) 或 'ai' (AI智能)
 const currentMode = ref('ai')
@@ -176,23 +187,122 @@ const perspectives = [
   { id: 'minimal', name: 'MINIMAL' }
 ]
 
+const STYLE_MAP = {
+  poetic: '诗意',
+  narrative: '叙事',
+  minimal: '极简'
+}
+
+// AI 生成状态
+const isGenerating = ref(false)
+const isIterating = ref(false)
+const sessionId = ref(null)
+const candidates = ref([])
+const activeCandidateIndex = ref(0)
+
+const activeCandidate = ref({
+  title: '寂静之巅的低语',
+  caption: '当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸。'
+})
+
 // 手写模式相关状态
 const manualTitle = ref('寂静之巅的低语')
 const manualContent = ref('当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸。')
 
-// 触发优化生成
-const handleOptimize = () => {
-  if (!aiPrompt.value.trim()) return
-  alert(`已发送微调指令: ${aiPrompt.value}`)
-  aiPrompt.value = ''
+// 当前照片信息（从 Console 页跳转携带）
+const currentPhoto = reactive({
+  id: null,
+  imageUrl: ''
+})
+
+onMounted(() => {
+  if (route.query.photoId) currentPhoto.id = route.query.photoId
+  if (route.query.imageUrl) currentPhoto.imageUrl = route.query.imageUrl
+})
+
+// AI GENERATE：首次触发生成
+const handleAiGenerate = async () => {
+  if (isGenerating.value) return
+  isGenerating.value = true
+
+  try {
+    const style = STYLE_MAP[activePerspective.value]
+    const { data } = await axios.post('/api/ai/inspire/first-round', {
+      photoId: currentPhoto.id,
+      imageUrl: currentPhoto.imageUrl,
+      style
+    })
+
+    if (data.success) {
+      sessionId.value = data.sessionId
+      candidates.value = data.candidates
+      activeCandidateIndex.value = 0
+      activeCandidate.value = {
+        title: data.candidates[0].title,
+        caption: data.candidates[0].caption
+      }
+    }
+  } catch (error) {
+    console.error('AI 生成失败:', error)
+  } finally {
+    isGenerating.value = false
+  }
+}
+
+// 切换候选方案
+const selectCandidate = (index) => {
+  if (index < 0 || index >= candidates.value.length) return
+  activeCandidateIndex.value = index
+  activeCandidate.value = {
+    title: candidates.value[index].title,
+    caption: candidates.value[index].caption
+  }
+}
+
+// RE-DRAFT：多轮迭代优化
+const handleOptimize = async () => {
+  if (!aiPrompt.value.trim() || !sessionId.value || isIterating.value) return
+  isIterating.value = true
+
+  try {
+    const currentOption = candidates.value[activeCandidateIndex.value]
+    const { data } = await axios.post('/api/ai/inspire/iterate', {
+      sessionId: sessionId.value,
+      optionId: currentOption.optionId,
+      currentContent: {
+        title: activeCandidate.value.title,
+        caption: activeCandidate.value.caption
+      },
+      userFeedback: aiPrompt.value.trim()
+    })
+
+    if (data.success) {
+      const updated = data.updatedCandidate
+      activeCandidate.value = {
+        title: updated.title,
+        caption: updated.caption
+      }
+      // 同步更新 candidates 列表
+      const idx = candidates.value.findIndex(c => c.optionId === updated.optionId)
+      if (idx !== -1) {
+        candidates.value[idx].title = updated.title
+        candidates.value[idx].caption = updated.caption
+      }
+    }
+  } catch (error) {
+    console.error('迭代优化失败:', error)
+  } finally {
+    isIterating.value = false
+    aiPrompt.value = ''
+  }
 }
 
 // 触发保存操作
 const handleSave = () => {
   const payload = {
     mode: currentMode.value,
-    title: currentMode.value === 'ai' ? '寂静之巅的低语' : manualTitle.value,
-    content: currentMode.value === 'ai' ? '当最后的微光在冷峻的岩壁上褪去...' : manualContent.value,
+    title: currentMode.value === 'ai' ? activeCandidate.value.title : manualTitle.value,
+    content: currentMode.value === 'ai' ? activeCandidate.value.caption : manualContent.value,
     perspective: currentMode.value === 'ai' ? activePerspective.value : null
   }
   console.log('保存叙事元数据:', payload)
@@ -409,6 +519,12 @@ const handleSave = () => {
   box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
 }
 
+.btn-ai-generate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .sparkle-icon {
   width: 14px;
   height: 14px;
@@ -557,6 +673,35 @@ const handleSave = () => {
   border-color: rgba(255, 255, 255, 0.3);
   color: #ffffff;
   background-color: rgba(255, 255, 255, 0.02);
+}
+
+.candidate-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.candidate-tab {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-family: monospace;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.candidate-tab.active {
+  border-color: #22d3ee;
+  color: #22d3ee;
+  background-color: rgba(34, 211, 238, 0.06);
+}
+
+.candidate-tab:hover:not(.active) {
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #9ca3af;
 }
 
 .output-narrative {

@@ -83,7 +83,7 @@
 
       <div class="assets-grid-flow">
 
-        <div v-for="item in drafts" :key="item._id" class="asset-card">
+        <div v-for="item in drafts" :key="item._id" class="asset-card" @click="goToNarrative(item)">
           <div class="card-top-overlay">
             <div class="checkbox-hollow"></div>
             <button class="btn-more-actions">•••</button>
@@ -130,7 +130,10 @@
 
 <script setup>
 import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
+
+const router = useRouter()
 
 const openUpload = inject('openUpload')
 const currentCategory = ref('all')
@@ -165,6 +168,14 @@ const filterNavs = ref([
 
 // 底部分页模拟数组
 const pageRange = ref([1, 2, 3, '...', 12])
+
+// 点击图片跳转到影像叙事页
+const goToNarrative = (item) => {
+  router.push({
+    path: '/about',
+    query: { photoId: item._id, imageUrl: item.imageUrl }
+  })
+}
 </script>
 
 <style scoped>
@@ -534,6 +545,7 @@ const pageRange = ref([1, 2, 3, '...', 12])
   background-color: #161b22;
   border: 1px solid rgba(255, 255, 255, 0.03);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 
 .asset-img {

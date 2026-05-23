@@ -13,10 +13,11 @@ const AISession = require('../models/AISession');
 // 接口 1：首次触发（根据选定风格生成 3 个备选方案，或直接复用历史记录）
 router.post('/inspire/first-round', async (req, res) => {
   try {
-    const { photoId, imageUrl, style } = req.body; // style 如 '活泼'、'正式'、'冷酷'
+    const { photoId, imageUrl, style } = req.body; // style 如 '诗意'、'叙事'、'极简'
 
     // 1. 【核心亮点】：分流检查！看看数据库里有没有这张照片对应这个风格的专属抽屉
-    const existingSession = await AISession.findOne({ photoId, chosenStyle: style });
+    const query = photoId ? { photoId, chosenStyle: style } : { imageUrl, chosenStyle: style };
+    const existingSession = await AISession.findOne(query);
 
     if (existingSession) {
       // 找到了！说明两天前玩过这个风格，直接把当年的记忆和 3 个卡片原封不动吐回去
@@ -78,7 +79,8 @@ router.post('/inspire/first-round', async (req, res) => {
     ];
 
     const session = new AISession({
-      photoId,
+      photoId: photoId || undefined,
+      imageUrl: imageUrl || '',
       chosenStyle: style,
       messages: fullMessages,
       candidates: rawJson.candidates
