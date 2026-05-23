@@ -132,7 +132,8 @@
                 </span>
               </div>
               <div class="input-wrapper">
-                <input type="text" v-model="aiPrompt" :disabled="isIterating" placeholder="例如：再冷酷一点，减少抒情..." @keyup.enter="handleOptimize" />
+                <input type="text" v-model="aiPrompt" :disabled="isIterating" placeholder="例如：再冷酷一点，减少抒情..."
+                  @keyup.enter="handleOptimize" />
                 <button class="send-btn" :disabled="isIterating" @click="handleOptimize">➔</button>
               </div>
             </div>
@@ -413,6 +414,7 @@ const handleSave = () => {
 
 .subtitle {
   font-size: 13px;
+  font-weight: 500;
   color: #8b949e;
   margin: 0;
 }
@@ -469,7 +471,8 @@ const handleSave = () => {
 .image-viewer {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 300px;
+  max-height: 70vh;
   border-radius: 24px;
   overflow: hidden;
   background-color: #020617;
@@ -478,8 +481,9 @@ const handleSave = () => {
 
 .source-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  display: block;
+  object-fit: contain;
+  max-height: 70vh;
 }
 
 .tags-row {
@@ -566,7 +570,9 @@ const handleSave = () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .generating-text {
@@ -578,8 +584,15 @@ const handleSave = () => {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Toast 提示条 */
@@ -593,6 +606,7 @@ const handleSave = () => {
   border: 1px solid rgba(234, 88, 12, 0.3);
   border-radius: 12px;
   font-size: 13px;
+  font-weight: 600;
   color: #fb923c;
 }
 
@@ -759,11 +773,11 @@ const handleSave = () => {
 }
 
 .panel-label {
-  font-size: 9px;
+  font-size: 10px;
   font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #4b5563;
+  color: #6b7280;
   display: block;
   margin-bottom: 12px;
 }
@@ -782,9 +796,10 @@ const handleSave = () => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 6px 14px;
   border-radius: 9999px;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
   font-family: monospace;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -806,9 +821,10 @@ const handleSave = () => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 5px 14px;
   border-radius: 8px;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
   font-family: monospace;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -829,8 +845,8 @@ const handleSave = () => {
 }
 
 .narrative-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: #ffffff;
   margin: 0 0 12px 0;
   border-left: 2px solid #22d3ee;
@@ -838,8 +854,9 @@ const handleSave = () => {
 }
 
 .narrative-body {
-  font-size: 13px;
-  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 500;
+  color: #b0b8c4;
   line-height: 1.7;
   margin: 0;
 }
@@ -852,10 +869,10 @@ const handleSave = () => {
 }
 
 .btn-redraft {
-  font-size: 10px;
+  font-size: 11px;
   font-family: monospace;
   font-weight: 700;
-  color: #9ca3af;
+  color: #b0b8c4;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -879,7 +896,8 @@ const handleSave = () => {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 12px 40px 12px 14px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: #ffffff;
   outline: none;
 }
@@ -940,7 +958,8 @@ const handleSave = () => {
   border: none;
   resize: none;
   height: 140px;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.7;
   color: #d1d5db;
   outline: none;
