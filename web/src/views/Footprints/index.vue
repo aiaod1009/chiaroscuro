@@ -3,6 +3,26 @@
     <section ref="mapContainer" class="map-stage" :class="{ 'is-dragging': isDragging }" @mousedown="handleMouseDown"
       @mousemove="handleMouseMove" @mouseup="handleMouseUp" @mouseleave="handleMouseUp" @wheel.prevent="handleWheel">
       <svg class="travel-map" :viewBox="`0 0 ${svgWidth} ${svgHeight}`" role="img" aria-label="旅行足迹地图">
+        <defs>
+          <filter id="visited-glow" x="-25%" y="-25%" width="150%" height="150%" filterUnits="userSpaceOnUse"
+            primitiveUnits="userSpaceOnUse">
+            <feGaussianBlur in="SourceGraphic" :stdDeviation="2 / zoom" result="blur1" />
+            <feFlood flood-color="rgb(245, 158, 11)" flood-opacity="0.85" result="color1" />
+            <feComposite in="color1" in2="blur1" operator="in" result="shadow1" />
+            <feGaussianBlur in="SourceGraphic" :stdDeviation="5 / zoom" result="blur2" />
+            <feFlood flood-color="rgb(245, 158, 11)" flood-opacity="0.45" result="color2" />
+            <feComposite in="color2" in2="blur2" operator="in" result="shadow2" />
+            <feGaussianBlur in="SourceGraphic" :stdDeviation="10 / zoom" result="blur3" />
+            <feFlood flood-color="rgb(234, 88, 12)" flood-opacity="0.25" result="color3" />
+            <feComposite in="color3" in2="blur3" operator="in" result="shadow3" />
+            <feMerge>
+              <feMergeNode in="shadow3" />
+              <feMergeNode in="shadow2" />
+              <feMergeNode in="shadow1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <rect width="100%" height="100%" fill="#050a15" />
 
         <g :transform="mapTransform">
@@ -456,9 +476,7 @@ path {
 }
 
 path.highlighted {
-  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.85))
-    drop-shadow(0 0 12px rgba(245, 158, 11, 0.45))
-    drop-shadow(0 0 24px rgba(234, 88, 12, 0.25));
+  filter: url(#visited-glow);
 }
 
 .map-marker {
