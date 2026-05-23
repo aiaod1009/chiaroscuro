@@ -59,7 +59,7 @@
           <div class="specs-group">
             <div v-if="photoExif.camera" class="spec-item">
               <span class="spec-label">CAMERA</span>
-              <span class="spec-value">{{ photoExif.camera }}</span>
+              <span class="spec-value">{{ cleanCamera(photoExif.camera) }}</span>
             </div>
             <div v-if="photoExif.aperture" class="spec-item">
               <span class="spec-label">APERTURE</span>
@@ -249,6 +249,23 @@ onMounted(async () => {
     restoreSession()
   }
 })
+
+// 去掉厂商前缀，压缩型号空格（如 "NIKON CORPORATION NIKON Z 30" → "NIKON Z30"）
+const cleanCamera = (name) => {
+  if (!name) return ''
+  // 去掉常见厂商前缀
+  let clean = name
+    .replace(/^NIKON CORPORATION\s*/i, '')
+    .replace(/^Canon\s*/i, '')
+    .replace(/^SONY\s*/i, '')
+    .replace(/^FUJIFILM\s*/i, '')
+    .replace(/^PENTAX\s*/i, '')
+    .replace(/^OLYMPUS\s*/i, '')
+    .trim()
+  // 压缩型号中间多余空格（"Z 30" → "Z30"，"D 850" → "D850"）
+  clean = clean.replace(/([A-Z])\s+(\d)/g, '$1$2')
+  return clean
+}
 
 // 拉取照片详情（含 EXIF）
 const fetchPhotoDetail = async (id) => {

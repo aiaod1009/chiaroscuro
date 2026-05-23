@@ -327,7 +327,7 @@ const extractExifData = async (file) => {
     const rawExif = await exifr.parse(file)
     if (!rawExif) return null
     const result = {
-      camera: (rawExif.Make || '') + ' ' + (rawExif.Model || 'Unknown Camera'),
+      camera: rawExif.Model || rawExif.Make || 'Unknown Camera',
       lens: rawExif.LensModel || 'Unknown Lens',
       aperture: rawExif.FNumber ? `f/${rawExif.FNumber}` : 'f/0.0',
       iso: String(rawExif.ISO || '0'),
