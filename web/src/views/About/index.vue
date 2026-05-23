@@ -30,7 +30,7 @@
           <div class="tags-row">
             <div class="viewer-tag tag-analyzing">
               <span class="pulse-dot"></span>
-              ANALYZING PIXELS...
+              {{ isGenerating ? 'NEURAL FIRING...' : 'ANALYZING PIXELS...' }}
             </div>
             <div class="viewer-tag tag-synced">
               <span class="sync-icon">◎</span>
@@ -39,6 +39,11 @@
           </div>
 
           <img :src="currentPhoto.imageUrl || '/DSC_6510.jpg'" alt="Visual Notes Source" class="source-img" />
+
+          <div v-if="isGenerating" class="generating-overlay">
+            <div class="neural-spinner"></div>
+            <span class="generating-text">DECODE VISUAL TOKENS...</span>
+          </div>
 
           <div class="scan-line"></div>
         </div>
@@ -66,6 +71,13 @@
             </div>
           </div>
         </div>
+
+        <transition name="toast">
+          <div v-if="toastMessage" class="toast-bar">
+            <span class="toast-icon">⚡</span>
+            <span>{{ toastMessage }}</span>
+          </div>
+        </transition>
       </div>
 
       <div class="control-column">
@@ -199,6 +211,14 @@ const isIterating = ref(false)
 const sessionId = ref(null)
 const candidates = ref([])
 const activeCandidateIndex = ref(0)
+const toastMessage = ref('')
+let toastTimer = null
+
+const showToast = (msg, duration = 5000) => {
+  toastMessage.value = msg
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => { toastMessage.value = '' }, duration)
+}
 
 const activeCandidate = ref({
   title: '寂静之巅的低语',
@@ -218,7 +238,34 @@ const currentPhoto = reactive({
 onMounted(() => {
   if (route.query.photoId) currentPhoto.id = route.query.photoId
   if (route.query.imageUrl) currentPhoto.imageUrl = route.query.imageUrl
+  if (currentPhoto.id || currentPhoto.imageUrl) restoreSession()
 })
+
+// 将接口返回的 candidates 同步到前端状态
+const applyCandidates = (data) => {
+  sessionId.value = data.sessionId
+  candidates.value = data.candidates
+  activeCandidateIndex.value = 0
+  activeCandidate.value = {
+    title: data.candidates[0].title,
+    caption: data.candidates[0].caption
+  }
+}
+
+// 页面加载时尝试从数据库恢复已有会话（静默，不显示 loading）
+const restoreSession = async () => {
+  try {
+    const style = STYLE_MAP[activePerspective.value]
+    const { data } = await axios.post('/api/ai/inspire/first-round', {
+      photoId: currentPhoto.id,
+      imageUrl: currentPhoto.imageUrl,
+      style
+    })
+    if (data.success && data.candidates.length) applyCandidates(data)
+  } catch {
+    // 静默失败，用户可以手动点击 AI GENERATE
+  }
+}
 
 // AI GENERATE：首次触发生成
 const handleAiGenerate = async () => {
@@ -233,17 +280,15 @@ const handleAiGenerate = async () => {
       style
     })
 
-    if (data.success) {
-      sessionId.value = data.sessionId
-      candidates.value = data.candidates
-      activeCandidateIndex.value = 0
-      activeCandidate.value = {
-        title: data.candidates[0].title,
-        caption: data.candidates[0].caption
-      }
-    }
+    if (data.success) applyCandidates(data)
   } catch (error) {
     console.error('AI 生成失败:', error)
+    const status = error.response?.status
+    if (status === 429) {
+      showToast('【灵感中枢繁忙】请稍等 5 秒后再次敲击...')
+    } else {
+      showToast('生成失败，请稍后重试')
+    }
   } finally {
     isGenerating.value = false
   }
@@ -291,6 +336,12 @@ const handleOptimize = async () => {
     }
   } catch (error) {
     console.error('迭代优化失败:', error)
+    const status = error.response?.status
+    if (status === 429) {
+      showToast('【灵感中枢繁忙】请稍等 5 秒后再次敲击...')
+    } else {
+      showToast('优化失败，请稍后重试')
+    }
   } finally {
     isIterating.value = false
     aiPrompt.value = ''
@@ -489,6 +540,75 @@ const handleSave = () => {
   height: 1px;
   background: linear-gradient(90deg, rgba(34, 211, 238, 0) 0%, rgba(34, 211, 238, 0.3) 50%, rgba(34, 211, 238, 0) 100%);
   box-shadow: 0 0 6px rgba(34, 211, 238, 0.4);
+}
+
+/* 加载遮罩 */
+.generating-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 5;
+}
+
+.neural-spinner {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(34, 211, 238, 0.15);
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.generating-text {
+  font-size: 10px;
+  font-family: monospace;
+  letter-spacing: 0.15em;
+  color: #22d3ee;
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Toast 提示条 */
+.toast-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 20px;
+  background: rgba(234, 88, 12, 0.08);
+  border: 1px solid rgba(234, 88, 12, 0.3);
+  border-radius: 12px;
+  font-size: 13px;
+  color: #fb923c;
+}
+
+.toast-icon {
+  font-size: 14px;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.35s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 /* 规格底栏 */

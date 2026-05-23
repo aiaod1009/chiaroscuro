@@ -31,7 +31,7 @@ router.post('/inspire/first-round', async (req, res) => {
     }
 
     // 2. 没找到旧抽屉，说明是第一次玩这个风格，老老实实走大模型全新生成链路
-    const optimizedImageUrl = `${imageUrl}!small`; // 我们的 50KB 极速拦截外挂
+    const optimizedImageUrl = imageUrl; // 智谱不支持 COS 图片处理后缀，直接用原图 URL
 
     // 系统提示词：强控大模型只围绕当前选择的风格输出 3 个差异化方案
     const systemPrompt = `你是一位精通视觉艺术的独立摄影评论家。请深层分析用户提供的图片，并完全围绕用户指定的【${style}】风格，一口气提供 3 个【彼此不同、各有侧重】的艺术标题与配文方案。`;
@@ -69,6 +69,17 @@ router.post('/inspire/first-round', async (req, res) => {
     });
 
     const data = await response.json();
+    console.log('[AI] 智谱返回:', JSON.stringify(data).slice(0, 500));
+
+    // 智谱限流 429 或错误码 1305
+    if (response.status === 429 || data.error?.code === '1305') {
+      return res.status(429).json({ success: false, message: "灵感中枢繁忙，请稍后再试" });
+    }
+
+    if (!data.choices || data.choices.length === 0) {
+      return res.status(400).json({ success: false, message: "大模型返回异常", errorDetails: data });
+    }
+
     const replyContent = data.choices[0].message.content;
     const rawJson = JSON.parse(replyContent);
 
