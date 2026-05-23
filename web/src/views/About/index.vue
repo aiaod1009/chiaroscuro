@@ -57,17 +57,29 @@
           </button>
 
           <div class="specs-group">
-            <div class="spec-item">
-              <span class="spec-label">RESOLUTION</span>
-              <span class="spec-value">7680 × 4320</span>
+            <div v-if="photoExif.camera" class="spec-item">
+              <span class="spec-label">CAMERA</span>
+              <span class="spec-value">{{ photoExif.camera }}</span>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">NEURAL MODEL</span>
-              <span class="spec-value">LUMEN-V2</span>
+            <div v-if="photoExif.aperture" class="spec-item">
+              <span class="spec-label">APERTURE</span>
+              <span class="spec-value">{{ photoExif.aperture }}</span>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">ISO EQUIVALENT</span>
-              <span class="spec-value">64 (NATIVE)</span>
+            <div v-if="photoExif.shutterSpeed" class="spec-item">
+              <span class="spec-label">SHUTTER</span>
+              <span class="spec-value">{{ photoExif.shutterSpeed }}</span>
+            </div>
+            <div v-if="photoExif.iso && photoExif.iso !== '0'" class="spec-item">
+              <span class="spec-label">ISO</span>
+              <span class="spec-value">{{ photoExif.iso }}</span>
+            </div>
+            <div v-if="photoExif.focalLength" class="spec-item">
+              <span class="spec-label">FOCAL</span>
+              <span class="spec-value">{{ photoExif.focalLength }}</span>
+            </div>
+            <div v-if="photoExif.dateTimeOriginal" class="spec-item">
+              <span class="spec-label">DATE</span>
+              <span class="spec-value">{{ new Date(photoExif.dateTimeOriginal).toLocaleDateString('zh-CN') }}</span>
             </div>
           </div>
         </div>
@@ -113,7 +125,7 @@
               </button>
             </div>
 
-            <div class="output-narrative">
+            <div v-if="activeCandidate.title" class="output-narrative">
               <h2 class="narrative-title">{{ activeCandidate.title }}</h2>
               <p class="narrative-body">
                 "{{ activeCandidate.caption }}"
@@ -156,22 +168,6 @@
             </div>
           </div>
 
-          <div class="panel-footer-metrics">
-            <div class="metric-card">
-              <span class="panel-label">DOMINANT HUE</span>
-              <div class="badge-item">
-                <span class="color-dot" style="background-color: #1A2533"></span>
-                <span class="mono-text">#1A2533</span>
-              </div>
-            </div>
-            <div class="metric-card">
-              <span class="panel-label">VISUAL RATIO</span>
-              <div class="badge-item">
-                <span class="color-dot" style="background-color: #ffffff"></span>
-                <span class="mono-text">HIGH CONTRAST</span>
-              </div>
-            </div>
-          </div>
 
         </div>
 
@@ -195,9 +191,9 @@ const currentMode = ref('ai')
 const activePerspective = ref('poetic')
 const aiPrompt = ref('')
 const perspectives = [
-  { id: 'poetic', name: 'POETIC' },
-  { id: 'narrative', name: 'NARRATIVE' },
-  { id: 'minimal', name: 'MINIMAL' }
+  { id: 'poetic', name: '诗意' },
+  { id: 'narrative', name: '叙事' },
+  { id: 'minimal', name: '极简' }
 ]
 
 const STYLE_MAP = {
@@ -222,13 +218,13 @@ const showToast = (msg, duration = 5000) => {
 }
 
 const activeCandidate = ref({
-  title: '寂静之巅的低语',
-  caption: '当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸。'
+  title: '',
+  caption: ''
 })
 
 // 手写模式相关状态
-const manualTitle = ref('寂静之巅的低语')
-const manualContent = ref('当最后的微光在冷峻的岩壁上褪去，时间仿佛在此凝固。这些山脉不仅仅是岩石的堆砌，它们是大地在千万年沉寂中发出的深沉呼吸。')
+const manualTitle = ref('')
+const manualContent = ref('')
 
 // 当前照片信息（从 Console 页跳转携带）
 const currentPhoto = reactive({
@@ -236,11 +232,44 @@ const currentPhoto = reactive({
   imageUrl: ''
 })
 
-onMounted(() => {
+const photoExif = reactive({
+  camera: '',
+  aperture: '',
+  iso: '',
+  shutterSpeed: '',
+  focalLength: '',
+  dateTimeOriginal: null
+})
+
+onMounted(async () => {
   if (route.query.photoId) currentPhoto.id = route.query.photoId
   if (route.query.imageUrl) currentPhoto.imageUrl = route.query.imageUrl
-  if (currentPhoto.id || currentPhoto.imageUrl) restoreSession()
+  if (currentPhoto.id) {
+    fetchPhotoDetail(currentPhoto.id)
+    restoreSession()
+  }
 })
+
+// 拉取照片详情（含 EXIF）
+const fetchPhotoDetail = async (id) => {
+  try {
+    const { data } = await axios.get(`/api/photos/${id}`)
+    if (data.success) {
+      const p = data.data
+      if (p.imageUrl) currentPhoto.imageUrl = p.imageUrl
+      if (p.exif) {
+        photoExif.camera = p.exif.camera || ''
+        photoExif.aperture = p.exif.aperture || ''
+        photoExif.iso = p.exif.iso || ''
+        photoExif.shutterSpeed = p.exif.shutterSpeed || ''
+        photoExif.focalLength = p.exif.focalLength || ''
+        photoExif.dateTimeOriginal = p.exif.dateTimeOriginal || p.createdAt
+      }
+    }
+  } catch (e) {
+    console.error('获取照片详情失败:', e)
+  }
+}
 
 // 将接口返回的 candidates 同步到前端状态
 const applyCandidates = (data) => {
@@ -372,7 +401,7 @@ const handleSave = () => {
   color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin-top: -5rem;
-  padding: 5rem 160px 40px 160px;
+  padding: 5rem 200px 40px 200px;
   box-sizing: border-box;
 }
 
@@ -471,7 +500,6 @@ const handleSave = () => {
 .image-viewer {
   position: relative;
   width: 100%;
-  min-height: 300px;
   max-height: 70vh;
   border-radius: 24px;
   overflow: hidden;
@@ -606,7 +634,6 @@ const handleSave = () => {
   border: 1px solid rgba(234, 88, 12, 0.3);
   border-radius: 12px;
   font-size: 13px;
-  font-weight: 600;
   color: #fb923c;
 }
 
@@ -773,11 +800,11 @@ const handleSave = () => {
 }
 
 .panel-label {
-  font-size: 10px;
+  font-size: 9px;
   font-family: monospace;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: #6b7280;
+  color: #4b5563;
   display: block;
   margin-bottom: 12px;
 }
@@ -821,10 +848,9 @@ const handleSave = () => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 5px 14px;
   border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
   font-family: monospace;
-  color: #9ca3af;
+  color: #6b7280;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -845,8 +871,8 @@ const handleSave = () => {
 }
 
 .narrative-title {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   color: #ffffff;
   margin: 0 0 12px 0;
   border-left: 2px solid #22d3ee;
@@ -854,9 +880,8 @@ const handleSave = () => {
 }
 
 .narrative-body {
-  font-size: 14px;
-  font-weight: 500;
-  color: #b0b8c4;
+  font-size: 13px;
+  color: #9ca3af;
   line-height: 1.7;
   margin: 0;
 }
@@ -869,10 +894,10 @@ const handleSave = () => {
 }
 
 .btn-redraft {
-  font-size: 11px;
+  font-size: 10px;
   font-family: monospace;
   font-weight: 700;
-  color: #b0b8c4;
+  color: #9ca3af;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -896,8 +921,7 @@ const handleSave = () => {
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   padding: 12px 40px 12px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
   color: #ffffff;
   outline: none;
 }
@@ -958,8 +982,7 @@ const handleSave = () => {
   border: none;
   resize: none;
   height: 140px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
   line-height: 1.7;
   color: #d1d5db;
   outline: none;

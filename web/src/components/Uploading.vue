@@ -334,7 +334,8 @@ const extractExifData = async (file) => {
       shutterSpeed: rawExif.ExposureTime
         ? (rawExif.ExposureTime < 1 ? `1/${Math.round(1 / rawExif.ExposureTime)}s` : `${rawExif.ExposureTime}s`)
         : 'Unknown',
-      focalLength: rawExif.FocalLength ? `${rawExif.FocalLength}mm` : 'Unknown'
+      focalLength: rawExif.FocalLength ? `${rawExif.FocalLength}mm` : 'Unknown',
+      dateTimeOriginal: rawExif.DateTimeOriginal || rawExif.CreateDate || null
     }
     return result
   } catch (e) {

@@ -18,6 +18,19 @@ router.get('/drafts', async (req, res) => {
 })
 
 // ==========================================
+// 📷 获取单张照片详情（含 EXIF）
+// ==========================================
+router.get('/:id', async (req, res) => {
+  try {
+    const photo = await Photo.findById(req.params.id)
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    res.json({ success: true, data: photo })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
 // ==========================================
 router.post('/upload-raw', async (req, res) => {
@@ -40,6 +53,7 @@ router.post('/upload-raw', async (req, res) => {
         iso: exif?.iso || '0',
         shutterSpeed: exif?.shutterSpeed || '0s',
         focalLength: exif?.focalLength || '0mm',
+        dateTimeOriginal: exif?.dateTimeOriginal || null,
       },
     });
 
