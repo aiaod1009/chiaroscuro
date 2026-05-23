@@ -125,11 +125,22 @@
               </button>
             </div>
 
-            <div v-if="activeCandidate.title" class="output-narrative">
+            <div v-if="activeCandidate.title" class="output-narrative" :class="{ iterating: isIterating }">
               <h2 class="narrative-title">{{ activeCandidate.title }}</h2>
               <p class="narrative-body">
                 "{{ activeCandidate.caption }}"
               </p>
+              <div v-if="isIterating" class="iterating-bar">
+                <div class="iterating-spinner"></div>
+                <span>AI REWRITING...</span>
+              </div>
+            </div>
+
+            <div v-if="candidates.length" class="select-action">
+              <button class="btn-apply" :disabled="isSaving" @click="applyCandidate">
+                {{ isSaving ? 'SAVING...' : 'APPLY TO PHOTO' }}
+              </button>
+              <span v-if="saveSuccess" class="save-hint">已保存</span>
             </div>
 
             <div class="optimize-section">
@@ -210,6 +221,8 @@ const candidates = ref([])
 const activeCandidateIndex = ref(0)
 const toastMessage = ref('')
 let toastTimer = null
+const isSaving = ref(false)
+const saveSuccess = ref(false)
 
 const showToast = (msg, duration = 5000) => {
   toastMessage.value = msg
@@ -392,6 +405,25 @@ const handleOptimize = async () => {
   } finally {
     isIterating.value = false
     aiPrompt.value = ''
+  }
+}
+
+// 将当前选中方案写入 Photo 的 title/caption
+const applyCandidate = async () => {
+  if (!currentPhoto.id || isSaving.value) return
+  isSaving.value = true
+  saveSuccess.value = false
+  try {
+    await axios.patch(`/api/photos/${currentPhoto.id}`, {
+      title: activeCandidate.value.title,
+      caption: activeCandidate.value.caption
+    })
+    saveSuccess.value = true
+    setTimeout(() => { saveSuccess.value = false }, 3000)
+  } catch (e) {
+    showToast('保存失败，请重试')
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -885,6 +917,11 @@ const handleSave = () => {
 
 .output-narrative {
   margin-bottom: 24px;
+  position: relative;
+}
+
+.output-narrative.iterating {
+  opacity: 0.45;
 }
 
 .narrative-title {
@@ -901,6 +938,63 @@ const handleSave = () => {
   color: #9ca3af;
   line-height: 1.7;
   margin: 0;
+}
+
+.iterating-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #22d3ee;
+}
+
+.iterating-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(34, 211, 238, 0.2);
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.select-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.btn-apply {
+  padding: 8px 18px;
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #22d3ee;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-apply:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.2);
+  border-color: #22d3ee;
+}
+
+.btn-apply:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.save-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: #34d399;
+  animation: fadeIn 0.3s ease;
 }
 
 /* 指令优化底栏 */

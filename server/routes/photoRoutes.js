@@ -31,6 +31,24 @@ router.get('/:id', async (req, res) => {
 })
 
 // ==========================================
+// ✏️ 更新照片标题与配文
+// ==========================================
+router.patch('/:id', async (req, res) => {
+  try {
+    const { title, caption } = req.body
+    const photo = await Photo.findByIdAndUpdate(
+      req.params.id,
+      { $set: { title, caption } },
+      { new: true }
+    )
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    res.json({ success: true, data: photo })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
 // ==========================================
 router.post('/upload-raw', async (req, res) => {

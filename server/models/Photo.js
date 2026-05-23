@@ -36,7 +36,6 @@ const PhotoSchema = new mongoose.Schema({
   // 4. 内容叙事层
   title: { type: String, default: '' },
   caption: { type: String, default: '' },
-  aiAnalysis: { type: String, default: '' },
 
   createdAt: { type: Date, default: Date.now }
 });
