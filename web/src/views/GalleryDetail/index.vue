@@ -5,9 +5,14 @@
       <!-- 书本翻页效果容器 -->
       <div class="hero-viewer" v-if="images.length">
         <div class="flip-book" ref="flipBook">
-          <div class="flip-page" v-for="(url, idx) in images" :key="idx">
-            <img :src="url" alt="" />
-          </div>
+          <template v-for="(url, idx) in images" :key="idx">
+            <div class="flip-page">
+              <div class="page-half page-left" :style="{ backgroundImage: `url(${url})` }"></div>
+            </div>
+            <div class="flip-page">
+              <div class="page-half page-right" :style="{ backgroundImage: `url(${url})` }"></div>
+            </div>
+          </template>
         </div>
       </div>
       <div v-else class="hero-empty">
@@ -148,7 +153,7 @@ export default {
         height: pageH,
         size: 'fixed',
         maxShadowOpacity: 0.5,
-        showCover: true,
+        showCover: false,
         mobileScrollSupport: true,
         clickEventForward: false,
         useMouseEvents: true,
@@ -159,7 +164,7 @@ export default {
       this.flipBook.loadFromHTML(container.querySelectorAll('.flip-page'));
 
       this.flipBook.on('flip', (e) => {
-        this.currentIndex = e.data;
+        this.currentIndex = Math.floor(e.data / 2);
       });
     },
 
@@ -172,11 +177,17 @@ export default {
     },
 
     next() {
-      if (this.flipBook) this.flipBook.flipNext();
+      if (!this.flipBook) return;
+      const cur = this.flipBook.getCurrentPageIndex();
+      const target = cur + 2;
+      if (target < this.images.length * 2) this.flipBook.flip(target);
     },
 
     prev() {
-      if (this.flipBook) this.flipBook.flipPrev();
+      if (!this.flipBook) return;
+      const cur = this.flipBook.getCurrentPageIndex();
+      const target = cur - 2;
+      if (target >= 0) this.flipBook.flip(target);
     },
 
     togglePlay() {
@@ -184,7 +195,9 @@ export default {
       if (this.isPlaying) {
         this.next();
         this.autoPlayTimer = setInterval(() => {
-          if (this.currentIndex >= this.images.length - 1) {
+          const cur = this.flipBook.getCurrentPageIndex();
+          const maxPage = (this.images.length - 1) * 2;
+          if (cur >= maxPage) {
             this.flipBook.flip(0);
           } else {
             this.next();
@@ -249,6 +262,23 @@ export default {
   display: block;
   pointer-events: none;
   user-select: none;
+}
+
+.page-half {
+  width: 100%;
+  height: 100%;
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  user-select: none;
+}
+
+.page-left {
+  background-position: left center;
+}
+
+.page-right {
+  background-position: right center;
 }
 
 .hero-empty {
