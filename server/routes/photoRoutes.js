@@ -77,6 +77,74 @@ router.get('/footprints', async (req, res) => {
 });
 
 // ==========================================
+// 🖼️ 画廊详情：按地区获取全部照片
+// ==========================================
+router.get('/gallery/:mapCode', async (req, res) => {
+  try {
+    const { mapCode } = req.params;
+    const isProvince = mapCode.startsWith('CN-');
+
+    const COUNTRY_CODE_TO_CN = {
+      'CN': '中国', 'JP': '日本', 'KR': '韩国', 'SG': '新加坡',
+      'TH': '泰国', 'VN': '越南', 'MY': '马来西亚', 'ID': '印度尼西亚',
+      'PH': '菲律宾', 'IN': '印度', 'US': '美国', 'CA': '加拿大',
+      'MX': '墨西哥', 'BR': '巴西', 'AR': '阿根廷', 'CL': '智利',
+      'GB': '英国', 'FR': '法国', 'DE': '德国', 'IT': '意大利',
+      'ES': '西班牙', 'PT': '葡萄牙', 'NL': '荷兰', 'BE': '比利时',
+      'CH': '瑞士', 'AT': '奥地利', 'NO': '挪威', 'SE': '瑞典',
+      'FI': '芬兰', 'IS': '冰岛', 'DK': '丹麦', 'RU': '俄罗斯',
+      'AU': '澳大利亚', 'NZ': '新西兰'
+    };
+
+    const REGION_CODE_TO_NAME = {
+      'CN-11': '北京', 'CN-12': '天津', 'CN-13': '河北', 'CN-14': '山西',
+      'CN-15': '内蒙古', 'CN-21': '辽宁', 'CN-22': '吉林', 'CN-23': '黑龙江',
+      'CN-31': '上海', 'CN-32': '江苏', 'CN-33': '浙江', 'CN-34': '安徽',
+      'CN-35': '福建', 'CN-36': '江西', 'CN-37': '山东', 'CN-41': '河南',
+      'CN-42': '湖北', 'CN-43': '湖南', 'CN-44': '广东', 'CN-45': '广西',
+      'CN-46': '海南', 'CN-50': '重庆', 'CN-51': '四川', 'CN-52': '贵州',
+      'CN-53': '云南', 'CN-54': '西藏', 'CN-61': '陕西', 'CN-62': '甘肃',
+      'CN-63': '青海', 'CN-64': '宁夏', 'CN-65': '新疆', 'CN-HK': '香港',
+      'CN-MO': '澳门', 'CN-TW': '台湾'
+    };
+
+    let query, title;
+    if (isProvince) {
+      query = { region: mapCode };
+      title = REGION_CODE_TO_NAME[mapCode] || mapCode;
+    } else {
+      const cnName = COUNTRY_CODE_TO_CN[mapCode];
+      if (!cnName) return res.status(400).json({ success: false, message: '未知地区代码' });
+      query = { locationName: cnName };
+      title = cnName;
+    }
+
+    const photos = await Photo.find(query).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        title,
+        mapCode,
+        photoCount: photos.length,
+        photos: photos.map(p => ({
+          id: p._id,
+          src: p.imageUrl,
+          alt: p.fileName || p.originalName || '',
+          exif: p.exif,
+          title: p.title,
+          caption: p.caption,
+          createdAt: p.createdAt,
+        })),
+      }
+    });
+  } catch (error) {
+    console.error('画廊详情查询失败:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==========================================
 // 📷 获取单张照片详情（含 EXIF）
 // ==========================================
 router.get('/:id', async (req, res) => {

@@ -3,15 +3,18 @@
     <div class="content-wrapper">
 
       <!-- 英雄图: 书本翻页效果容器 -->
-      <div class="hero-viewer" ref="threeContainer">
+      <div class="hero-viewer" ref="threeContainer" v-show="images.length">
+      </div>
+      <div v-if="!images.length" class="hero-empty">
+        <p>暂无影像数据</p>
       </div>
 
       <!-- 中间信息与控制器 -->
-      <div class="meta-section">
+      <div class="meta-section" v-if="images.length">
         <div class="meta-left">
-          <div class="volume-label">CHRONICLE VOLUME 04</div>
-          <h1 class="gallery-title">极境之蓝</h1>
-          <p class="gallery-desc">在极地之缘，光影以一种近乎神圣的方式流淌。每一粒冰晶都折射着时间的厚度。</p>
+          <div class="volume-label">CHRONICLE VOLUME</div>
+          <h1 class="gallery-title">{{ galleryTitle }}</h1>
+          <p class="gallery-desc">{{ galleryDesc }}</p>
         </div>
 
         <div class="meta-center">
@@ -33,15 +36,15 @@
         </div>
 
         <div class="meta-right">
-          <div class="meta-block">
+          <div class="meta-block" v-if="exifPrimary">
             <div class="m-label">EXIF DATA</div>
-            <div class="m-val-primary">35mm f/1.4G</div>
-            <div class="m-val-sec">ISO 100 | 1/500s</div>
+            <div class="m-val-primary">{{ exifPrimary }}</div>
+            <div class="m-val-sec">{{ exifSecondary }}</div>
           </div>
-          <div class="meta-block">
+          <div class="meta-block" v-if="locationDate">
             <div class="m-label">LOCATION</div>
-            <div class="m-val-primary">Dec 14, 2023</div>
-            <div class="m-val-sec">Vatnajökull, ISL</div>
+            <div class="m-val-primary">{{ locationDate }}</div>
+            <div class="m-val-sec">{{ locationName }}</div>
           </div>
         </div>
       </div>
@@ -60,9 +63,9 @@
         </div>
 
         <div class="masonry-grid">
-          <div class="masonry-item" v-for="(img, idx) in waterfallImages" :key="idx"
-            @click="$router.push({ path: `/photo-detail/${idx + 1}`, query: { src: img } })">
-            <img :src="img" alt="Waterfall Image" />
+          <div class="masonry-item" v-for="(img, idx) in waterfallImages" :key="img.id || idx"
+            @click="$router.push({ path: `/photo-detail/${img.id || idx}`, query: { src: img.src } })">
+            <img :src="img.src" :alt="img.alt" />
           </div>
         </div>
       </div>
@@ -73,6 +76,7 @@
 
 <script>
 import * as THREE from 'three';
+import axios from 'axios';
 
 export default {
   name: 'GalleryDetail',
@@ -81,20 +85,14 @@ export default {
       currentIndex: 0,
       isPlaying: false,
       autoPlayTimer: null,
-      images: [
-        '/DSC_6174.jpg',
-        '/DSC_6510.jpg',
-        '/DSC_6760.JPG'
-      ],
-      // 为了让瀑布流展示出效果，用现有图片打乱顺序模拟稍长的列表
-      waterfallImages: [
-        '/DSC_6174.jpg',
-        '/DSC_6510.jpg',
-        '/DSC_6760.JPG',
-        '/DSC_6510.jpg',
-        '/DSC_6760.JPG',
-        '/DSC_6174.jpg'
-      ],
+      images: [],
+      waterfallImages: [],
+      galleryTitle: '',
+      galleryDesc: '',
+      exifPrimary: '',
+      exifSecondary: '',
+      locationDate: '',
+      locationName: '',
       isFlipping: false,
       flipProgress: 0,
       targetIndex: 0,
@@ -103,8 +101,37 @@ export default {
       lastFrameTime: 0
     }
   },
-  mounted() {
-    this.initThree();
+  async mounted() {
+    const mapCode = this.$route.params.id;
+    try {
+      const { data } = await axios.get(`/api/photos/gallery/${mapCode}`);
+      if (data.success && data.data.photos.length) {
+        const photos = data.data.photos;
+        this.images = photos.map(p => p.src);
+        this.waterfallImages = photos.map(p => ({ id: p.id, src: p.src, alt: p.alt }));
+        this.galleryTitle = data.data.title;
+
+        const first = photos[0];
+        if (first.exif) {
+          this.exifPrimary = first.exif.focalLength && first.exif.aperture
+            ? `${first.exif.focalLength} ${first.exif.aperture}`
+            : '';
+          this.exifSecondary = [first.exif.iso && `ISO ${first.exif.iso}`, first.exif.shutterSpeed].filter(Boolean).join(' | ');
+        }
+        if (first.createdAt) {
+          this.locationDate = new Date(first.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: '2-digit'
+          });
+        }
+        this.locationName = data.data.title;
+      }
+    } catch (err) {
+      console.error('[GalleryDetail] 加载失败:', err.message);
+    }
+
+    if (this.images.length) {
+      this.initThree();
+    }
     window.addEventListener('resize', this.onResize);
   },
   methods: {
@@ -346,6 +373,17 @@ export default {
   position: relative;
   perspective: 2500px;
   border-radius: 24px;
+}
+
+.hero-empty {
+  width: 100%;
+  height: 40vh;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 1.1rem;
 }
 
 /* 单张被当做跨页书页的图 */
