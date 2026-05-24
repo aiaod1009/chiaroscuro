@@ -71,10 +71,15 @@
 
             <div class="form-item">
               <label class="form-label">
-                <span class="label-zh">拍摄地点</span>
-                <span class="label-en">LOCATION</span>
+                <span class="label-zh">拍摄国家</span>
+                <span class="label-en">COUNTRY</span>
               </label>
-              <input type="text" v-model="formData.location" placeholder="请输入拍摄地点" class="form-input" />
+              <div class="select-wrapper">
+                <select v-model="formData.location">
+                  <option v-for="country in countryOptions" :key="country" :value="country">{{ country }}</option>
+                </select>
+                <span class="select-arrow"></span>
+              </div>
             </div>
 
             <div class="form-item">
@@ -82,13 +87,18 @@
                 <span class="label-zh">省份 / 区域</span>
                 <span class="label-en">PROVINCE / REGION</span>
               </label>
-              <div class="select-wrapper">
-                <select v-model="formData.region">
-                  <option value="雷克雅未克 Reykjaík">雷克雅未克 Reykjaík</option>
-                  <option value="阿克雷里 Akureyri">阿克雷里 Akureyri</option>
-                  <option value="维克 Vík">维克 Vík</option>
-                </select>
+              <div class="select-wrapper region-autocomplete">
+                <input type="text" v-model="regionInput" placeholder="输入省份或代码" class="form-input" @input="onRegionInput"
+                  @focus="showRegionList = true" @blur="closeRegionList" />
                 <span class="select-arrow"></span>
+                <ul v-if="showRegionList" class="region-options">
+                  <li v-for="item in filteredProvinces" :key="item.code" class="region-option"
+                    @mousedown.prevent="selectProvince(item)">
+                    <span class="region-name">{{ item.label }}</span>
+                    <span class="region-code">{{ item.code }}</span>
+                  </li>
+                  <li v-if="!filteredProvinces.length" class="region-empty">未找到省份</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -277,9 +287,106 @@ const uploadProgressText = ref('')    // 动态进度提示
 // 保持原本的双向绑定表单，动态对齐你的后端新 Schema
 const formData = reactive({
   collection: '秘境之巅', // 会映射为数据库的 albumId
-  location: '',
-  region: '雷克雅未克 Reykjaík'
+  location: '中国',
+  region: '',
+  regionName: ''
 })
+
+const countryOptions = [
+  '中国',
+  '日本',
+  '韩国',
+  '新加坡',
+  '泰国',
+  '越南',
+  '马来西亚',
+  '印度尼西亚',
+  '菲律宾',
+  '印度',
+  '美国',
+  '加拿大',
+  '墨西哥',
+  '巴西',
+  '阿根廷',
+  '智利',
+  '英国',
+  '法国',
+  '德国',
+  '意大利',
+  '西班牙',
+  '葡萄牙',
+  '荷兰',
+  '比利时',
+  '瑞士',
+  '奥地利',
+  '挪威',
+  '瑞典',
+  '芬兰',
+  '冰岛',
+  '丹麦',
+  '俄罗斯',
+  '澳大利亚',
+  '新西兰'
+]
+
+const provinceOptions = [
+  { label: '北京', code: 'CN-11' },
+  { label: '天津', code: 'CN-12' },
+  { label: '河北', code: 'CN-13' },
+  { label: '山西', code: 'CN-14' },
+  { label: '内蒙古', code: 'CN-15' },
+  { label: '辽宁', code: 'CN-21' },
+  { label: '吉林', code: 'CN-22' },
+  { label: '黑龙江', code: 'CN-23' },
+  { label: '上海', code: 'CN-31' },
+  { label: '江苏', code: 'CN-32' },
+  { label: '浙江', code: 'CN-33' },
+  { label: '安徽', code: 'CN-34' },
+  { label: '福建', code: 'CN-35' },
+  { label: '江西', code: 'CN-36' },
+  { label: '山东', code: 'CN-37' },
+  { label: '河南', code: 'CN-41' },
+  { label: '湖北', code: 'CN-42' },
+  { label: '湖南', code: 'CN-43' },
+  { label: '广东', code: 'CN-44' },
+  { label: '广西', code: 'CN-45' },
+  { label: '海南', code: 'CN-46' },
+  { label: '重庆', code: 'CN-50' },
+  { label: '四川', code: 'CN-51' },
+  { label: '贵州', code: 'CN-52' },
+  { label: '云南', code: 'CN-53' },
+  { label: '西藏', code: 'CN-54' },
+  { label: '陕西', code: 'CN-61' },
+  { label: '甘肃', code: 'CN-62' },
+  { label: '青海', code: 'CN-63' },
+  { label: '宁夏', code: 'CN-64' },
+  { label: '新疆', code: 'CN-65' },
+  { label: '香港', code: 'CN-HK' },
+  { label: '澳门', code: 'CN-MO' },
+  { label: '台湾', code: 'CN-TW' }
+]
+
+const regionInput = ref('')
+const showRegionList = ref(false)
+const filteredProvinces = computed(() => {
+  const q = regionInput.value.trim().toLowerCase()
+  if (!q) return provinceOptions
+  return provinceOptions.filter((item) => item.label.includes(q) || item.code.toLowerCase().includes(q))
+})
+const selectProvince = (item) => {
+  regionInput.value = item.label
+  formData.region = item.code
+  formData.regionName = item.label
+  showRegionList.value = false
+}
+const onRegionInput = () => {
+  formData.region = ''
+  formData.regionName = ''
+  showRegionList.value = true
+}
+const closeRegionList = () => {
+  setTimeout(() => { showRegionList.value = false }, 120)
+}
 
 // 动态计算属性：对齐原本 UI 的展示需求
 const selectedFilesCount = computed(() => rawFilesQueue.value.length)
@@ -388,7 +495,7 @@ const handleUpload = async () => {
         imageUrl: cosUrl,
         fileName: webpFile.name,
         locationName: formData.location || '未标记地点',
-        region: formData.region,
+        region: formData.region || formData.regionName,
         exif: exifData || {},
       })
 
@@ -749,6 +856,57 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
 .select-wrapper {
   position: relative;
   width: 100%;
+}
+
+.region-autocomplete {
+  position: relative;
+}
+
+.region-options {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 5;
+  max-height: 240px;
+  overflow-y: auto;
+  background: rgba(10, 14, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 6px;
+}
+
+.region-option,
+.region-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.region-option:hover {
+  background: rgba(147, 197, 253, 0.12);
+  cursor: pointer;
+}
+
+.region-empty {
+  color: #64748b;
+}
+
+.region-name {
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.region-code {
+  font-family: monospace;
+  font-size: 11px;
+  color: #94a3b8;
 }
 
 .select-wrapper select {
