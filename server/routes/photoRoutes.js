@@ -18,6 +18,65 @@ router.get('/drafts', async (req, res) => {
 })
 
 // ==========================================
+// 🗺️ 足迹地图数据接口（按地区聚合照片）
+// ==========================================
+router.get('/footprints', async (req, res) => {
+  try {
+    const results = await Photo.aggregate([
+      { $match: { isDraft: false } },
+      {
+        $group: {
+          _id: { region: '$region', locationName: '$locationName' },
+          photoCount: { $sum: 1 },
+          albumIds: { $addToSet: '$albumId' },
+          allPhotos: { $push: { src: '$imageUrl', alt: '$fileName' } }
+        }
+      },
+      {
+        $project: {
+          photoCount: 1,
+          albumIds: 1,
+          photos: { $slice: ['$allPhotos', 6] }
+        }
+      },
+      { $sort: { photoCount: -1 } }
+    ]);
+
+    const COUNTRY_CN_TO_CODE = {
+      '中国': 'CN', '日本': 'JP', '韩国': 'KR', '新加坡': 'SG',
+      '泰国': 'TH', '越南': 'VN', '马来西亚': 'MY', '印度尼西亚': 'ID',
+      '菲律宾': 'PH', '印度': 'IN', '美国': 'US', '加拿大': 'CA',
+      '墨西哥': 'MX', '巴西': 'BR', '阿根廷': 'AR', '智利': 'CL',
+      '英国': 'GB', '法国': 'FR', '德国': 'DE', '意大利': 'IT',
+      '西班牙': 'ES', '葡萄牙': 'PT', '荷兰': 'NL', '比利时': 'BE',
+      '瑞士': 'CH', '奥地利': 'AT', '挪威': 'NO', '瑞典': 'SE',
+      '芬兰': 'FI', '冰岛': 'IS', '丹麦': 'DK', '俄罗斯': 'RU',
+      '澳大利亚': 'AU', '新西兰': 'NZ'
+    };
+
+    const data = results.map(item => {
+      const region = item._id.region || '';
+      const locationName = item._id.locationName || '未标记地点';
+      const isChineseProvince = region.startsWith('CN-');
+
+      return {
+        region,
+        locationName,
+        photoCount: item.photoCount,
+        albumCount: item.albumIds.filter(id => id && id !== 'none').length || 1,
+        photos: item.photos || [],
+        mapCode: isChineseProvince ? region : (COUNTRY_CN_TO_CODE[locationName] || ''),
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('足迹聚合查询失败:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==========================================
 // 📷 获取单张照片详情（含 EXIF）
 // ==========================================
 router.get('/:id', async (req, res) => {

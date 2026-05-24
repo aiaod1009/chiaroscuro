@@ -75,6 +75,44 @@
 <script>
 import { geoCentroid, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature as topoFeature } from 'topojson-client';
+import axios from 'axios';
+
+const REGION_CODE_MAP = {
+  'CN-11': { id: 'beijing', name: '北京' },
+  'CN-12': { id: 'tianjin', name: '天津' },
+  'CN-13': { id: 'hebei', name: '河北' },
+  'CN-14': { id: 'shanxi', name: '山西' },
+  'CN-15': { id: 'neimenggu', name: '内蒙古' },
+  'CN-21': { id: 'liaoning', name: '辽宁' },
+  'CN-22': { id: 'jilin', name: '吉林' },
+  'CN-23': { id: 'heilongjiang', name: '黑龙江' },
+  'CN-31': { id: 'shanghai', name: '上海' },
+  'CN-32': { id: 'jiangsu', name: '江苏' },
+  'CN-33': { id: 'zhejiang', name: '浙江' },
+  'CN-34': { id: 'anhui', name: '安徽' },
+  'CN-35': { id: 'fujian', name: '福建' },
+  'CN-36': { id: 'jiangxi', name: '江西' },
+  'CN-37': { id: 'shandong', name: '山东' },
+  'CN-41': { id: 'henan', name: '河南' },
+  'CN-42': { id: 'hubei', name: '湖北' },
+  'CN-43': { id: 'hunan', name: '湖南' },
+  'CN-44': { id: 'guangdong', name: '广东' },
+  'CN-45': { id: 'guangxi', name: '广西' },
+  'CN-46': { id: 'hainan', name: '海南' },
+  'CN-50': { id: 'chongqing', name: '重庆' },
+  'CN-51': { id: 'sichuan', name: '四川' },
+  'CN-52': { id: 'guizhou', name: '贵州' },
+  'CN-53': { id: 'yunnan', name: '云南' },
+  'CN-54': { id: 'xizang', name: '西藏' },
+  'CN-61': { id: 'shaanxi', name: '陕西' },
+  'CN-62': { id: 'gansu', name: '甘肃' },
+  'CN-63': { id: 'qinghai', name: '青海' },
+  'CN-64': { id: 'ningxia', name: '宁夏' },
+  'CN-65': { id: 'xinjiang', name: '新疆' },
+  'CN-HK': { id: 'hongkong', name: '香港' },
+  'CN-MO': { id: 'macau', name: '澳门' },
+  'CN-TW': { id: 'taiwan', name: '台湾' },
+};
 
 const SVG_WIDTH = 1400;
 const SVG_HEIGHT = 820;
@@ -155,51 +193,7 @@ export default {
       unvisitedStroke: '#2a3555',
       visitedFill: '#f59e0b',
       visitedStroke: '#2d3a55',
-      regions: [
-        {
-          id: 'zhejiang',
-          name: '浙江',
-          coordinates: [120.15, 30.27],
-          mapCode: 'CN-33',
-          albums: 1,
-          photoCount: 21,
-          photos: [
-            { src: '/DSC_6174.jpg', alt: '浙江旅行照片 1' },
-            { src: '/DSC_6510.jpg', alt: '浙江旅行照片 2' },
-            { src: '/DSC_6760.JPG', alt: '浙江旅行照片 3' },
-            { src: '/pashan.JPG', alt: '浙江旅行照片 4' },
-            { src: '/DSC_6174.jpg', alt: '浙江旅行照片 5' },
-            { src: '/DSC_6510.jpg', alt: '浙江旅行照片 6' },
-          ],
-        },
-        {
-          id: 'sichuan',
-          name: '四川',
-          coordinates: [104.06, 30.67],
-          mapCode: 'CN-51',
-          albums: 1,
-          photoCount: 8,
-          photos: [
-            { src: '/DSC_6510.jpg', alt: '四川旅行照片 1' },
-            { src: '/DSC_6760.JPG', alt: '四川旅行照片 2' },
-            { src: '/DSC_6174.jpg', alt: '四川旅行照片 3' },
-            { src: '/pashan.JPG', alt: '四川旅行照片 4' },
-          ],
-        },
-        {
-          id: 'usa',
-          name: '美国',
-          coordinates: [-122.42, 37.77],
-          mapCode: 'US',
-          albums: 1,
-          photoCount: 12,
-          photos: [
-            { src: '/DSC_6760.JPG', alt: '美国旅行照片 1' },
-            { src: '/DSC_6510.jpg', alt: '美国旅行照片 2' },
-            { src: '/DSC_6174.jpg', alt: '美国旅行照片 3' },
-          ],
-        },
-      ],
+      regions: [],
     };
   },
   computed: {
@@ -304,13 +298,60 @@ export default {
     },
   },
   async mounted() {
-    const [worldTopo, chinaGeo] = await Promise.all([
+    const [worldTopo, chinaGeo, footprintsRes] = await Promise.all([
       fetch('/maps/world.json').then((response) => response.json()),
       fetch('/maps/china.json').then((response) => response.json()),
+      axios.get('/api/photos/footprints').catch(() => ({ data: { data: [] } })),
     ]);
 
     this.worldFeatures = topoFeature(worldTopo, worldTopo.objects.countries).features;
     this.chinaFeatures = chinaGeo.features || topoFeature(chinaGeo, chinaGeo.objects.china).features;
+
+    const COUNTRY_COORDINATES = {
+      JP: [138.25, 36.2], KR: [127.76, 35.9], SG: [103.82, 1.35],
+      TH: [100.5, 15.8], VN: [108.27, 14.06], MY: [101.98, 4.21],
+      ID: [113.92, -0.79], PH: [122.0, 12.88], IN: [78.96, 20.59],
+      US: [-122.42, 37.77], CA: [-106.35, 56.13], MX: [-102.55, 23.63],
+      BR: [-51.93, -14.24], AR: [-63.62, -38.42], CL: [-71.54, -35.68],
+      GB: [-3.44, 55.38], FR: [2.21, 46.23], DE: [10.45, 51.17],
+      IT: [12.57, 41.87], ES: [-3.75, 40.46], PT: [-8.22, 39.4],
+      NL: [5.29, 52.13], BE: [4.47, 50.5], CH: [8.23, 46.82],
+      AT: [14.55, 47.52], NO: [8.47, 60.47], SE: [18.64, 60.13],
+      FI: [25.75, 61.92], IS: [-19.02, 64.96], DK: [9.5, 56.26],
+      RU: [105.32, 61.52], AU: [133.78, -25.27], NZ: [174.88, -40.9],
+    };
+
+    const apiData = footprintsRes.data?.data || [];
+    this.regions = apiData
+      .map(item => {
+        const isProvince = item.mapCode?.startsWith('CN-');
+
+        if (isProvince) {
+          const meta = REGION_CODE_MAP[item.mapCode];
+          if (!meta) return null;
+          return {
+            id: meta.id,
+            name: meta.name,
+            mapCode: item.mapCode,
+            albums: item.albumCount,
+            photoCount: item.photoCount,
+            photos: item.photos,
+          };
+        }
+
+        if (!item.mapCode) return null;
+        return {
+          id: item.mapCode.toLowerCase(),
+          name: item.locationName,
+          coordinates: COUNTRY_COORDINATES[item.mapCode] || [0, 0],
+          mapCode: item.mapCode,
+          albums: item.albumCount,
+          photoCount: item.photoCount,
+          photos: item.photos,
+        };
+      })
+      .filter(Boolean);
+
     this.focusChina();
   },
   beforeUnmount() {
