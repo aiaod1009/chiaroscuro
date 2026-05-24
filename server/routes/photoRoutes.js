@@ -23,7 +23,7 @@ router.get('/drafts', async (req, res) => {
 router.get('/footprints', async (req, res) => {
   try {
     const results = await Photo.aggregate([
-      { $match: { isDraft: false } },
+      { $match: {} },
       {
         $group: {
           _id: { region: '$region', locationName: '$locationName' },

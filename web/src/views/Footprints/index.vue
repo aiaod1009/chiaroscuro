@@ -301,7 +301,10 @@ export default {
     const [worldTopo, chinaGeo, footprintsRes] = await Promise.all([
       fetch('/maps/world.json').then((response) => response.json()),
       fetch('/maps/china.json').then((response) => response.json()),
-      axios.get('/api/photos/footprints').catch(() => ({ data: { data: [] } })),
+      axios.get('/api/photos/footprints').catch(err => {
+        console.error('[Footprints] API 请求失败:', err.message);
+        return { data: { data: [] } };
+      }),
     ]);
 
     this.worldFeatures = topoFeature(worldTopo, worldTopo.objects.countries).features;
