@@ -3,9 +3,9 @@
     <div class="content-wrapper">
 
       <!-- 英雄图: 书本翻页效果容器 -->
-      <div class="hero-viewer" ref="threeContainer" v-show="images.length">
+      <div class="hero-viewer" ref="threeContainer" v-if="images.length">
       </div>
-      <div v-if="!images.length" class="hero-empty">
+      <div v-else class="hero-empty">
         <p>暂无影像数据</p>
       </div>
 
@@ -130,6 +130,7 @@ export default {
     }
 
     if (this.images.length) {
+      await this.$nextTick();
       this.initThree();
     }
     window.addEventListener('resize', this.onResize);
