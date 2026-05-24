@@ -3,13 +3,7 @@
     <div class="content-wrapper">
 
       <!-- 英雄图: 书本翻页效果容器 -->
-      <div class="hero-viewer">
-        <!-- 通过绑定 :name 实现根据前后点击的不同应用不同的 3D 翻页方向 -->
-        <transition :name="flipDirection">
-          <div class="image-slide" :key="currentIndex">
-            <img :src="images[currentIndex]" alt="Gallery Hero" class="hero-img" />
-          </div>
-        </transition>
+      <div class="hero-viewer" ref="threeContainer">
       </div>
 
       <!-- 中间信息与控制器 -->
@@ -78,6 +72,8 @@
 </template>
 
 <script>
+import * as THREE from 'three';
+
 export default {
   name: 'GalleryDetail',
   data() {
@@ -85,7 +81,6 @@ export default {
       currentIndex: 0,
       isPlaying: false,
       autoPlayTimer: null,
-      flipDirection: 'page-next',
       images: [
         '/DSC_6174.jpg',
         '/DSC_6510.jpg',
@@ -99,23 +94,204 @@ export default {
         '/DSC_6510.jpg',
         '/DSC_6760.JPG',
         '/DSC_6174.jpg'
-      ]
+      ],
+      isFlipping: false,
+      flipProgress: 0,
+      targetIndex: 0,
+      targetAngle: 0,
+      animationFrameId: null,
+      lastFrameTime: 0
     }
   },
+  mounted() {
+    this.initThree();
+    window.addEventListener('resize', this.onResize);
+  },
   methods: {
+    initThree() {
+      const container = this.$refs.threeContainer;
+      if (!container) return;
+
+      this.scene = new THREE.Scene();
+
+      const aspect = container.clientWidth / container.clientHeight;
+      this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
+      this.camera.position.z = 13;
+
+      this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      this.renderer.setSize(container.clientWidth, container.clientHeight);
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(this.renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+      this.scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      dirLight.position.set(5, 5, 10);
+      this.scene.add(dirLight);
+
+      // Preload textures
+      const loader = new THREE.TextureLoader();
+      this.textures = this.images.map(url => {
+        const tex = loader.load(url, () => {
+          if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+          }
+        });
+        tex.colorSpace = THREE.SRGBColorSpace;
+
+        // Clone independently for left and right pages
+        const texLeft = tex.clone();
+        const texRight = tex.clone();
+
+        texLeft.needsUpdate = true;
+        texRight.needsUpdate = true;
+
+        texLeft.repeat.set(0.5, 1);
+        texLeft.offset.set(0, 0);
+
+        texRight.repeat.set(0.5, 1);
+        texRight.offset.set(0.5, 0);
+
+        return { left: texLeft, right: texRight };
+      });
+
+      // Book geometry and materials
+      const pageHeight = 6.2;
+      const pageWidth = 4.4;
+      const pageGeometry = new THREE.PlaneGeometry(pageWidth, pageHeight);
+      const flipGeometry = new THREE.PlaneGeometry(pageWidth, pageHeight);
+      flipGeometry.translate(pageWidth / 2, 0, 0);
+
+      this.matStaticLeft = new THREE.MeshStandardMaterial({
+        map: this.textures[this.currentIndex].left,
+        side: THREE.DoubleSide
+      });
+      this.matStaticRight = new THREE.MeshStandardMaterial({
+        map: this.textures[this.currentIndex].right,
+        side: THREE.DoubleSide
+      });
+      this.matFlipFront = new THREE.MeshStandardMaterial({
+        map: this.textures[this.currentIndex].right,
+        side: THREE.DoubleSide
+      });
+      this.matFlipBack = new THREE.MeshStandardMaterial({
+        map: this.textures[this.currentIndex].left,
+        side: THREE.DoubleSide
+      });
+
+      this.staticLeftMesh = new THREE.Mesh(pageGeometry, this.matStaticLeft);
+      this.staticRightMesh = new THREE.Mesh(pageGeometry, this.matStaticRight);
+      this.staticLeftMesh.position.x = -pageWidth / 2;
+      this.staticRightMesh.position.x = pageWidth / 2;
+      this.scene.add(this.staticLeftMesh);
+      this.scene.add(this.staticRightMesh);
+
+      this.flippingGroup = new THREE.Group();
+      this.flipFrontMesh = new THREE.Mesh(flipGeometry, this.matFlipFront);
+      this.flipBackMesh = new THREE.Mesh(flipGeometry, this.matFlipBack);
+      this.flipBackMesh.rotation.y = Math.PI;
+      this.flippingGroup.add(this.flipFrontMesh);
+      this.flippingGroup.add(this.flipBackMesh);
+      this.flippingGroup.visible = false;
+      this.scene.add(this.flippingGroup);
+
+      this.animate = this.animate.bind(this);
+      this.lastFrameTime = performance.now();
+      this.animate();
+    },
+    animate(now) {
+      if (!this.renderer || !this.scene || !this.camera) return;
+      this.animationFrameId = requestAnimationFrame(this.animate);
+
+      const currentTime = typeof now === 'number' ? now : performance.now();
+      const delta = Math.min((currentTime - this.lastFrameTime) / 1000, 0.05);
+      this.lastFrameTime = currentTime;
+
+      if (this.isFlipping) {
+        this.flipProgress = Math.min(this.flipProgress + delta * 1.2, 1);
+
+        // Cubic ease-out
+        const ease = 1 - Math.pow(1 - this.flipProgress, 3);
+
+        if (this.targetAngle === -Math.PI) {
+          // Flipping Right -> Left
+          this.flippingGroup.rotation.y = -Math.PI * ease;
+        } else {
+          // Flipping Left -> Right
+          this.flippingGroup.rotation.y = -Math.PI * (1 - ease);
+        }
+
+        if (this.flipProgress >= 1) {
+          this.flipProgress = 1;
+          this.isFlipping = false;
+          this.currentIndex = this.targetIndex;
+          this.flippingGroup.rotation.y = this.targetAngle;
+          this.flippingGroup.visible = false;
+          this.matStaticLeft.map = this.textures[this.currentIndex].left;
+          this.matStaticRight.map = this.textures[this.currentIndex].right;
+        }
+      }
+
+      this.renderer.render(this.scene, this.camera);
+    },
+    onResize() {
+      const container = this.$refs.threeContainer;
+      if (!container || !this.renderer || !this.camera) return;
+      const aspect = container.clientWidth / container.clientHeight;
+      this.camera.aspect = aspect;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(container.clientWidth, container.clientHeight);
+    },
+    getDirection(curr, next) {
+      const len = this.images.length;
+      if (next === (curr + 1) % len) return 'next';
+      if (next === (curr - 1 + len) % len) return 'prev';
+      return next > curr ? 'next' : 'prev';
+    },
+    goToIndex(nextIndex) {
+      if (this.isFlipping || nextIndex === this.currentIndex) return;
+
+      this.targetIndex = nextIndex;
+      const isNext = this.getDirection(this.currentIndex, nextIndex) === 'next';
+
+      const currentTex = this.textures[this.currentIndex];
+      const nextTex = this.textures[nextIndex];
+
+      this.flippingGroup.visible = true;
+
+      // Adjust textures based on direction
+      if (isNext) {
+        this.matStaticLeft.map = currentTex.left;
+        this.matStaticRight.map = nextTex.right;
+
+        this.flippingGroup.rotation.y = 0;
+        this.matFlipFront.map = currentTex.right;
+        this.matFlipBack.map = nextTex.left;
+
+        this.targetAngle = -Math.PI;
+      } else {
+        this.matStaticLeft.map = nextTex.left;
+        this.matStaticRight.map = currentTex.right;
+
+        this.flippingGroup.rotation.y = -Math.PI;
+        this.matFlipBack.map = currentTex.left;
+        this.matFlipFront.map = nextTex.right;
+
+        this.targetAngle = 0;
+      }
+
+      this.flipProgress = 0;
+      this.isFlipping = true;
+    },
     next() {
-      this.flipDirection = 'page-next';
-      this.currentIndex = (this.currentIndex + 1) % this.images.length;
+      this.goToIndex((this.currentIndex + 1) % this.images.length);
     },
     prev() {
-      this.flipDirection = 'page-prev';
-      this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+      this.goToIndex((this.currentIndex - 1 + this.images.length) % this.images.length);
     },
     setIndex(idx) {
-      if (idx === this.currentIndex) return;
-      this.flipDirection = idx > this.currentIndex ? 'page-next' : 'page-prev';
-      this.currentIndex = idx % this.images.length;
-      // 选取底部的长廊图片时自动滚动回顶部查看翻倒动画
+      this.goToIndex(idx % this.images.length);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     togglePlay() {
@@ -130,6 +306,17 @@ export default {
   },
   unmounted() {
     if (this.autoPlayTimer) clearInterval(this.autoPlayTimer);
+    window.removeEventListener('resize', this.onResize);
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    if (this.renderer) {
+      this.renderer.dispose();
+    }
+    if (this.scene) {
+      this.scene.clear();
+    }
   }
 }
 </script>
@@ -238,6 +425,7 @@ export default {
   transform-origin: 50% 50%;
   opacity: 0;
 }
+
 
 /* 元数据与播放器区 */
 .meta-section {
