@@ -2,8 +2,13 @@
   <div class="gallery-detail-page">
     <div class="content-wrapper">
 
-      <!-- 英雄图: 书本翻页效果容器 -->
-      <div class="hero-viewer" ref="threeContainer" v-if="images.length">
+      <!-- 书本翻页效果容器 -->
+      <div class="hero-viewer" v-if="images.length">
+        <div class="flip-book" ref="flipBook">
+          <div class="flip-page" v-for="(url, idx) in images" :key="idx">
+            <img :src="url" alt="" />
+          </div>
+        </div>
       </div>
       <div v-else class="hero-empty">
         <p>暂无影像数据</p>
@@ -75,7 +80,7 @@
 </template>
 
 <script>
-import * as THREE from 'three';
+import { PageFlip } from 'page-flip';
 import axios from 'axios';
 
 export default {
@@ -93,12 +98,6 @@ export default {
       exifSecondary: '',
       locationDate: '',
       locationName: '',
-      isFlipping: false,
-      flipProgress: 0,
-      targetIndex: 0,
-      targetAngle: 0,
-      animationFrameId: null,
-      lastFrameTime: 0
     }
   },
   async mounted() {
@@ -131,221 +130,77 @@ export default {
 
     if (this.images.length) {
       await this.$nextTick();
-      this.initThree();
+      this.initFlipBook();
     }
     window.addEventListener('resize', this.onResize);
   },
   methods: {
-    initThree() {
-      const container = this.$refs.threeContainer;
+    initFlipBook() {
+      const container = this.$refs.flipBook;
       if (!container) return;
 
-      this.scene = new THREE.Scene();
+      const W = container.clientWidth;
+      const pageW = Math.floor(W / 2);
+      const pageH = container.clientHeight;
 
-      const aspect = container.clientWidth / container.clientHeight;
-      this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 100);
-      this.camera.position.z = 13;
-
-      this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      this.renderer.setSize(container.clientWidth, container.clientHeight);
-      this.renderer.setPixelRatio(window.devicePixelRatio);
-      container.appendChild(this.renderer.domElement);
-
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-      this.scene.add(ambientLight);
-
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-      dirLight.position.set(5, 5, 10);
-      this.scene.add(dirLight);
-
-      // Preload textures
-      const loader = new THREE.TextureLoader();
-      this.textures = this.images.map(url => {
-        const tex = loader.load(url, () => {
-          if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-          }
-        });
-        tex.colorSpace = THREE.SRGBColorSpace;
-
-        // Clone independently for left and right pages
-        const texLeft = tex.clone();
-        const texRight = tex.clone();
-
-        texLeft.needsUpdate = true;
-        texRight.needsUpdate = true;
-
-        texLeft.repeat.set(0.5, 1);
-        texLeft.offset.set(0, 0);
-
-        texRight.repeat.set(0.5, 1);
-        texRight.offset.set(0.5, 0);
-
-        return { left: texLeft, right: texRight };
+      this.flipBook = new PageFlip(container, {
+        width: pageW,
+        height: pageH,
+        size: 'fixed',
+        maxShadowOpacity: 0.5,
+        showCover: true,
+        mobileScrollSupport: true,
+        clickEventForward: false,
+        useMouseEvents: true,
+        swipeDistance: 30,
+        flippingTime: 800,
       });
 
-      // Book geometry and materials
-      const pageHeight = 6.2;
-      const pageWidth = 4.4;
-      const pageGeometry = new THREE.PlaneGeometry(pageWidth, pageHeight);
-      const flipGeometry = new THREE.PlaneGeometry(pageWidth, pageHeight);
-      flipGeometry.translate(pageWidth / 2, 0, 0);
+      this.flipBook.loadFromHTML(container.querySelectorAll('.flip-page'));
 
-      this.matStaticLeft = new THREE.MeshStandardMaterial({
-        map: this.textures[this.currentIndex].left,
-        side: THREE.DoubleSide
+      this.flipBook.on('flip', (e) => {
+        this.currentIndex = e.data;
       });
-      this.matStaticRight = new THREE.MeshStandardMaterial({
-        map: this.textures[this.currentIndex].right,
-        side: THREE.DoubleSide
-      });
-      this.matFlipFront = new THREE.MeshStandardMaterial({
-        map: this.textures[this.currentIndex].right,
-        side: THREE.DoubleSide
-      });
-      this.matFlipBack = new THREE.MeshStandardMaterial({
-        map: this.textures[this.currentIndex].left,
-        side: THREE.DoubleSide
-      });
-
-      this.staticLeftMesh = new THREE.Mesh(pageGeometry, this.matStaticLeft);
-      this.staticRightMesh = new THREE.Mesh(pageGeometry, this.matStaticRight);
-      this.staticLeftMesh.position.x = -pageWidth / 2;
-      this.staticRightMesh.position.x = pageWidth / 2;
-      this.scene.add(this.staticLeftMesh);
-      this.scene.add(this.staticRightMesh);
-
-      this.flippingGroup = new THREE.Group();
-      this.flipFrontMesh = new THREE.Mesh(flipGeometry, this.matFlipFront);
-      this.flipBackMesh = new THREE.Mesh(flipGeometry, this.matFlipBack);
-      this.flipBackMesh.rotation.y = Math.PI;
-      this.flippingGroup.add(this.flipFrontMesh);
-      this.flippingGroup.add(this.flipBackMesh);
-      this.flippingGroup.visible = false;
-      this.scene.add(this.flippingGroup);
-
-      this.animate = this.animate.bind(this);
-      this.lastFrameTime = performance.now();
-      this.animate();
     },
-    animate(now) {
-      if (!this.renderer || !this.scene || !this.camera) return;
-      this.animationFrameId = requestAnimationFrame(this.animate);
 
-      const currentTime = typeof now === 'number' ? now : performance.now();
-      const delta = Math.min((currentTime - this.lastFrameTime) / 1000, 0.05);
-      this.lastFrameTime = currentTime;
-
-      if (this.isFlipping) {
-        this.flipProgress = Math.min(this.flipProgress + delta * 1.2, 1);
-
-        // Cubic ease-out
-        const ease = 1 - Math.pow(1 - this.flipProgress, 3);
-
-        if (this.targetAngle === -Math.PI) {
-          // Flipping Right -> Left
-          this.flippingGroup.rotation.y = -Math.PI * ease;
-        } else {
-          // Flipping Left -> Right
-          this.flippingGroup.rotation.y = -Math.PI * (1 - ease);
-        }
-
-        if (this.flipProgress >= 1) {
-          this.flipProgress = 1;
-          this.isFlipping = false;
-          this.currentIndex = this.targetIndex;
-          this.flippingGroup.rotation.y = this.targetAngle;
-          this.flippingGroup.visible = false;
-          this.matStaticLeft.map = this.textures[this.currentIndex].left;
-          this.matStaticRight.map = this.textures[this.currentIndex].right;
-        }
-      }
-
-      this.renderer.render(this.scene, this.camera);
-    },
     onResize() {
-      const container = this.$refs.threeContainer;
-      if (!container || !this.renderer || !this.camera) return;
-      const aspect = container.clientWidth / container.clientHeight;
-      this.camera.aspect = aspect;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(container.clientWidth, container.clientHeight);
+      if (!this.flipBook || !this.$refs.flipBook) return;
+      const W = this.$refs.flipBook.clientWidth;
+      const pageW = Math.floor(W / 2);
+      const pageH = this.$refs.flipBook.clientHeight;
+      this.flipBook.updateFromHtml(this.$refs.flipBook.querySelectorAll('.flip-page'));
     },
-    getDirection(curr, next) {
-      const len = this.images.length;
-      if (next === (curr + 1) % len) return 'next';
-      if (next === (curr - 1 + len) % len) return 'prev';
-      return next > curr ? 'next' : 'prev';
-    },
-    goToIndex(nextIndex) {
-      if (this.isFlipping || nextIndex === this.currentIndex) return;
 
-      this.targetIndex = nextIndex;
-      const isNext = this.getDirection(this.currentIndex, nextIndex) === 'next';
-
-      const currentTex = this.textures[this.currentIndex];
-      const nextTex = this.textures[nextIndex];
-
-      this.flippingGroup.visible = true;
-
-      // Adjust textures based on direction
-      if (isNext) {
-        this.matStaticLeft.map = currentTex.left;
-        this.matStaticRight.map = nextTex.right;
-
-        this.flippingGroup.rotation.y = 0;
-        this.matFlipFront.map = currentTex.right;
-        this.matFlipBack.map = nextTex.left;
-
-        this.targetAngle = -Math.PI;
-      } else {
-        this.matStaticLeft.map = nextTex.left;
-        this.matStaticRight.map = currentTex.right;
-
-        this.flippingGroup.rotation.y = -Math.PI;
-        this.matFlipBack.map = currentTex.left;
-        this.matFlipFront.map = nextTex.right;
-
-        this.targetAngle = 0;
-      }
-
-      this.flipProgress = 0;
-      this.isFlipping = true;
-    },
     next() {
-      this.goToIndex((this.currentIndex + 1) % this.images.length);
+      if (this.flipBook) this.flipBook.flipNext();
     },
+
     prev() {
-      this.goToIndex((this.currentIndex - 1 + this.images.length) % this.images.length);
+      if (this.flipBook) this.flipBook.flipPrev();
     },
-    setIndex(idx) {
-      this.goToIndex(idx % this.images.length);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
+
     togglePlay() {
       this.isPlaying = !this.isPlaying;
       if (this.isPlaying) {
-        this.next(); // 先跳转下一张再开启计时器
-        this.autoPlayTimer = setInterval(this.next, 3000);
+        this.next();
+        this.autoPlayTimer = setInterval(() => {
+          if (this.currentIndex >= this.images.length - 1) {
+            this.flipBook.flip(0);
+          } else {
+            this.next();
+          }
+        }, 3000);
       } else {
         clearInterval(this.autoPlayTimer);
       }
-    }
+    },
   },
-  unmounted() {
+
+  beforeUnmount() {
     if (this.autoPlayTimer) clearInterval(this.autoPlayTimer);
     window.removeEventListener('resize', this.onResize);
-
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
-    if (this.renderer) {
-      this.renderer.dispose();
-    }
-    if (this.scene) {
-      this.scene.clear();
-    }
-  }
+    if (this.flipBook) this.flipBook.destroy();
+  },
 }
 </script>
 
@@ -366,14 +221,34 @@ export default {
   padding: 0 2rem;
 }
 
-/* 书本 3D 容器 */
+/* 3D 图片查看器 */
 .hero-viewer {
   width: 100%;
-  height: 60vh;
-  min-height: 500px;
+  height: 72vh;
+  min-height: 520px;
   position: relative;
-  perspective: 2500px;
-  border-radius: 24px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #080d18;
+}
+
+.flip-book {
+  width: 100%;
+  height: 100%;
+}
+
+.flip-page {
+  background: #080d18;
+  overflow: hidden;
+}
+
+.flip-page img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
 }
 
 .hero-empty {
@@ -385,84 +260,6 @@ export default {
   justify-content: center;
   color: #64748b;
   font-size: 1.1rem;
-}
-
-/* 单张被当做跨页书页的图 */
-.image-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5), 0 30px 60px rgba(0, 0, 0, 0.8);
-  background-color: #1a202c;
-}
-
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* 伪造的书本中缝和阴影 */
-.image-slide::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 60px;
-  transform: translateX(-50%);
-  background: linear-gradient(to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(0, 0, 0, 0.3) 40%,
-      rgba(255, 255, 255, 0.15) 50%,
-      rgba(0, 0, 0, 0.3) 60%,
-      rgba(255, 255, 255, 0) 100%);
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* 翻页动画：中心轴旋转模拟翻书 */
-.page-next-enter-active,
-.page-next-leave-active {
-  transition: all 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-.page-next-enter-from {
-  transform: rotateY(90deg) scale(0.92);
-  transform-origin: 50% 50%;
-  opacity: 0;
-}
-
-.page-next-leave-to {
-  transform: rotateY(-90deg) scale(0.92);
-  transform-origin: 50% 50%;
-  opacity: 0;
-}
-
-.page-prev-enter-active,
-.page-prev-leave-active {
-  transition: all 1.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-.page-prev-enter-from {
-  transform: rotateY(-90deg) scale(0.92);
-  transform-origin: 50% 50%;
-  opacity: 0;
-}
-
-.page-prev-leave-to {
-  transform: rotateY(90deg) scale(0.92);
-  transform-origin: 50% 50%;
-  opacity: 0;
 }
 
 

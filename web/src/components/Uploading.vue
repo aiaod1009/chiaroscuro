@@ -422,7 +422,8 @@ const compressImageToWebP = (file, options = { maxWidth: 3000, quality: 0.86 }) 
           blob ? resolve(blob) : reject(new Error('Canvas export fallback'))
         }, 'image/webp', options.quality)
       }
-      img.onerror = (err) => reject(err)
+      img
+        .onerror = (err) => reject(err)
     }
     reader.onerror = (err) => reject(err)
   })
