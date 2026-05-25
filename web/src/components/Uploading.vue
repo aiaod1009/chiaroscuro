@@ -61,9 +61,8 @@
               </label>
               <div class="select-wrapper">
                 <select v-model="formData.collection">
-                  <option value="秘境之巅">秘境之巅</option>
-                  <option value="极地光影">极地光影</option>
-                  <option value="城市漫步">城市漫步</option>
+                  <option value="">按地点自动分配</option>
+                  <option v-for="w in worksList" :key="w._id" :value="w._id">{{ w.name }}</option>
                 </select>
                 <span class="select-arrow"></span>
               </div>
@@ -286,11 +285,20 @@ const uploadProgressText = ref('')    // 动态进度提示
 
 // 保持原本的双向绑定表单，动态对齐你的后端新 Schema
 const formData = reactive({
-  collection: '秘境之巅', // 会映射为数据库的 albumId
+  collection: '',
   location: '中国',
   region: '',
   regionName: ''
 })
+
+const worksList = ref([])
+const fetchWorks = async () => {
+  try {
+    const { data } = await axios.get('/api/works')
+    if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
+  } catch {}
+}
+fetchWorks()
 
 const countryOptions = [
   '中国',
@@ -492,9 +500,9 @@ const handleUpload = async () => {
       // 步骤 D：调用后端 /api/photos/upload-raw，落盘 MongoDB
       uploadProgressText.value = `[${index + 1}/${selectedFilesCount.value}] 写入 MongoDB 索引...`
       const { data: saveRes } = await axios.post('/api/photos/upload-raw', {
-        albumId: formData.collection,
         imageUrl: cosUrl,
         fileName: webpFile.name,
+        selectedAlbumId: formData.collection || null,
         locationName: formData.location || '未标记地点',
         region: formData.region || formData.regionName,
         exif: exifData || {},

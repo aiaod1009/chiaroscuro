@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const PhotoSchema = new mongoose.Schema({
   // 1. 文件关联核心
-  albumId: { type: String, default: 'none' },       // 所属相册
+  albumIds: [{ type: String }],                      // 所属作品集（可多归属：地点自动 + 用户手动）
   originalName: { type: String },                    // 原始文件名，兼容旧数据
   fileName: { type: String },                        // 前端传来的文件名，如 photo.webp
   imageUrl: { type: String, required: true },        // 图片公网访问路径

@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
     const portfolio = await Works.findById(req.params.id);
     if (!portfolio) return res.status(404).json({ success: false, message: '作品集不存在' });
 
-    const photos = await Photo.find({ albumId: portfolio._id.toString() }).sort({ createdAt: -1 });
+    const photos = await Photo.find({ albumIds: portfolio._id.toString() }).sort({ createdAt: -1 });
 
     res.json({ success: true, data: { ...portfolio.toObject(), photos } });
   } catch (error) {
@@ -49,10 +49,10 @@ router.get('/:id', async (req, res) => {
 // ==========================================
 router.post('/', async (req, res) => {
   try {
-    const { name, description, realDate, coverImage, isTravel, locationName } = req.body;
-    if (!name || !realDate) return res.status(400).json({ success: false, message: '名称和真实时间为必填项' });
+    const { name, description, realDate, coverImage } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: '名称为必填项' });
 
-    const portfolio = await Works.create({ name, description, realDate, coverImage, isTravel, locationName });
+    const portfolio = await Works.create({ name, description, realDate, coverImage });
     res.json({ success: true, data: portfolio });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

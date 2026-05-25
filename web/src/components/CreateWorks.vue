@@ -45,24 +45,6 @@
             <input type="text" v-model="form.coverImage" class="form-input" placeholder="https://..." />
           </div>
 
-          <div class="form-item form-item-row">
-            <label class="toggle-label">
-              <span class="label-zh">旅游相册</span>
-              <span class="label-en">TRAVEL ALBUM</span>
-            </label>
-            <button class="toggle-btn" :class="{ active: form.isTravel }" @click="form.isTravel = !form.isTravel">
-              {{ form.isTravel ? '是' : '否' }}
-            </button>
-          </div>
-
-          <div v-if="form.isTravel" class="form-item">
-            <label class="form-label">
-              <span class="label-zh">旅游地点</span>
-              <span class="label-en">LOCATION</span>
-            </label>
-            <input type="text" v-model="form.locationName" class="form-input" placeholder="例如：雷克雅未克" />
-          </div>
-
         </div>
 
         <div class="form-actions">
@@ -92,8 +74,6 @@ const form = reactive({
   description: '',
   realDate: '',
   coverImage: '',
-  isTravel: false,
-  locationName: '',
 })
 
 // 拖拽
@@ -129,8 +109,6 @@ const resetForm = () => {
   form.description = ''
   form.realDate = ''
   form.coverImage = ''
-  form.isTravel = false
-  form.locationName = ''
 }
 
 const handleSubmit = async () => {
@@ -236,19 +214,7 @@ const handleSubmit = async () => {
   gap: 10px;
 }
 
-.form-item-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .form-label {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.toggle-label {
   display: flex;
   flex-direction: column;
   gap: 2px;
