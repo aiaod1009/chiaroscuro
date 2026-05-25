@@ -6,6 +6,7 @@ const cors = require('cors');  // 解决跨域问题
 const photoRoutes = require('./routes/photoRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const cosRoutes = require('./routes/cosRoutes');
+const worksRoutes = require('./routes/worksRoutes');
 
 const app = express();
 
@@ -23,6 +24,7 @@ mongoose.connect(mongoUri)
 app.use('/api/photos', photoRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/cos', cosRoutes);
+app.use('/api/works', worksRoutes);
 
 app.get('/', (req, res) => {
   res.send('chiaroscuro 后端大本营运行中...');
