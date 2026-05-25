@@ -34,7 +34,7 @@
               <span class="label-zh">真实拍摄时间</span>
               <span class="label-en">REAL DATE</span>
             </label>
-            <input type="date" v-model="form.realDate" class="form-input" />
+            <input type="month" v-model="form.realDate" class="form-input" />
           </div>
 
           <div class="form-item">
