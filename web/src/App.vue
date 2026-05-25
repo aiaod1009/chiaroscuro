@@ -6,6 +6,7 @@
     </main>
     <AppFooter />
     <Uploading ref="uploadRef" />
+    <CreateWorks ref="createWorksRef" />
   </div>
 </template>
 
@@ -14,6 +15,7 @@ import { ref, provide } from 'vue'
 import NavigationBar from './components/NavigationBar.vue';
 import AppFooter from './components/AppFooter.vue';
 import Uploading from './components/Uploading.vue';
+import CreateWorks from './components/CreateWorks.vue';
 
 export default {
   name: 'App',
@@ -21,14 +23,20 @@ export default {
     NavigationBar,
     AppFooter,
     Uploading,
+    CreateWorks,
   },
   setup() {
     const uploadRef = ref(null)
+    const createWorksRef = ref(null)
     const openUpload = () => {
       if (uploadRef.value) uploadRef.value.isOpen = true
     }
+    const openCreateWorks = () => {
+      if (createWorksRef.value) createWorksRef.value.isOpen = true
+    }
     provide('openUpload', openUpload)
-    return { uploadRef }
+    provide('openCreateWorks', openCreateWorks)
+    return { uploadRef, createWorksRef }
   },
 };
 </script>

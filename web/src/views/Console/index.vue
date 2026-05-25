@@ -5,7 +5,8 @@
         <h1 class="main-title-zh">草稿箱</h1>
         <div class="brand-sub">
           <span class="sub-en">CONSOLE</span>
-          <span class="sub-count">Drafts <span class="highlight-num">{{ String(drafts.length).padStart(2, '0') }}</span></span>
+          <span class="sub-count">Drafts <span class="highlight-num">{{ String(drafts.length).padStart(2, '0')
+              }}</span></span>
         </div>
       </div>
 
@@ -94,7 +95,10 @@
           <div class="card-bottom-glass">
             <div class="info-left">
               <h3 class="asset-title">{{ item.fileName }}</h3>
-              <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
+              <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric', month:
+                  'short', day: '2-digit'
+              }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
             </div>
             <span class="format-badge">WEBP</span>
           </div>
@@ -105,8 +109,7 @@
             <div class="folder-icon">📂</div>
             <span class="placeholder-main">0 selected assets</span>
             <div class="placeholder-actions">
-              <button class="btn-p-action">SELECT ALL</button>
-              <button class="btn-p-action">CLEAR</button>
+              <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
             </div>
           </div>
         </div>
@@ -136,6 +139,7 @@ import axios from 'axios'
 const router = useRouter()
 
 const openUpload = inject('openUpload')
+const openCreateWorks = inject('openCreateWorks')
 const currentCategory = ref('all')
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -685,7 +689,7 @@ const goToNarrative = (item) => {
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 6px;
   padding: 6px 12px;
-  font-size: 9px;
+  font-size: 15px;
   font-weight: 700;
   font-family: monospace;
   color: #485260;
