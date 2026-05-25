@@ -84,6 +84,16 @@
 
       <div class="assets-grid-flow">
 
+        <div class="asset-empty-placeholder-card">
+          <div class="placeholder-content">
+            <div class="folder-icon">📂</div>
+            <span class="placeholder-main">0 in total</span>
+            <div class="placeholder-actions">
+              <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
+            </div>
+          </div>
+        </div>
+
         <div v-for="item in drafts" :key="item._id" class="asset-card" @click="goToNarrative(item)">
           <div class="card-top-overlay">
             <div class="checkbox-hollow"></div>
@@ -101,16 +111,6 @@
               }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
             </div>
             <span class="format-badge">WEBP</span>
-          </div>
-        </div>
-
-        <div class="asset-empty-placeholder-card">
-          <div class="placeholder-content">
-            <div class="folder-icon">📂</div>
-            <span class="placeholder-main">0 selected assets</span>
-            <div class="placeholder-actions">
-              <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
-            </div>
           </div>
         </div>
 
@@ -674,7 +674,7 @@ const goToNarrative = (item) => {
 }
 
 .placeholder-main {
-  font-size: 12px;
+  font-size: 18px;
   color: #485260;
   margin-bottom: 16px;
 }
