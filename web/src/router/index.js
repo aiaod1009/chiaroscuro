@@ -3,7 +3,7 @@ import Home from '../views/Home/index.vue';
 import Archive from '../views/Archive/index.vue';
 import Console from '../views/Console/index.vue';
 import Footprints from '../views/Footprints/index.vue';
-import About from '../views/About/index.vue';
+import Notes from '../views/Notes/index.vue';
 import GalleryDetail from '../views/GalleryDetail/index.vue';
 import PhotoDetail from '../views/PhotoDetail/index.vue';
 
@@ -12,7 +12,7 @@ const routes = [
   { path: '/archive', name: 'Archive', component: Archive },
   { path: '/console', name: 'Console', component: Console },
   { path: '/footprints', name: 'Footprints', component: Footprints },
-  { path: '/about', name: 'About', component: About },
+  { path: '/notes', name: 'Notes', component: Notes },
   { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },
   { path: '/photo-detail/:id', name: 'PhotoDetail', component: PhotoDetail },
 ];

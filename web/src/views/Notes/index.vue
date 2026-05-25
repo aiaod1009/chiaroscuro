@@ -137,7 +137,7 @@
             </div>
 
             <div v-if="candidates.length" class="select-action">
-              <button class="btn-apply" :disabled="isSaving" @click="applyCandidate">
+              <button class="btn-apply" :disabled="isSaving" @click="applyToPhoto(activeCandidate.title, activeCandidate.caption)">
                 {{ isSaving ? 'SAVING...' : 'APPLY TO PHOTO' }}
               </button>
               <span v-if="saveSuccess" class="save-hint">已保存</span>
@@ -176,6 +176,13 @@
 
             <div class="word-count-badge">
               字数: {{ manualContent.length }}
+            </div>
+
+            <div class="select-action">
+              <button class="btn-apply" :disabled="isSaving || (!manualTitle && !manualContent)" @click="applyToPhoto(manualTitle, manualContent)">
+                {{ isSaving ? 'SAVING...' : 'APPLY TO PHOTO' }}
+              </button>
+              <span v-if="saveSuccess" class="save-hint">已保存</span>
             </div>
           </div>
 
@@ -408,16 +415,13 @@ const handleOptimize = async () => {
   }
 }
 
-// 将当前选中方案写入 Photo 的 title/caption
-const applyCandidate = async () => {
+// 将当前内容写入 Photo 的 title/caption（AI / 手写共用）
+const applyToPhoto = async (title, caption) => {
   if (!currentPhoto.id || isSaving.value) return
   isSaving.value = true
   saveSuccess.value = false
   try {
-    await axios.patch(`/api/photos/${currentPhoto.id}`, {
-      title: activeCandidate.value.title,
-      caption: activeCandidate.value.caption
-    })
+    await axios.patch(`/api/photos/${currentPhoto.id}`, { title, caption })
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (e) {
@@ -426,6 +430,7 @@ const applyCandidate = async () => {
     isSaving.value = false
   }
 }
+
 
 // 触发保存操作
 const handleSave = () => {

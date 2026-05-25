@@ -172,7 +172,7 @@ const pageRange = ref([1, 2, 3, '...', 12])
 // 点击图片跳转到影像叙事页
 const goToNarrative = (item) => {
   router.push({
-    path: '/about',
+    path: '/notes',
     query: { photoId: item._id, imageUrl: item.imageUrl }
   })
 }

@@ -33,7 +33,7 @@
           <li><router-link to="/archive">Archive</router-link></li>
           <li><router-link to="/ai-lab">AI Lab</router-link></li>
           <li><router-link to="/footprints">Footprints</router-link></li>
-          <li><router-link to="/about">Story</router-link></li>
+          <li><router-link to="/notes">Story</router-link></li>
         </ul>
       </div>
 
