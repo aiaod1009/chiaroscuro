@@ -101,6 +101,10 @@ router.get('/footprints', async (req, res) => {
       { $sort: { photoCount: -1 } }
     ]);
 
+    // 查出所有地点类作品集 ID（有 locationCode 的）
+    const locationWorks = await Works.find({ locationCode: { $exists: true, $ne: '' } }, { _id: 1 }).lean();
+    const locationWorkIds = new Set(locationWorks.map(w => w._id.toString()));
+
     const COUNTRY_CN_TO_CODE = {
       '中国': 'CN', '日本': 'JP', '韩国': 'KR', '新加坡': 'SG',
       '泰国': 'TH', '越南': 'VN', '马来西亚': 'MY', '印度尼西亚': 'ID',
@@ -118,11 +122,14 @@ router.get('/footprints', async (req, res) => {
       const locationName = item._id.locationName || '未标记地点';
       const isChineseProvince = region.startsWith('CN-');
 
+      // 只统计地点类作品集，过滤掉手动创建的
+      const locationAlbumCount = item.albumIds.filter(id => id && id !== 'none' && locationWorkIds.has(id)).length;
+
       return {
         region,
         locationName,
         photoCount: item.photoCount,
-        albumCount: item.albumIds.filter(id => id && id !== 'none').length || 1,
+        albumCount: locationAlbumCount || 1,
         photos: item.photos || [],
         mapCode: isChineseProvince ? region : (COUNTRY_CN_TO_CODE[locationName] || ''),
       };
@@ -246,9 +253,10 @@ router.post('/upload-raw', async (req, res) => {
     // 根据地点自动匹配或创建作品集
     const locationWorksId = await findOrCreateWorks(region, locationName);
 
-    // 优先用用户手动选的，没有才用地点自动创建的
-    const albumId = selectedAlbumId || (locationWorksId ? locationWorksId.toString() : null);
-    const albumIds = albumId ? [albumId] : [];
+    // 构建 albumIds：地点自动 + 用户手动选的（可同时存在）
+    const albumIds = [];
+    if (locationWorksId) albumIds.push(locationWorksId.toString());
+    if (selectedAlbumId) albumIds.push(selectedAlbumId);
 
     const newPhotoDraft = new Photo({
       albumIds,
