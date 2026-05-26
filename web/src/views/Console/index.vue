@@ -184,7 +184,7 @@ const fetchDrafts = async () => {
 const fetchWorks = async () => {
   try {
     const { data } = await axios.get('/api/works')
-    if (data.success) worksList.value = data.data
+    if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
   } catch (err) {
     console.error('加载作品集失败:', err)
   }

@@ -246,10 +246,9 @@ router.post('/upload-raw', async (req, res) => {
     // 根据地点自动匹配或创建作品集
     const locationWorksId = await findOrCreateWorks(region, locationName);
 
-    // 构建 albumIds：地点自动 + 用户手动选的
-    const albumIds = [];
-    if (locationWorksId) albumIds.push(locationWorksId.toString());
-    if (selectedAlbumId) albumIds.push(selectedAlbumId);
+    // 优先用用户手动选的，没有才用地点自动创建的
+    const albumId = selectedAlbumId || (locationWorksId ? locationWorksId.toString() : null);
+    const albumIds = albumId ? [albumId] : [];
 
     const newPhotoDraft = new Photo({
       albumIds,
