@@ -37,14 +37,6 @@
             <input type="month" v-model="form.realDate" class="form-input" />
           </div>
 
-          <div class="form-item">
-            <label class="form-label">
-              <span class="label-zh">封面图 URL</span>
-              <span class="label-en">COVER IMAGE</span>
-            </label>
-            <input type="text" v-model="form.coverImage" class="form-input" placeholder="https://..." />
-          </div>
-
         </div>
 
         <div class="form-actions">
@@ -73,7 +65,6 @@ const form = reactive({
   name: '',
   description: '',
   realDate: '',
-  coverImage: '',
 })
 
 // 拖拽
@@ -108,7 +99,6 @@ const resetForm = () => {
   form.name = ''
   form.description = ''
   form.realDate = ''
-  form.coverImage = ''
 }
 
 const handleSubmit = async () => {

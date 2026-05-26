@@ -271,6 +271,14 @@ router.post('/upload-raw', async (req, res) => {
 
     await newPhotoDraft.save();
 
+    // 自动封面：给没有封面的作品集设置第一张上传图
+    if (albumIds.length > 0) {
+      await Works.updateMany(
+        { _id: { $in: albumIds }, $or: [{ coverImage: '' }, { coverImage: { $exists: false } }] },
+        { $set: { coverImage: imageUrl } }
+      );
+    }
+
     res.json({
       success: true,
       message: 'WebP 资产与 EXIF 刻录成功，已放入草稿箱！',
