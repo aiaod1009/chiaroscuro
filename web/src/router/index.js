@@ -6,6 +6,7 @@ import Footprints from '../views/Footprints/index.vue';
 import Notes from '../views/Notes/index.vue';
 import GalleryDetail from '../views/GalleryDetail/index.vue';
 import PhotoDetail from '../views/PhotoDetail/index.vue';
+import Waterfall from '../views/Waterfall/index.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -15,6 +16,7 @@ const routes = [
   { path: '/notes', name: 'Notes', component: Notes },
   { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },
   { path: '/photo-detail/:id', name: 'PhotoDetail', component: PhotoDetail },
+  { path: '/waterfall/:mapCode', name: 'Waterfall', component: Waterfall },
 ];
 
 const router = createRouter({

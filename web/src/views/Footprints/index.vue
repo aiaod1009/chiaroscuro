@@ -58,7 +58,7 @@
         <div class="photo-grid">
           <img v-for="photo in activeRegion.photos" :key="photo.src" :src="photo.src" :alt="photo.alt" />
         </div>
-        <button class="view-all" type="button" @click="$router.push(`/gallery-detail/${activeRegion.mapCode}`)">查看全部 →</button>
+        <button class="view-all" type="button" @click="$router.push(`/waterfall/${activeRegion.mapCode}`)">查看全部 →</button>
       </aside>
 
       <div class="map-controls" @mousedown.stop @wheel.stop>

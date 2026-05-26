@@ -185,14 +185,24 @@ router.get('/gallery/:mapCode', async (req, res) => {
       title = cnName;
     }
 
-    const photos = await Photo.find(query).sort({ createdAt: -1 });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const [photos, total] = await Promise.all([
+      Photo.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Photo.countDocuments(query),
+    ]);
 
     res.json({
       success: true,
       data: {
         title,
         mapCode,
-        photoCount: photos.length,
+        total,
+        page,
+        limit,
+        hasMore: skip + photos.length < total,
         photos: photos.map(p => ({
           id: p._id,
           src: p.imageUrl,
