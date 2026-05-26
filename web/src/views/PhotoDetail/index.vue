@@ -147,22 +147,49 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
 
 const route = useRoute()
-const imageSrc = computed(() => route.query.src || '/DSC_6510.jpg')
-
 const sliderPosition = ref(53)
+const photoData = ref(null)
 
-const exifData = ref([
-  { label: 'Camera', value: 'SONY ILCE-7M4' },
-  { label: 'Lens', value: 'FE 35mm F1.4 GM' },
-  { label: 'ISO', value: '100' },
-  { label: 'Shutter', value: '1/250s' },
-  { label: 'Aperture', value: 'f/1.4' },
-  { label: 'Focal Length', value: '35mm' },
-])
+const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
+
+const exifData = computed(() => {
+  const exif = photoData.value?.exif
+  if (!exif) return [
+    { label: 'Camera', value: '-' },
+    { label: 'Lens', value: '-' },
+    { label: 'ISO', value: '-' },
+    { label: 'Shutter', value: '-' },
+    { label: 'Aperture', value: '-' },
+    { label: 'Focal Length', value: '-' },
+  ]
+  return [
+    { label: 'Camera', value: exif.camera || '-' },
+    { label: 'Lens', value: exif.lens || '-' },
+    { label: 'ISO', value: exif.iso || '-' },
+    { label: 'Shutter', value: exif.shutterSpeed || '-' },
+    { label: 'Aperture', value: exif.aperture || '-' },
+    { label: 'Focal Length', value: exif.focalLength || '-' },
+  ]
+})
+
+const fetchPhoto = async () => {
+  const id = route.params.id
+  if (!id) return
+  try {
+    const { data } = await axios.get(`/api/photos/${id}`)
+    if (data.success) photoData.value = data.data
+  } catch (err) {
+    console.error('加载照片详情失败:', err)
+  }
+}
+
+onMounted(fetchPhoto)
+watch(() => route.params.id, fetchPhoto)
 </script>
 
 <style scoped>

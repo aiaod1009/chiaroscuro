@@ -9,7 +9,7 @@
     </header>
 
     <div class="masonry-grid" ref="gridRef">
-      <div v-for="photo in photos" :key="photo.id" class="masonry-item" @click="openLightbox(photo)">
+      <div v-for="photo in photos" :key="photo.id" class="masonry-item" @click="$router.push(`/photo-detail/${photo.id}?src=${encodeURIComponent(photo.src)}`)">
         <img :src="photo.src" :alt="photo.alt" loading="lazy" />
         <div class="item-overlay">
           <span class="item-date">{{ formatDate(photo.createdAt) }}</span>
@@ -23,17 +23,6 @@
       <span v-else-if="!hasMore && photos.length > 0" class="no-more">到底了</span>
     </div>
 
-    <!-- 灯箱 -->
-    <Teleport to="body">
-      <div v-if="lightboxPhoto" class="lightbox" @click.self="closeLightbox">
-        <button class="lightbox-close" @click="closeLightbox">&times;</button>
-        <img :src="lightboxPhoto.src" :alt="lightboxPhoto.alt" class="lightbox-img" />
-        <div class="lightbox-info">
-          <span>{{ lightboxPhoto.alt }}</span>
-          <span v-if="lightboxPhoto.exif">{{ lightboxPhoto.exif.camera }} &middot; {{ lightboxPhoto.exif.focalLength }} &middot; {{ lightboxPhoto.exif.aperture }} &middot; ISO {{ lightboxPhoto.exif.iso }}</span>
-        </div>
-      </div>
-    </Teleport>
   </main>
 </template>
 
@@ -52,8 +41,6 @@ const hasMore = ref(true)
 const loading = ref(false)
 const gridRef = ref(null)
 const sentinelRef = ref(null)
-
-const lightboxPhoto = ref(null)
 
 const fetchPhotos = async () => {
   if (loading.value || !hasMore.value) return
@@ -101,16 +88,6 @@ watch(() => route.params.mapCode, () => {
 const formatDate = (d) => {
   if (!d) return ''
   return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }).toUpperCase()
-}
-
-const openLightbox = (photo) => {
-  lightboxPhoto.value = photo
-  document.body.style.overflow = 'hidden'
-}
-
-const closeLightbox = () => {
-  lightboxPhoto.value = null
-  document.body.style.overflow = ''
 }
 </script>
 
@@ -259,53 +236,5 @@ const closeLightbox = () => {
   color: #2a3040;
   font-family: monospace;
   letter-spacing: 0.1em;
-}
-
-/* 灯箱 */
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.92);
-  backdrop-filter: blur(20px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.lightbox-close {
-  position: absolute;
-  top: 20px;
-  right: 28px;
-  background: none;
-  border: none;
-  color: #64748b;
-  font-size: 32px;
-  cursor: pointer;
-  z-index: 1;
-  transition: color 0.2s;
-}
-
-.lightbox-close:hover {
-  color: #fff;
-}
-
-.lightbox-img {
-  max-width: 90vw;
-  max-height: 82vh;
-  object-fit: contain;
-  border-radius: 4px;
-}
-
-.lightbox-info {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-family: monospace;
-  color: #64748b;
 }
 </style>
