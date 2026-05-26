@@ -2,10 +2,10 @@
   <div class="drafts-dashboard">
     <aside class="sidebar-panel">
       <div class="brand-header">
-        <h1 class="main-title-zh">草稿箱</h1>
+        <h1 class="main-title-zh">{{ selectedWork ? selectedWork.name : '控制台' }}</h1>
         <div class="brand-sub">
           <span class="sub-en">CONSOLE</span>
-          <span class="sub-count">Drafts <span class="highlight-num">{{ String(drafts.length).padStart(2, '0')
+          <span class="sub-count">{{ selectedWork ? 'Photos' : 'Albums' }} <span class="highlight-num">{{ String(selectedWork ? workPhotos.length : worksList.length).padStart(2, '0')
               }}</span></span>
         </div>
       </div>
@@ -84,35 +84,58 @@
 
       <div class="assets-grid-flow">
 
-        <div class="asset-empty-placeholder-card">
-          <div class="placeholder-content">
-            <div class="folder-icon">📂</div>
-            <span class="placeholder-main">0 in total</span>
-            <div class="placeholder-actions">
-              <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
+        <!-- 未选中文件夹：展示作品集列表 -->
+        <template v-if="!selectedWork">
+          <div class="asset-empty-placeholder-card">
+            <div class="placeholder-content">
+              <div class="folder-icon">📂</div>
+              <span class="placeholder-main">{{ worksList.length }} 个作品集</span>
+              <div class="placeholder-actions">
+                <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div v-for="item in drafts" :key="item._id" class="asset-card" @click="goToNarrative(item)">
-          <div class="card-top-overlay">
-            <div class="checkbox-hollow"></div>
-            <button class="btn-more-actions">•••</button>
-          </div>
-
-          <img :src="item.imageUrl" :alt="item.fileName" class="asset-img" />
-
-          <div class="card-bottom-glass">
-            <div class="info-left">
-              <h3 class="asset-title">{{ item.fileName }}</h3>
-              <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric', month:
-                  'short', day: '2-digit'
-              }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
+          <div v-for="work in worksList" :key="work._id" class="folder-card" @click="openWork(work)">
+            <div class="folder-cover">
+              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" />
+              <span v-else class="folder-empty-hint">暂无照片</span>
             </div>
-            <span class="format-badge">WEBP</span>
+            <div class="folder-info">
+              <h3 class="folder-name">{{ work.name }}</h3>
+              <p class="folder-meta">{{ new Date(work.realDate || work.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase() }}</p>
+            </div>
           </div>
-        </div>
+        </template>
+
+        <!-- 选中文件夹：展示里面的照片 -->
+        <template v-else>
+          <div class="work-header-bar">
+            <button class="btn-back" @click="selectedWork = null">&larr; 返回</button>
+            <h2 class="work-title">{{ selectedWork.name }}</h2>
+            <span class="work-count">{{ workPhotos.length }} 张</span>
+          </div>
+
+          <div v-for="item in workPhotos" :key="item._id" class="asset-card" @click="goToNarrative(item)">
+            <div class="card-top-overlay">
+              <div class="checkbox-hollow"></div>
+              <button class="btn-more-actions">•••</button>
+            </div>
+
+            <img :src="item.imageUrl" :alt="item.fileName" class="asset-img" />
+
+            <div class="card-bottom-glass">
+              <div class="info-left">
+                <h3 class="asset-title">{{ item.fileName }}</h3>
+                <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric', month:
+                    'short', day: '2-digit'
+                }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
+              </div>
+              <span class="format-badge">WEBP</span>
+            </div>
+          </div>
+        </template>
 
       </div>
 
@@ -145,6 +168,9 @@ const searchQuery = ref('')
 const currentPage = ref(1)
 
 const drafts = ref([])
+const worksList = ref([])
+const selectedWork = ref(null)
+const workPhotos = ref([])
 
 const fetchDrafts = async () => {
   try {
@@ -155,12 +181,37 @@ const fetchDrafts = async () => {
   }
 }
 
+const fetchWorks = async () => {
+  try {
+    const { data } = await axios.get('/api/works')
+    if (data.success) worksList.value = data.data
+  } catch (err) {
+    console.error('加载作品集失败:', err)
+  }
+}
+
+const openWork = async (work) => {
+  selectedWork.value = work
+  try {
+    const { data } = await axios.get(`/api/works/${work._id}`)
+    if (data.success) workPhotos.value = data.data.photos || []
+  } catch (err) {
+    console.error('加载作品集照片失败:', err)
+    workPhotos.value = []
+  }
+}
+
+const onUploadComplete = () => { fetchWorks(); fetchDrafts() }
+
 onMounted(() => {
+  fetchWorks()
   fetchDrafts()
-  window.addEventListener('upload-complete', fetchDrafts)
+  window.addEventListener('upload-complete', onUploadComplete)
+  window.addEventListener('works-complete', fetchWorks)
 })
 onUnmounted(() => {
-  window.removeEventListener('upload-complete', fetchDrafts)
+  window.removeEventListener('upload-complete', onUploadComplete)
+  window.removeEventListener('works-complete', fetchWorks)
 })
 
 // 左侧分类过滤器源
@@ -647,7 +698,117 @@ const goToNarrative = (item) => {
 }
 
 /* ==========================================================================
-   5. 空态占位控制卡片 (Empty Placeholder Card)
+   5. 作品集文件夹卡片 (Folder Cards)
+   ========================================================================== */
+.folder-card {
+  position: relative;
+  aspect-ratio: 1.4 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.folder-cover {
+  flex: 1;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folder-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.folder-card:hover .folder-cover img {
+  transform: scale(1.02);
+}
+
+.folder-empty-hint {
+  color: #3a4150;
+  font-size: 13px;
+}
+
+.folder-info {
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.folder-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-meta {
+  font-size: 10px;
+  font-family: monospace;
+  color: #64748b;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+/* 返回栏 */
+.work-header-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.btn-back {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: #8b949e;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.work-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.work-count {
+  font-size: 12px;
+  font-family: monospace;
+  color: #64748b;
+}
+
+/* ==========================================================================
+   6. 空态占位控制卡片 (Empty Placeholder Card)
    ========================================================================== */
 .asset-empty-placeholder-card {
   aspect-ratio: 1.4 / 1;
