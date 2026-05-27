@@ -1,8 +1,24 @@
 // server/routes/worksRoutes.js
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Works = require('../models/Works');
 const Photo = require('../models/Photo');
+
+// 查找作品集下的第一张照片（同时匹配字符串和 ObjectId）
+const findFirstPhoto = async (workId) => {
+  const workIdStr = workId.toString();
+  // 先按字符串匹配
+  let photo = await Photo.findOne({ albumIds: workIdStr }).sort({ createdAt: 1 }).lean();
+  if (!photo) {
+    // 再按 ObjectId 匹配（防止 albumIds 存的是 ObjectId 而非字符串）
+    try {
+      const oid = new mongoose.Types.ObjectId(workIdStr);
+      photo = await Photo.findOne({ albumIds: oid }).sort({ createdAt: 1 }).lean();
+    } catch {}
+  }
+  return photo;
+};
 
 // ==========================================
 // 📚 获取全部作品集（按真实时间倒序）
@@ -15,10 +31,10 @@ router.get('/', async (req, res) => {
     const needCover = portfolios.filter(p => !p.coverImage);
     if (needCover.length > 0) {
       await Promise.all(needCover.map(async (work) => {
-        const firstPhoto = await Photo.findOne({ albumIds: work._id.toString() }).sort({ createdAt: 1 }).lean();
+        const firstPhoto = await findFirstPhoto(work._id);
+        console.log(`[封面补全] 作品集 "${work.name}" (${work._id}), 找到照片: ${firstPhoto ? firstPhoto.imageUrl : '无'}`);
         if (firstPhoto) {
           work.coverImage = firstPhoto.imageUrl;
-          // 持久化到数据库，下次不再查
           await Works.updateOne({ _id: work._id }, { $set: { coverImage: firstPhoto.imageUrl } });
         }
       }));
@@ -26,6 +42,7 @@ router.get('/', async (req, res) => {
 
     res.json({ success: true, data: portfolios });
   } catch (error) {
+    console.error('获取作品集失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -50,7 +67,15 @@ router.get('/:id', async (req, res) => {
     const portfolio = await Works.findById(req.params.id);
     if (!portfolio) return res.status(404).json({ success: false, message: '作品集不存在' });
 
-    const photos = await Photo.find({ albumIds: portfolio._id.toString() }).sort({ createdAt: -1 });
+    const workIdStr = portfolio._id.toString();
+    // 同时匹配字符串和 ObjectId
+    const oid = mongoose.Types.ObjectId.isValid(workIdStr) ? new mongoose.Types.ObjectId(workIdStr) : null;
+    const query = oid
+      ? { albumIds: { $in: [workIdStr, oid] } }
+      : { albumIds: workIdStr };
+    const photos = await Photo.find(query).sort({ createdAt: -1 });
+
+    console.log(`[作品集详情] "${portfolio.name}" (${workIdStr}), 照片数: ${photos.length}`);
 
     res.json({ success: true, data: { ...portfolio.toObject(), photos } });
   } catch (error) {

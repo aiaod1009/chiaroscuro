@@ -98,7 +98,7 @@
 
           <div v-for="work in worksList" :key="work._id" class="folder-card" @click="openWork(work)">
             <div class="folder-cover">
-              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="work.coverImage = ''" />
+              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="onCoverError(work)" />
               <span v-if="!work.coverImage" class="folder-empty-hint">暂无照片</span>
             </div>
             <div class="folder-info">
@@ -187,6 +187,20 @@ const fetchWorks = async () => {
     if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
   } catch (err) {
     console.error('加载作品集失败:', err)
+  }
+}
+
+// 封面加载失败时，尝试从作品集详情获取第一张照片
+const onCoverError = async (work) => {
+  try {
+    const { data } = await axios.get(`/api/works/${work._id}`)
+    if (data.success && data.data.photos?.length > 0) {
+      work.coverImage = data.data.photos[0].imageUrl
+    } else {
+      work.coverImage = ''
+    }
+  } catch {
+    work.coverImage = ''
   }
 }
 
