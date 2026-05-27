@@ -433,15 +433,14 @@ const applyToPhoto = async (title, caption) => {
 
 
 // 触发保存操作
-const handleSave = () => {
-  const payload = {
-    mode: currentMode.value,
-    title: currentMode.value === 'ai' ? activeCandidate.value.title : manualTitle.value,
-    content: currentMode.value === 'ai' ? activeCandidate.value.caption : manualContent.value,
-    perspective: currentMode.value === 'ai' ? activePerspective.value : null
+const handleSave = async () => {
+  const title = currentMode.value === 'ai' ? activeCandidate.value.title : manualTitle.value
+  const caption = currentMode.value === 'ai' ? activeCandidate.value.caption : manualContent.value
+  if (!title && !caption) {
+    showToast('请先输入标题或配文')
+    return
   }
-  console.log('保存叙事元数据:', payload)
-  alert(`[保存成功] 已将当前 ${currentMode.value === 'ai' ? 'AI 辅助' : '手写'} 文本封存至元数据。`)
+  await applyToPhoto(title, caption)
 }
 </script>
 

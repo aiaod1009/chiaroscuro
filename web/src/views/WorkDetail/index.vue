@@ -115,7 +115,7 @@ const fetchWorkDetail = async () => {
 }
 
 const goToPhotoDetail = (item) => {
-  router.push(`/photo-detail/${item._id}`)
+  router.push({ path: '/notes', query: { photoId: item._id, imageUrl: item.imageUrl } })
 }
 
 onMounted(fetchWorkDetail)

@@ -113,29 +113,6 @@
           </div>
         </div>
 
-        <div class="scifi-panel save-panel">
-          <div class="panel-header">
-            <div class="title-group">
-              <span class="panel-title-zh">作品信息</span>
-              <span class="panel-title-en">Photo Info</span>
-            </div>
-          </div>
-
-          <div class="save-form">
-            <div class="form-group">
-              <label class="form-label">标题 Title</label>
-              <input type="text" v-model="editTitle" class="form-input" placeholder="输入标题..." />
-            </div>
-            <div class="form-group">
-              <label class="form-label">配文 Caption</label>
-              <textarea v-model="editCaption" class="form-textarea" placeholder="输入配文..." rows="4"></textarea>
-            </div>
-            <button class="btn-save" :class="{ saving: saveStatus === 'saving', saved: saveStatus === 'saved', error: saveStatus === 'error' }" @click="savePhoto" :disabled="saveStatus === 'saving'">
-              {{ saveStatus === 'saving' ? '保存中...' : saveStatus === 'saved' ? '已保存 ✓' : saveStatus === 'error' ? '保存失败' : '保存' }}
-            </button>
-          </div>
-        </div>
-
         <div class="scifi-panel analysis-panel">
           <div class="panel-header">
             <div class="title-group">
@@ -177,9 +154,6 @@ import axios from 'axios'
 const route = useRoute()
 const sliderPosition = ref(53)
 const photoData = ref(null)
-const editTitle = ref('')
-const editCaption = ref('')
-const saveStatus = ref('')
 
 const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
 
@@ -208,31 +182,9 @@ const fetchPhoto = async () => {
   if (!id) return
   try {
     const { data } = await axios.get(`/api/photos/${id}`)
-    if (data.success) {
-      photoData.value = data.data
-      editTitle.value = data.data.title || ''
-      editCaption.value = data.data.caption || ''
-    }
+    if (data.success) photoData.value = data.data
   } catch (err) {
     console.error('加载照片详情失败:', err)
-  }
-}
-
-const savePhoto = async () => {
-  const id = route.params.id
-  if (!id) return
-  try {
-    saveStatus.value = 'saving'
-    await axios.patch(`/api/photos/${id}`, {
-      title: editTitle.value,
-      caption: editCaption.value
-    })
-    saveStatus.value = 'saved'
-    setTimeout(() => { saveStatus.value = '' }, 2000)
-  } catch (err) {
-    console.error('保存失败:', err)
-    saveStatus.value = 'error'
-    setTimeout(() => { saveStatus.value = '' }, 2000)
   }
 }
 
@@ -850,96 +802,4 @@ watch(() => route.params.id, fetchPhoto)
   color: #ffffff;
 }
 
-/* 保存面板 */
-.save-panel {
-  gap: 16px;
-}
-
-.save-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.form-input {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #ffffff;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  border-color: rgba(34, 211, 238, 0.3);
-}
-
-.form-textarea {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #ffffff;
-  outline: none;
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
-  transition: border-color 0.2s;
-}
-
-.form-textarea:focus {
-  border-color: rgba(34, 211, 238, 0.3);
-}
-
-.btn-save {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background: linear-gradient(to right, #67e8f9, #a7f3d0);
-  border: none;
-  color: #000000;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.1);
-}
-
-.btn-save:hover:not(:disabled) {
-  background: linear-gradient(to right, #22d3ee, #6ee7b7);
-}
-
-.btn-save.saving {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-save.saved {
-  background: linear-gradient(to right, #5cb85c, #7ed67e);
-}
-
-.btn-save.error {
-  background: linear-gradient(to right, #d9534f, #e87878);
-}
 </style>
