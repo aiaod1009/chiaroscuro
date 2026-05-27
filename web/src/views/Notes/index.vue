@@ -19,6 +19,7 @@
           </svg>
           {{ isGenerating ? 'GENERATING...' : 'AI GENERATE' }}
         </button>
+        <span v-if="candidates.length" class="analyzed-hint">已分析</span>
       </div>
     </header>
 
@@ -329,6 +330,9 @@ const restoreSession = async () => {
 // AI GENERATE：首次触发生成
 const handleAiGenerate = async () => {
   if (isGenerating.value) return
+  if (candidates.value.length) {
+    showToast('已分析过，正在重新生成...')
+  }
   isGenerating.value = true
 
   try {
@@ -459,6 +463,19 @@ const handleSave = async () => {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 32px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.analyzed-hint {
+  font-size: 11px;
+  color: #34d399;
+  font-weight: 600;
 }
 
 .module-tag {
