@@ -7,11 +7,13 @@ import Notes from '../views/Notes/index.vue';
 import GalleryDetail from '../views/GalleryDetail/index.vue';
 import PhotoDetail from '../views/PhotoDetail/index.vue';
 import Waterfall from '../views/Waterfall/index.vue';
+import WorkDetail from '../views/WorkDetail/index.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/archive', name: 'Archive', component: Archive },
   { path: '/console', name: 'Console', component: Console },
+  { path: '/console/work/:id', name: 'WorkDetail', component: WorkDetail },
   { path: '/footprints', name: 'Footprints', component: Footprints },
   { path: '/notes', name: 'Notes', component: Notes },
   { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },

@@ -2,10 +2,10 @@
   <div class="drafts-dashboard">
     <aside class="sidebar-panel">
       <div class="brand-header">
-        <h1 class="main-title-zh">{{ selectedWork ? selectedWork.name : '控制台' }}</h1>
+        <h1 class="main-title-zh">控制台</h1>
         <div class="brand-sub">
           <span class="sub-en">CONSOLE</span>
-          <span class="sub-count">{{ selectedWork ? 'Photos' : 'Albums' }} <span class="highlight-num">{{ String(selectedWork ? workPhotos.length : worksList.length).padStart(2, '0')
+          <span class="sub-count">Albums <span class="highlight-num">{{ String(worksList.length).padStart(2, '0')
               }}</span></span>
         </div>
       </div>
@@ -84,58 +84,26 @@
 
       <div class="assets-grid-flow">
 
-        <!-- 未选中文件夹：展示作品集列表 -->
-        <template v-if="!selectedWork">
-          <div class="asset-empty-placeholder-card">
-            <div class="placeholder-content">
-              <div class="folder-icon">📂</div>
-              <span class="placeholder-main">{{ worksList.length }} 个作品集</span>
-              <div class="placeholder-actions">
-                <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
-              </div>
+        <div class="asset-empty-placeholder-card">
+          <div class="placeholder-content">
+            <div class="folder-icon">📂</div>
+            <span class="placeholder-main">{{ worksList.length }} 个作品集</span>
+            <div class="placeholder-actions">
+              <button class="btn-p-action" @click="openCreateWorks">Create Album</button>
             </div>
           </div>
+        </div>
 
-          <div v-for="work in worksList" :key="work._id" class="folder-card" @click="openWork(work)">
-            <div class="folder-cover">
-              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="onCoverError(work)" />
-              <span v-if="!work.coverImage" class="folder-empty-hint">暂无照片</span>
-            </div>
-            <div class="folder-info">
-              <h3 class="folder-name">{{ work.name }}</h3>
-              <p class="folder-meta">{{ new Date(work.realDate || work.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase() }}</p>
-            </div>
+        <div v-for="work in worksList" :key="work._id" class="folder-card" @click="openWork(work)">
+          <div class="folder-cover">
+            <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="onCoverError(work)" />
+            <span v-if="!work.coverImage" class="folder-empty-hint">暂无照片</span>
           </div>
-        </template>
-
-        <!-- 选中文件夹：展示里面的照片 -->
-        <template v-else>
-          <div class="work-header-bar">
-            <button class="btn-back" @click="selectedWork = null">&larr; 返回</button>
-            <h2 class="work-title">{{ selectedWork.name }}</h2>
-            <span class="work-count">{{ workPhotos.length }} 张</span>
+          <div class="folder-info">
+            <h3 class="folder-name">{{ work.name }}</h3>
+            <p class="folder-meta">{{ new Date(work.realDate || work.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase() }}</p>
           </div>
-
-          <div v-for="item in workPhotos" :key="item._id" class="asset-card" @click="goToNarrative(item)">
-            <div class="card-top-overlay">
-              <div class="checkbox-hollow"></div>
-              <button class="btn-more-actions">•••</button>
-            </div>
-
-            <img :src="item.imageUrl" :alt="item.fileName" class="asset-img" />
-
-            <div class="card-bottom-glass">
-              <div class="info-left">
-                <h3 class="asset-title">{{ item.fileName }}</h3>
-                <p class="asset-meta">{{ new Date(item.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric', month:
-                    'short', day: '2-digit'
-                }).toUpperCase() }} • {{ item.region || item.locationName }}</p>
-              </div>
-              <span class="format-badge">WEBP</span>
-            </div>
-          </div>
-        </template>
+        </div>
 
       </div>
 
@@ -169,8 +137,6 @@ const currentPage = ref(1)
 
 const drafts = ref([])
 const worksList = ref([])
-const selectedWork = ref(null)
-const workPhotos = ref([])
 
 const fetchDrafts = async () => {
   try {
@@ -204,15 +170,8 @@ const onCoverError = async (work) => {
   }
 }
 
-const openWork = async (work) => {
-  selectedWork.value = work
-  try {
-    const { data } = await axios.get(`/api/works/${work._id}`)
-    if (data.success) workPhotos.value = data.data.photos || []
-  } catch (err) {
-    console.error('加载作品集照片失败:', err)
-    workPhotos.value = []
-  }
+const openWork = (work) => {
+  router.push(`/console/work/${work._id}`)
 }
 
 const onUploadComplete = () => { fetchWorks(); fetchDrafts() }
@@ -237,14 +196,6 @@ const filterNavs = ref([
 
 // 底部分页模拟数组
 const pageRange = ref([1, 2, 3, '...', 12])
-
-// 点击图片跳转到影像叙事页
-const goToNarrative = (item) => {
-  router.push({
-    path: '/notes',
-    query: { photoId: item._id, imageUrl: item.imageUrl }
-  })
-}
 </script>
 
 <style scoped>
