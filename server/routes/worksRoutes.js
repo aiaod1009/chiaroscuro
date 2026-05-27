@@ -9,7 +9,21 @@ const Photo = require('../models/Photo');
 // ==========================================
 router.get('/', async (req, res) => {
   try {
-    const portfolios = await Works.find().sort({ realDate: -1 });
+    const portfolios = await Works.find().sort({ realDate: -1 }).lean();
+
+    // 为没有封面的作品集自动补全：取该作品集下第一张照片作为封面
+    const needCover = portfolios.filter(p => !p.coverImage);
+    if (needCover.length > 0) {
+      await Promise.all(needCover.map(async (work) => {
+        const firstPhoto = await Photo.findOne({ albumIds: work._id.toString() }).sort({ createdAt: 1 }).lean();
+        if (firstPhoto) {
+          work.coverImage = firstPhoto.imageUrl;
+          // 持久化到数据库，下次不再查
+          await Works.updateOne({ _id: work._id }, { $set: { coverImage: firstPhoto.imageUrl } });
+        }
+      }));
+    }
+
     res.json({ success: true, data: portfolios });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

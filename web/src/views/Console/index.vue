@@ -98,8 +98,8 @@
 
           <div v-for="work in worksList" :key="work._id" class="folder-card" @click="openWork(work)">
             <div class="folder-cover">
-              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" />
-              <span v-else class="folder-empty-hint">暂无照片</span>
+              <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="work.coverImage = ''" />
+              <span v-if="!work.coverImage" class="folder-empty-hint">暂无照片</span>
             </div>
             <div class="folder-info">
               <h3 class="folder-name">{{ work.name }}</h3>
