@@ -32,7 +32,6 @@ router.get('/', async (req, res) => {
     if (needCover.length > 0) {
       await Promise.all(needCover.map(async (work) => {
         const firstPhoto = await findFirstPhoto(work._id);
-        console.log(`[封面补全] 作品集 "${work.name}" (${work._id}), 找到照片: ${firstPhoto ? firstPhoto.imageUrl : '无'}`);
         if (firstPhoto) {
           work.coverImage = firstPhoto.imageUrl;
           await Works.updateOne({ _id: work._id }, { $set: { coverImage: firstPhoto.imageUrl } });
@@ -42,7 +41,6 @@ router.get('/', async (req, res) => {
 
     res.json({ success: true, data: portfolios });
   } catch (error) {
-    console.error('获取作品集失败:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -74,8 +72,6 @@ router.get('/:id', async (req, res) => {
       ? { albumIds: { $in: [workIdStr, oid] } }
       : { albumIds: workIdStr };
     const photos = await Photo.find(query).sort({ createdAt: -1 });
-
-    console.log(`[作品集详情] "${portfolio.name}" (${workIdStr}), 照片数: ${photos.length}`);
 
     res.json({ success: true, data: { ...portfolio.toObject(), photos } });
   } catch (error) {
