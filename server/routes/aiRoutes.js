@@ -21,7 +21,6 @@ router.post('/inspire/first-round', async (req, res) => {
 
     if (existingSession) {
       // 找到了！说明两天前玩过这个风格，直接把当年的记忆和 3 个卡片原封不动吐回去
-      console.log(`[智能复用] 照片 ${photoId} 的 【${style}】 风格存在，直接空手套白狼秒回！`);
       return res.json({
         success: true,
         sessionId: existingSession._id,
@@ -69,7 +68,6 @@ router.post('/inspire/first-round', async (req, res) => {
     });
 
     const data = await response.json();
-    console.log('[AI] 智谱返回:', JSON.stringify(data).slice(0, 500));
 
     // 智谱限流 429 或错误码 1305
     if (response.status === 429 || data.error?.code === '1305') {

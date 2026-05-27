@@ -13,12 +13,11 @@
       </div>
 
       <div class="header-right">
-        <button class="btn-save" @click="handleSave">
-          <svg class="save-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        <button class="btn-ai-generate" :disabled="isGenerating" @click="handleAiGenerate">
+          <svg class="sparkle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          <span>保存 SAVE</span>
+          {{ isGenerating ? 'GENERATING...' : 'AI GENERATE' }}
         </button>
       </div>
     </header>
@@ -49,13 +48,6 @@
         </div>
 
         <div class="meta-spec-bar">
-          <button class="btn-ai-generate" :disabled="isGenerating" @click="handleAiGenerate">
-            <svg class="sparkle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            {{ isGenerating ? 'GENERATING...' : 'AI GENERATE' }}
-          </button>
-
           <div class="specs-group">
             <div v-if="photoExif.camera" class="spec-item">
               <span class="spec-label">CAMERA</span>
@@ -501,37 +493,6 @@ const handleSave = async () => {
   margin: 0;
 }
 
-/* 右上角保存按钮样式 */
-.btn-save {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background-color: rgba(31, 41, 55, 0.4);
-  border: 1px solid rgba(55, 65, 81, 0.6);
-  border-radius: 9999px;
-  color: #e5e7eb;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
-}
-
-.btn-save:hover {
-  background-color: #1f2937;
-  border-color: #22d3ee;
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
-}
-
-.save-icon {
-  width: 14px;
-  height: 14px;
-  color: #22d3ee;
-}
-
 /* ==========================================================================
    2. 双栏网格架构
    ========================================================================== */
@@ -708,7 +669,7 @@ const handleSave = async () => {
 /* 规格底栏 */
 .meta-spec-bar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-top: 20px;
 }
@@ -717,7 +678,7 @@ const handleSave = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background-color: #e0f7fa;
   border: none;
   border-radius: 9999px;
