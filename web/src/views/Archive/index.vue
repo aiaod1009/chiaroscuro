@@ -13,15 +13,8 @@
       </div>
 
       <!-- 画廊 手风琴区 -->
-      <div class="accordion-gallery">
-        <div v-for="(img, index) in gallery" :key="index"
-          class="gallery-item"
-          :class="{ active: activeGallery === index }"
-          @mouseenter="activeGallery = index"
-          @click="$router.push(`/gallery-detail/${index + 1}`)"
-          :style="{ backgroundImage: 'url(' + img + ')' }">
-        </div>
-      </div>
+      <AccordionGallery :images="gallery" :active-index="activeGallery"
+        @update:activeIndex="activeGallery = $event" />
 
       <!-- 博客 & 时间轴 -->
       <div class="timeline-section">
@@ -68,8 +61,11 @@
 </template>
 
 <script>
+import AccordionGallery from './components/AccordionGallery.vue';
+
 export default {
   name: 'ArchiveView',
+  components: { AccordionGallery },
   data() {
     return {
       activeGallery: 0,
@@ -166,34 +162,6 @@ export default {
   font-size: 0.9rem;
   line-height: 1.8;
   max-width: 400px;
-}
-
-/* 手风琴相册 */
-.accordion-gallery {
-  display: flex;
-  gap: 1rem;
-  height: 480px;
-  margin-bottom: 6rem;
-}
-
-.gallery-item {
-  flex: 1;
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  filter: grayscale(0.8) brightness(0.7);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.gallery-item.active {
-  flex: 3.5;
-  filter: grayscale(0) brightness(1);
-}
-
-.gallery-item:hover {
-  filter: grayscale(0.3) brightness(0.9);
 }
 
 /* 时间轴与博客列表 */
