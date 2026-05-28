@@ -26,18 +26,6 @@
         <button class="btn-batch-upload" @click="openUpload()">Batch Upload</button>
       </div>
 
-      <div class="ai-queue-card">
-        <div class="queue-info">
-          <div class="queue-left">
-            <span class="sparkle-icon">✦</span>
-            <span class="queue-label">AI QUEUE</span>
-          </div>
-          <span class="queue-value">12 Frames</span>
-        </div>
-        <div class="queue-progress-track">
-          <div class="queue-progress-bar" style="width: 45%;"></div>
-        </div>
-      </div>
 
       <nav class="filter-navigation">
         <button v-for="nav in filterNavs" :key="nav.id" class="nav-item" :class="{ active: currentCategory === nav.id }"
@@ -101,7 +89,10 @@
           </div>
           <div class="folder-info">
             <h3 class="folder-name">{{ work.name }}</h3>
-            <p class="folder-meta">{{ new Date(work.realDate || work.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase() }}</p>
+            <p class="folder-meta">{{ new Date(work.realDate || work.createdAt).toLocaleDateString('en-US', {
+              year:
+                'numeric', month: 'short'
+            }).toUpperCase() }}</p>
           </div>
         </div>
 
