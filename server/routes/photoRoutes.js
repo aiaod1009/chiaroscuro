@@ -252,6 +252,25 @@ router.delete('/:id', async (req, res) => {
 })
 
 // ==========================================
+// 🚫 从指定作品集移除照片（不删除照片本身）
+// ==========================================
+router.patch('/:id/remove-album', async (req, res) => {
+  try {
+    const { albumId } = req.body
+    if (!albumId) return res.status(400).json({ success: false, message: '作品集 ID 必填' })
+    const photo = await Photo.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { albumIds: albumId } },
+      { new: true }
+    )
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    res.json({ success: true, data: photo })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 📦 移动照片到其他作品集
 // ==========================================
 router.patch('/:id/move', async (req, res) => {

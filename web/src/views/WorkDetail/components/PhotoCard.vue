@@ -8,7 +8,7 @@
       <div class="menu-wrapper" @click.stop>
         <button class="menu-trigger" @click.stop="menuOpen = !menuOpen">⋯</button>
         <div v-if="menuOpen" class="menu-dropdown">
-          <div class="menu-item" @click.stop="showMoveList = !showMoveList; showCopyList = false; deleteConfirm = false">
+          <div class="menu-item" @click.stop="showMoveList = !showMoveList; showCopyList = false">
             移动到…
           </div>
           <div v-if="showMoveList" class="move-sublist">
@@ -18,7 +18,7 @@
             </div>
             <div v-if="!works.length" class="move-empty">无其他作品集</div>
           </div>
-          <div class="menu-item" @click.stop="showCopyList = !showCopyList; showMoveList = false; deleteConfirm = false">
+          <div class="menu-item" @click.stop="showCopyList = !showCopyList; showMoveList = false">
             复制到…
           </div>
           <div v-if="showCopyList" class="move-sublist">
@@ -29,12 +29,8 @@
             <div v-if="!works.length" class="move-empty">无其他作品集</div>
           </div>
           <div class="menu-divider"></div>
-          <div class="menu-item menu-item-delete" @click.stop="deleteConfirm = !deleteConfirm; showMoveList = false; showCopyList = false">
+          <div class="menu-item menu-item-delete" @click.stop="showDeleteModal = true; closeMenu()">
             删除
-          </div>
-          <div v-if="deleteConfirm" class="delete-confirm">
-            <span class="confirm-text">确认删除？</span>
-            <button class="confirm-btn" @click.stop="$emit('delete'); closeMenu()">确认</button>
           </div>
         </div>
       </div>
@@ -46,11 +42,30 @@
       <h3 class="asset-title">{{ title || fileName }}</h3>
       <p class="asset-meta">{{ caption || '未写配文' }}</p>
     </div>
+
+    <!-- 删除确认弹窗 -->
+    <Teleport to="body">
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+        <div class="modal-box">
+          <h3 class="modal-title">删除照片</h3>
+          <p class="modal-desc">「{{ title || fileName }}」当前存在于 {{ albumCount }} 个作品集中</p>
+          <div class="modal-actions">
+            <button class="modal-btn modal-btn-remove" @click="$emit('removeAlbum'); showDeleteModal = false">
+              仅从当前作品集移除
+            </button>
+            <button class="modal-btn modal-btn-delete" @click="$emit('delete'); showDeleteModal = false">
+              从所有作品集删除
+            </button>
+          </div>
+          <button class="modal-cancel" @click="showDeleteModal = false">取消</button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -58,26 +73,24 @@ const props = defineProps({
   caption: { type: String, default: '' },
   imageUrl: { type: String, default: '' },
   isCompleted: { type: Boolean, default: false },
-  works: { type: Array, default: () => [] }
+  works: { type: Array, default: () => [] },
+  albumCount: { type: Number, default: 1 }
 })
 
-defineEmits(['click', 'delete', 'move', 'copy'])
+defineEmits(['click', 'delete', 'move', 'copy', 'removeAlbum'])
 
 const menuOpen = ref(false)
 const showMoveList = ref(false)
 const showCopyList = ref(false)
-const deleteConfirm = ref(false)
+const showDeleteModal = ref(false)
 
 const closeMenu = () => {
   menuOpen.value = false
   showMoveList.value = false
   showCopyList.value = false
-  deleteConfirm.value = false
 }
 
-// 点击卡片外部关闭菜单
 const handleDocClick = () => { if (menuOpen.value) closeMenu() }
-import { onMounted, onUnmounted } from 'vue'
 onMounted(() => document.addEventListener('click', handleDocClick))
 onUnmounted(() => document.removeEventListener('click', handleDocClick))
 </script>
@@ -205,10 +218,6 @@ onUnmounted(() => document.removeEventListener('click', handleDocClick))
   background: rgba(248, 113, 113, 0.12);
 }
 
-.menu-icon {
-  font-size: 13px;
-}
-
 .menu-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
@@ -238,34 +247,97 @@ onUnmounted(() => document.removeEventListener('click', handleDocClick))
   color: #4b5563;
 }
 
-.delete-confirm {
+/* 删除弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.confirm-text {
-  font-size: 11px;
-  color: #f87171;
+.modal-box {
+  background: rgba(17, 22, 32, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 32px;
+  width: 360px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
 
-.confirm-btn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: rgba(248, 113, 113, 0.2);
-  border: 1px solid rgba(248, 113, 113, 0.4);
-  color: #f87171;
-  font-size: 10px;
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0 0 28px 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.modal-btn {
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  border: none;
 }
 
-.confirm-btn:hover {
-  background: rgba(248, 113, 113, 0.35);
+.modal-btn-remove {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
 }
 
+.modal-btn-remove:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-btn-delete {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+}
+
+.modal-btn-delete:hover {
+  background: rgba(248, 113, 113, 0.25);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.modal-cancel {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.modal-cancel:hover {
+  color: #9ca3af;
+}
+
+/* 卡片底部信息 */
 .card-bottom-glass {
   position: absolute;
   bottom: 0;

@@ -30,9 +30,11 @@
       <div class="assets-grid-flow">
         <PhotoCard v-for="item in filteredPhotos" :key="item._id" :title="item.title" :file-name="item.fileName"
           :caption="item.caption" :image-url="item.imageUrl" :is-completed="isCompleted(item)"
-          :works="otherWorks" @click="goToPhotoDetail(item)" @delete="handleDelete(item._id)"
+          :works="otherWorks" :album-count="(item.albumIds || []).length"
+          @click="goToPhotoDetail(item)" @delete="handleDelete(item._id)"
           @move="(targetId) => handleMove(item._id, targetId)"
-          @copy="(targetId) => handleCopy(item._id, targetId)" />
+          @copy="(targetId) => handleCopy(item._id, targetId)"
+          @removeAlbum="handleRemoveAlbum(item._id, route.params.id)" />
       </div>
     </main>
   </div>
@@ -115,6 +117,15 @@ const handleDelete = async (photoId) => {
     photos.value = photos.value.filter(p => p._id !== photoId)
   } catch {
     alert('删除失败')
+  }
+}
+
+const handleRemoveAlbum = async (photoId, albumId) => {
+  try {
+    await axios.patch(`/api/photos/${photoId}/remove-album`, { albumId })
+    photos.value = photos.value.filter(p => p._id !== photoId)
+  } catch {
+    alert('移除失败')
   }
 }
 
