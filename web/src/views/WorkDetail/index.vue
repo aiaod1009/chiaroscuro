@@ -28,25 +28,9 @@
       </header>
 
       <div class="assets-grid-flow">
-        <div v-for="item in filteredPhotos" :key="item._id" class="asset-card" @click="goToPhotoDetail(item)">
-          <div class="card-top-overlay">
-            <div class="status-indicator" :class="{ completed: isCompleted(item) }">
-              {{ isCompleted(item) ? '✓' : '○' }}
-            </div>
-          </div>
-
-          <img :src="item.imageUrl" :alt="item.fileName" class="asset-img" />
-
-          <div class="card-bottom-glass">
-            <div class="info-left">
-              <h3 class="asset-title">{{ item.title || item.fileName }}</h3>
-              <p class="asset-meta">{{ item.caption || '未写配文' }}</p>
-            </div>
-            <span class="format-badge" :class="{ completed: isCompleted(item) }">
-              {{ isCompleted(item) ? 'DONE' : 'DRAFT' }}
-            </span>
-          </div>
-        </div>
+        <PhotoCard v-for="item in filteredPhotos" :key="item._id" :title="item.title" :file-name="item.fileName"
+          :caption="item.caption" :image-url="item.imageUrl" :is-completed="isCompleted(item)"
+          @click="goToPhotoDetail(item)" />
       </div>
     </main>
   </div>
@@ -57,6 +41,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import SearchInput from '../../components/SearchInput.vue'
+import PhotoCard from './components/PhotoCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -271,105 +256,4 @@ watch(() => route.params.id, fetchWorkDetail)
   flex-grow: 1;
 }
 
-.asset-card {
-  position: relative;
-  aspect-ratio: 1.4 / 1;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: #161b22;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-}
-
-.asset-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.asset-card:hover .asset-img {
-  transform: scale(1.02);
-}
-
-.card-top-overlay {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 3;
-}
-
-.status-indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #f0ad4e;
-}
-
-.status-indicator.completed {
-  border-color: #5cb85c;
-  color: #5cb85c;
-}
-
-.card-bottom-glass {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  z-index: 2;
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.asset-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 4px 0;
-  font-family: monospace;
-}
-
-.asset-meta {
-  font-size: 9px;
-  font-family: monospace;
-  color: #8b949e;
-  margin: 0;
-  letter-spacing: 0.02em;
-}
-
-.format-badge {
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  font-family: monospace;
-  font-size: 9px;
-  font-weight: 700;
-  color: #ffffff;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.format-badge.completed {
-  background-color: rgba(92, 184, 92, 0.2);
-  border-color: rgba(92, 184, 92, 0.4);
-  color: #5cb85c;
-}
 </style>
