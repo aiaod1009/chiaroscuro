@@ -253,7 +253,7 @@ watch(() => route.params.id, fetchWorkDetail)
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  flex-grow: 1;
+  align-items: start;
 }
 
 </style>

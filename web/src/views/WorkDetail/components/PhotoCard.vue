@@ -35,7 +35,7 @@ defineEmits(['click'])
 <style scoped>
 .asset-card {
   position: relative;
-  aspect-ratio: 1.4 / 1;
+  aspect-ratio: 3 / 2;
   border-radius: 16px;
   overflow: hidden;
   background-color: #161b22;
