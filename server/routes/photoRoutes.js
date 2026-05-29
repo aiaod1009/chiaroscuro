@@ -258,6 +258,24 @@ router.delete('/:id', async (req, res) => {
   try {
     const photo = await Photo.findByIdAndDelete(req.params.id)
     if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+
+    // 同步删除腾讯云 COS 上的文件
+    if (photo.imageUrl) {
+      try {
+        const url = new URL(photo.imageUrl)
+        const key = url.pathname.substring(1) // 去掉开头的 /
+        await new Promise((resolve, reject) => {
+          cos.deleteObject({
+            Bucket: process.env.COS_BUCKET,
+            Region: process.env.COS_REGION,
+            Key: key,
+          }, (err, data) => err ? reject(err) : resolve(data))
+        })
+      } catch (cosErr) {
+        console.error('COS 文件删除失败（数据库已删）:', cosErr.message)
+      }
+    }
+
     res.json({ success: true, message: '照片已删除' })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
