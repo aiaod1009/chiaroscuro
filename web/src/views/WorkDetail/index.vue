@@ -31,7 +31,8 @@
         <PhotoCard v-for="item in filteredPhotos" :key="item._id" :title="item.title" :file-name="item.fileName"
           :caption="item.caption" :image-url="item.imageUrl" :is-completed="isCompleted(item)"
           :works="otherWorks" @click="goToPhotoDetail(item)" @delete="handleDelete(item._id)"
-          @move="(targetId) => handleMove(item._id, targetId)" />
+          @move="(targetId) => handleMove(item._id, targetId)"
+          @copy="(targetId) => handleCopy(item._id, targetId)" />
       </div>
     </main>
   </div>
@@ -123,6 +124,14 @@ const handleMove = async (photoId, targetAlbumId) => {
     photos.value = photos.value.filter(p => p._id !== photoId)
   } catch {
     alert('移动失败')
+  }
+}
+
+const handleCopy = async (photoId, targetAlbumId) => {
+  try {
+    await axios.patch(`/api/photos/${photoId}/copy`, { targetAlbumId })
+  } catch {
+    alert('复制失败')
   }
 }
 

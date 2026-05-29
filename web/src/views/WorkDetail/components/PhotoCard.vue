@@ -8,7 +8,7 @@
       <div class="menu-wrapper" @click.stop>
         <button class="menu-trigger" @click.stop="menuOpen = !menuOpen">⋯</button>
         <div v-if="menuOpen" class="menu-dropdown">
-          <div class="menu-item" @click.stop="showMoveList = !showMoveList; deleteConfirm = false">
+          <div class="menu-item" @click.stop="showMoveList = !showMoveList; showCopyList = false; deleteConfirm = false">
             移动到…
           </div>
           <div v-if="showMoveList" class="move-sublist">
@@ -18,8 +18,18 @@
             </div>
             <div v-if="!works.length" class="move-empty">无其他作品集</div>
           </div>
+          <div class="menu-item" @click.stop="showCopyList = !showCopyList; showMoveList = false; deleteConfirm = false">
+            复制到…
+          </div>
+          <div v-if="showCopyList" class="move-sublist">
+            <div v-for="work in works" :key="work._id" class="move-option"
+              @click.stop="$emit('copy', work._id); closeMenu()">
+              {{ work.name }}
+            </div>
+            <div v-if="!works.length" class="move-empty">无其他作品集</div>
+          </div>
           <div class="menu-divider"></div>
-          <div class="menu-item menu-item-delete" @click.stop="deleteConfirm = !deleteConfirm; showMoveList = false">
+          <div class="menu-item menu-item-delete" @click.stop="deleteConfirm = !deleteConfirm; showMoveList = false; showCopyList = false">
             删除
           </div>
           <div v-if="deleteConfirm" class="delete-confirm">
@@ -51,15 +61,17 @@ const props = defineProps({
   works: { type: Array, default: () => [] }
 })
 
-defineEmits(['click', 'delete', 'move'])
+defineEmits(['click', 'delete', 'move', 'copy'])
 
 const menuOpen = ref(false)
 const showMoveList = ref(false)
+const showCopyList = ref(false)
 const deleteConfirm = ref(false)
 
 const closeMenu = () => {
   menuOpen.value = false
   showMoveList.value = false
+  showCopyList.value = false
   deleteConfirm.value = false
 }
 
