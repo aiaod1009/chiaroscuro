@@ -87,7 +87,7 @@ defineEmits(['click'])
   background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 70%, transparent 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 20px;
+  padding: 10px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;

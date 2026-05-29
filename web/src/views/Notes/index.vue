@@ -259,7 +259,6 @@ onMounted(async () => {
   if (route.query.imageUrl) currentPhoto.imageUrl = route.query.imageUrl
   if (currentPhoto.id) {
     fetchPhotoDetail(currentPhoto.id)
-    restoreSession()
   }
 })
 
