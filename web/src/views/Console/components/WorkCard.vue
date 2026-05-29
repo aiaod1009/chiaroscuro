@@ -1,8 +1,8 @@
 <template>
   <div class="folder-card" @click="$emit('open', work)">
     <div class="folder-cover">
-      <img v-if="work.coverImage" :src="work.coverImage" :alt="work.name" @error="$emit('cover-error', work)" />
-      <span v-if="!work.coverImage" class="folder-empty-hint">暂无照片</span>
+      <img v-if="coverSrc" :src="coverSrc" :alt="work.name" @error="onCoverError" />
+      <span v-if="!coverSrc" class="folder-empty-hint">暂无照片</span>
     </div>
     <div class="folder-info">
       <h3 class="folder-name">{{ work.name }}</h3>
@@ -12,13 +12,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
   work: { type: Object, required: true }
 })
 
-defineEmits(['open', 'cover-error'])
+defineEmits(['open'])
+
+const coverSrc = ref(props.work.coverImage || '')
+const retried = ref(false)
+
+const onCoverError = async () => {
+  if (retried.value) { coverSrc.value = ''; return }
+  retried.value = true
+  try {
+    const { data } = await axios.get(`/api/works/${props.work._id}`)
+    coverSrc.value = data.success && data.data.photos?.length ? data.data.photos[0].imageUrl : ''
+  } catch {
+    coverSrc.value = ''
+  }
+}
 
 const formattedDate = computed(() =>
   new Date(props.work.realDate || props.work.createdAt)

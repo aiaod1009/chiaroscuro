@@ -72,7 +72,7 @@
         <AlbumPlaceholder :album-count="worksList.length" @create="openCreateWorks" />
 
         <WorkCard v-for="work in worksList" :key="work._id" :work="work"
-          @open="openWork" @cover-error="onCoverError" />
+          @open="openWork" />
 
       </div>
 
@@ -125,20 +125,6 @@ const fetchWorks = async () => {
     if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
   } catch (err) {
     console.error('加载作品集失败:', err)
-  }
-}
-
-// 封面加载失败时，尝试从作品集详情获取第一张照片
-const onCoverError = async (work) => {
-  try {
-    const { data } = await axios.get(`/api/works/${work._id}`)
-    if (data.success && data.data.photos?.length > 0) {
-      work.coverImage = data.data.photos[0].imageUrl
-    } else {
-      work.coverImage = ''
-    }
-  } catch {
-    work.coverImage = ''
   }
 }
 

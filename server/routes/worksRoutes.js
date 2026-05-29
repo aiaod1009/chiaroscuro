@@ -26,19 +26,7 @@ const findFirstPhoto = async (workId) => {
 router.get('/', async (req, res) => {
   try {
     const portfolios = await Works.find().sort({ realDate: -1 }).lean();
-
-    // 为没有封面的作品集自动补全：取该作品集下第一张照片作为封面
-    const needCover = portfolios.filter(p => !p.coverImage);
-    if (needCover.length > 0) {
-      await Promise.all(needCover.map(async (work) => {
-        const firstPhoto = await findFirstPhoto(work._id);
-        if (firstPhoto) {
-          work.coverImage = firstPhoto.imageUrl;
-          await Works.updateOne({ _id: work._id }, { $set: { coverImage: firstPhoto.imageUrl } });
-        }
-      }));
-    }
-
+    console.log(portfolios.map(w => ({ name: w.name, coverImage: w.coverImage?.slice(-40) })))
     res.json({ success: true, data: portfolios });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
