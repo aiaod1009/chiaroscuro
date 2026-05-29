@@ -52,7 +52,7 @@ const workInfo = ref({})
 const photos = ref([])
 
 const isCompleted = (photo) => {
-  return photo.title && photo.title.trim() && photo.caption && photo.caption.trim()
+  return !!(photo.title && photo.title.trim() && photo.caption && photo.caption.trim())
 }
 
 const completedCount = computed(() => photos.value.filter(p => isCompleted(p)).length)
