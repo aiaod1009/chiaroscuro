@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, inject } from 'vue'
+import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue'
 import exifr from 'exifr'
 import axios from 'axios'
 
@@ -193,6 +193,13 @@ const fetchWorks = async () => {
   } catch { }
 }
 fetchWorks()
+
+onMounted(() => {
+  window.addEventListener('works-complete', fetchWorks)
+})
+onUnmounted(() => {
+  window.removeEventListener('works-complete', fetchWorks)
+})
 
 const countryOptions = [
   '中国',
