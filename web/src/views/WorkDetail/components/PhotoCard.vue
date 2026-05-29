@@ -90,42 +90,46 @@ defineEmits(['click'])
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 70%, transparent 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 16px;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   z-index: 2;
   border-top: 1px solid rgba(255, 255, 255, 0.03);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.asset-card:hover .card-bottom-glass {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .asset-title {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: #ffffff;
-  margin: 0 0 4px 0;
-  font-family: monospace;
+  margin: 0 0 6px 0;
 }
 
 .asset-meta {
-  font-size: 9px;
-  font-family: monospace;
+  font-size: 12px;
   color: #8b949e;
   margin: 0;
-  letter-spacing: 0.02em;
 }
 
 .format-badge {
   background-color: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  font-family: monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   color: #ffffff;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
 }
 

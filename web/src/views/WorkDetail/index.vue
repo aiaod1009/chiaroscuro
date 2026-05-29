@@ -251,7 +251,7 @@ watch(() => route.params.id, fetchWorkDetail)
 
 .assets-grid-flow {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   flex-grow: 1;
 }
