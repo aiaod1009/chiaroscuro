@@ -64,14 +64,14 @@
                   @focus="showCollectionList = true" @blur="closeCollectionList" />
                 <span class="select-arrow"></span>
                 <ul v-if="showCollectionList" class="region-options">
-                  <li class="region-option" @mousedown.prevent="selectCollection({ _id: '', name: '按地点自动分配' })">
-                    <span class="region-name">按地点自动分配</span>
-                  </li>
                   <li v-for="item in filteredWorks" :key="item._id" class="region-option"
                     @mousedown.prevent="selectCollection(item)">
                     <span class="region-name">{{ item.name }}</span>
                   </li>
                   <li v-if="!filteredWorks.length" class="region-empty">未找到作品集</li>
+                  <li class="region-option region-create" @mousedown.prevent="openCreateWorks(); showCollectionList = false">
+                    <span class="region-name">＋ 新建作品集</span>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -132,9 +132,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, inject } from 'vue'
 import exifr from 'exifr'
 import axios from 'axios'
+
+const openCreateWorks = inject('openCreateWorks')
 
 let cosInstance = null
 const getCosInstance = async () => {
@@ -835,6 +837,13 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
 
 .region-empty {
   color: #64748b;
+}
+
+.region-create {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+  padding-top: 12px;
+  color: #93c5fd;
 }
 
 .region-name {
