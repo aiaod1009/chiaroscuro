@@ -69,7 +69,7 @@
 import { geoCentroid, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature as topoFeature } from 'topojson-client';
 import axios from 'axios';
-import LocationCard from '../../components/LocationCard.vue';
+import LocationCard from './components/LocationCard.vue';
 
 const REGION_CODE_MAP = {
   'CN-11': { id: 'beijing', name: '北京' },
