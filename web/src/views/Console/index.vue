@@ -50,10 +50,7 @@
           </div>
         </div>
 
-        <div class="search-input-wrapper">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="Search visual chronicles..." v-model="searchQuery" />
-        </div>
+        <SearchInput v-model="searchQuery" placeholder="Search visual chronicles..." />
 
         <div class="view-toggle-btns">
           <button class="view-btn active">
@@ -100,6 +97,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import WorkCard from './components/WorkCard.vue'
 import AlbumPlaceholder from './components/AlbumPlaceholder.vue'
+import SearchInput from '../../components/SearchInput.vue'
 
 const router = useRouter()
 
@@ -464,32 +462,6 @@ const pageRange = ref([1, 2, 3, '...', 12])
   transform: scale(0.8);
 }
 
-/* 搜索框 */
-.search-input-wrapper {
-  position: relative;
-  flex-grow: 1;
-  max-width: 320px;
-  margin-left: auto;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%) scale(0.85);
-  opacity: 0.4;
-}
-
-.search-input-wrapper input {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 10px 14px 10px 38px;
-  font-size: 12px;
-  color: #ffffff;
-  outline: none;
-}
 
 /* 视图切换键 */
 .view-toggle-btns {

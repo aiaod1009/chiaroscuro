@@ -24,10 +24,7 @@
 
     <main class="content-main">
       <header class="top-filter-bar">
-        <div class="search-input-wrapper">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="Search photos..." v-model="searchQuery" />
-        </div>
+        <SearchInput v-model="searchQuery" placeholder="Search photos..." />
       </header>
 
       <div class="assets-grid-flow">
@@ -59,6 +56,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import SearchInput from '../../components/SearchInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -265,30 +263,6 @@ watch(() => route.params.id, fetchWorkDetail)
   margin-bottom: 32px;
 }
 
-.search-input-wrapper {
-  position: relative;
-  flex-grow: 1;
-  max-width: 320px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%) scale(0.85);
-  opacity: 0.4;
-}
-
-.search-input-wrapper input {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 10px 14px 10px 38px;
-  font-size: 12px;
-  color: #ffffff;
-  outline: none;
-}
 
 .assets-grid-flow {
   display: grid;
