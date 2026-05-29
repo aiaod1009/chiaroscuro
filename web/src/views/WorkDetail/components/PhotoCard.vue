@@ -9,13 +9,8 @@
     <img :src="imageUrl" :alt="fileName" class="asset-img" />
 
     <div class="card-bottom-glass">
-      <div class="info-left">
-        <h3 class="asset-title">{{ title || fileName }}</h3>
-        <p class="asset-meta">{{ caption || '未写配文' }}</p>
-      </div>
-      <span class="format-badge" :class="{ completed: isCompleted }">
-        {{ isCompleted ? 'DONE' : 'DRAFT' }}
-      </span>
+      <h3 class="asset-title">{{ title || fileName }}</h3>
+      <p class="asset-meta">{{ caption || '未写配文' }}</p>
     </div>
   </div>
 </template>
@@ -39,8 +34,6 @@ defineEmits(['click'])
   border-radius: 16px;
   overflow: hidden;
   background-color: #161b22;
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
 
@@ -48,6 +41,7 @@ defineEmits(['click'])
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.3s ease;
 }
 
@@ -95,10 +89,10 @@ defineEmits(['click'])
   -webkit-backdrop-filter: blur(8px);
   padding: 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   z-index: 2;
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
   transform: translateY(100%);
   opacity: 0;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -120,22 +114,5 @@ defineEmits(['click'])
   font-size: 12px;
   color: #8b949e;
   margin: 0;
-}
-
-.format-badge {
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.format-badge.completed {
-  background-color: rgba(92, 184, 92, 0.2);
-  border-color: rgba(92, 184, 92, 0.4);
-  color: #5cb85c;
 }
 </style>
