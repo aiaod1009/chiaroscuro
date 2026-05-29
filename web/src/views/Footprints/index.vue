@@ -50,16 +50,9 @@
         </g>
       </svg>
 
-      <aside v-if="activeRegion" class="location-card" :style="locationCardStyle" @mousedown.stop @wheel.stop>
-        <div class="card-heading">
-          <h1>{{ activeRegion.name }}</h1>
-          <span>{{ activeRegion.albums }} 个相册 · {{ activeRegion.photoCount }} 张</span>
-        </div>
-        <div class="photo-grid">
-          <img v-for="photo in activeRegion.photos" :key="photo.src" :src="photo.src" :alt="photo.alt" />
-        </div>
-        <button class="view-all" type="button" @click="$router.push(`/waterfall/${activeRegion.mapCode}`)">查看全部 →</button>
-      </aside>
+      <LocationCard v-if="activeRegion" :name="activeRegion.name" :albums="activeRegion.albums"
+        :photo-count="activeRegion.photoCount" :photos="activeRegion.photos" :card-style="locationCardStyle"
+        @close="activeRegionId = null" @view-all="$router.push(`/waterfall/${activeRegion.mapCode}`)" />
 
       <div class="map-controls" @mousedown.stop @wheel.stop>
         <button type="button" @click="resetWorld">世界视图</button>
@@ -76,6 +69,7 @@
 import { geoCentroid, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature as topoFeature } from 'topojson-client';
 import axios from 'axios';
+import LocationCard from '../../components/LocationCard.vue';
 
 const REGION_CODE_MAP = {
   'CN-11': { id: 'beijing', name: '北京' },
@@ -175,6 +169,7 @@ const MAP_CODE_TO_ADCODE = {
 
 export default {
   name: 'FootprintsView',
+  components: { LocationCard },
   data() {
     return {
       svgWidth: SVG_WIDTH,
@@ -529,64 +524,6 @@ path.highlighted {
   transition: opacity 0.2s ease;
 }
 
-.location-card {
-  position: absolute;
-  width: min(525px, 34vw);
-  padding: 28px 30px 30px;
-  border: 1px solid rgba(245, 158, 11, 0.58);
-  border-radius: 12px;
-  background: rgba(4, 7, 13, 0.9);
-  box-shadow: 0 0 24px rgba(234, 88, 12, 0.22), 0 22px 70px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(14px);
-  cursor: default;
-}
-
-.card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.card-heading h1 {
-  margin: 0;
-  font-size: 1.85rem;
-  line-height: 1.1;
-  letter-spacing: 0;
-}
-
-.card-heading span {
-  color: #9ca7b8;
-  font-size: 0.95rem;
-  white-space: nowrap;
-}
-
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.photo-grid img {
-  width: 100%;
-  aspect-ratio: 1.35;
-  border-radius: 8px;
-  object-fit: cover;
-  display: block;
-}
-
-.view-all {
-  width: 100%;
-  height: 38px;
-  margin-top: 20px;
-  border: 1px solid rgba(245, 158, 11, 0.38);
-  border-radius: 8px;
-  background: rgba(245, 158, 11, 0.28);
-  color: #ffc84a;
-  font-weight: 700;
-  cursor: pointer;
-}
 
 .map-controls {
   position: absolute;
@@ -635,15 +572,6 @@ path.highlighted {
     transform: translateX(-250px);
     transform-origin: left center;
   }
-
-  .location-card {
-    top: auto;
-    right: 20px;
-    bottom: 72px;
-    left: 20px;
-    width: auto;
-    padding: 22px;
-  }
 }
 
 @media (max-width: 680px) {
@@ -651,18 +579,6 @@ path.highlighted {
     width: 1120px;
     min-height: 620px;
     transform: translateX(-420px);
-  }
-
-  .card-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 16px;
-  }
-
-  .photo-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
   }
 
   .map-controls {
