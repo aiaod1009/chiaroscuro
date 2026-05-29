@@ -21,7 +21,7 @@ const props = defineProps({
 
 defineEmits(['open'])
 
-const coverSrc = ref(props.work.coverImage || '')
+const coverSrc = ref(props.work.coverImage ? `${props.work.coverImage}!small` : '')
 const retried = ref(false)
 
 const onCoverError = async () => {
@@ -29,7 +29,8 @@ const onCoverError = async () => {
   retried.value = true
   try {
     const { data } = await axios.get(`/api/works/${props.work._id}`)
-    coverSrc.value = data.success && data.data.photos?.length ? data.data.photos[0].imageUrl : ''
+    const url = data.success && data.data.photos?.length ? data.data.photos[0].imageUrl : ''
+    coverSrc.value = url ? `${url}!small` : ''
   } catch {
     coverSrc.value = ''
   }

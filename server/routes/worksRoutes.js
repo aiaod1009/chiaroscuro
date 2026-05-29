@@ -26,7 +26,13 @@ const findFirstPhoto = async (workId) => {
 router.get('/', async (req, res) => {
   try {
     const portfolios = await Works.find().sort({ realDate: -1 }).lean();
-    console.log(portfolios.map(w => ({ name: w.name, coverImage: w.coverImage?.slice(-40) })))
+
+    // 补全封面：取每个作品集的第一张照片
+    await Promise.all(portfolios.map(async (work) => {
+      const first = await findFirstPhoto(work._id)
+      work.coverImage = first?.imageUrl || ''
+    }))
+
     res.json({ success: true, data: portfolios });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
