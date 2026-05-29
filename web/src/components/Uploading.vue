@@ -59,12 +59,20 @@
                 <span class="label-zh">上传到作品集</span>
                 <span class="label-en">SELECT COLLECTION</span>
               </label>
-              <div class="select-wrapper">
-                <select v-model="formData.collection">
-                  <option value="">按地点自动分配</option>
-                  <option v-for="w in worksList" :key="w._id" :value="w._id">{{ w.name }}</option>
-                </select>
+              <div class="select-wrapper region-autocomplete">
+                <input type="text" v-model="collectionInput" placeholder="搜索或选择作品集" class="form-input" @input="onCollectionInput"
+                  @focus="showCollectionList = true" @blur="closeCollectionList" />
                 <span class="select-arrow"></span>
+                <ul v-if="showCollectionList" class="region-options">
+                  <li class="region-option" @mousedown.prevent="selectCollection({ _id: '', name: '按地点自动分配' })">
+                    <span class="region-name">按地点自动分配</span>
+                  </li>
+                  <li v-for="item in filteredWorks" :key="item._id" class="region-option"
+                    @mousedown.prevent="selectCollection(item)">
+                    <span class="region-name">{{ item.name }}</span>
+                  </li>
+                  <li v-if="!filteredWorks.length" class="region-empty">未找到作品集</li>
+                </ul>
               </div>
             </div>
 
@@ -73,11 +81,17 @@
                 <span class="label-zh">拍摄国家</span>
                 <span class="label-en">COUNTRY</span>
               </label>
-              <div class="select-wrapper">
-                <select v-model="formData.location">
-                  <option v-for="country in countryOptions" :key="country" :value="country">{{ country }}</option>
-                </select>
+              <div class="select-wrapper region-autocomplete">
+                <input type="text" v-model="countryInput" placeholder="搜索国家" class="form-input" @input="onCountryInput"
+                  @focus="showCountryList = true" @blur="closeCountryList" />
                 <span class="select-arrow"></span>
+                <ul v-if="showCountryList" class="region-options">
+                  <li v-for="item in filteredCountries" :key="item" class="region-option"
+                    @mousedown.prevent="selectCountry(item)">
+                    <span class="region-name">{{ item }}</span>
+                  </li>
+                  <li v-if="!filteredCountries.length" class="region-empty">未找到国家</li>
+                </ul>
               </div>
             </div>
 
@@ -117,128 +131,6 @@
   </div>
 </template>
 
-<!-- <script setup>
-import { ref, reactive, computed } from 'vue'
-
-const isOpen = ref(false)
-const isDragOver = ref(false)
-const fileInputRef = ref(null)
-const windowRef = ref(null)
-const triggerRef = ref(null)
-
-// 悬浮窗拖拽
-const position = ref({ x: -1, y: -1 })
-const isDragging = ref(false)
-const dragOffset = ref({ x: 0, y: 0 })
-
-// 触发按钮拖拽
-const triggerPos = ref({ x: -1, y: -1 })
-const triggerDragging = ref(false)
-const triggerMoved = ref(false)
-
-const windowStyle = computed(() => {
-  if (position.value.x === -1) {
-    return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
-  }
-  return { top: position.value.y + 'px', left: position.value.x + 'px', transform: 'none' }
-})
-
-const triggerStyle = computed(() => {
-  if (triggerPos.value.x === -1) {
-    return {}
-  }
-  return { position: 'fixed', top: triggerPos.value.y + 'px', left: triggerPos.value.x + 'px', right: 'auto', bottom: 'auto' }
-})
-
-const startTriggerDrag = (e) => {
-  triggerMoved.value = false
-  const rect = triggerRef.value.getBoundingClientRect()
-  const offsetX = e.clientX - rect.left
-  const offsetY = e.clientY - rect.top
-
-  const onMove = (ev) => {
-    triggerMoved.value = true
-    triggerPos.value = {
-      x: ev.clientX - offsetX,
-      y: ev.clientY - offsetY
-    }
-  }
-
-  const onUp = () => {
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
-  }
-
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
-}
-
-const startDrag = (e) => {
-  if (e.target.closest('.btn-close')) return
-  isDragging.value = true
-  const rect = windowRef.value.getBoundingClientRect()
-  dragOffset.value = {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top
-  }
-
-  const onMove = (ev) => {
-    if (!isDragging.value) return
-    position.value = {
-      x: ev.clientX - dragOffset.value.x,
-      y: ev.clientY - dragOffset.value.y
-    }
-  }
-
-  const onUp = () => {
-    isDragging.value = false
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
-  }
-
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
-}
-
-const selectedFilesCount = ref(12)
-const totalFilesSize = ref('68.4 MB')
-
-const formData = reactive({
-  collection: '秘境之巅',
-  location: '冰岛',
-  region: '雷克雅未克 Reykjaík'
-})
-
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
-
-const handleFileChange = (event) => {
-  const files = event.target.files
-  if (files && files.length > 0) {
-    processFiles(files)
-  }
-}
-
-const handleDrop = (event) => {
-  isDragOver.value = false
-  const files = event.dataTransfer?.files
-  if (files && files.length > 0) {
-    processFiles(files)
-  }
-}
-
-const processFiles = (files) => {
-  selectedFilesCount.value = files.length
-  let fakeSize = (files.length * 5.7).toFixed(1)
-  totalFilesSize.value = `${fakeSize} MB`
-}
-
-const handleUpload = () => {
-  console.log('提交队列:', selectedFilesCount.value, { ...formData })
-  alert('开始上传影像序列...')
-}
-</script> -->
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import exifr from 'exifr'
@@ -296,7 +188,7 @@ const fetchWorks = async () => {
   try {
     const { data } = await axios.get('/api/works')
     if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
-  } catch {}
+  } catch { }
 }
 fetchWorks()
 
@@ -376,6 +268,46 @@ const provinceOptions = [
 
 const regionInput = ref('')
 const showRegionList = ref(false)
+
+const collectionInput = ref('')
+const showCollectionList = ref(false)
+const filteredWorks = computed(() => {
+  const q = collectionInput.value.trim().toLowerCase()
+  if (!q) return worksList.value
+  return worksList.value.filter(w => w.name.toLowerCase().includes(q))
+})
+const selectCollection = (item) => {
+  collectionInput.value = item.name
+  formData.collection = item._id
+  showCollectionList.value = false
+}
+const onCollectionInput = () => {
+  formData.collection = ''
+  showCollectionList.value = true
+}
+const closeCollectionList = () => {
+  setTimeout(() => { showCollectionList.value = false }, 120)
+}
+
+const countryInput = ref(formData.location)
+const showCountryList = ref(false)
+const filteredCountries = computed(() => {
+  const q = countryInput.value.trim().toLowerCase()
+  if (!q) return countryOptions
+  return countryOptions.filter(c => c.toLowerCase().includes(q))
+})
+const selectCountry = (item) => {
+  countryInput.value = item
+  formData.location = item
+  showCountryList.value = false
+}
+const onCountryInput = () => {
+  formData.location = ''
+  showCountryList.value = true
+}
+const closeCountryList = () => {
+  setTimeout(() => { showCountryList.value = false }, 120)
+}
 const filteredProvinces = computed(() => {
   const q = regionInput.value.trim().toLowerCase()
   if (!q) return provinceOptions
@@ -842,8 +774,7 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
   font-weight: 700;
 }
 
-.form-input,
-.select-wrapper select {
+.form-input {
   width: 100%;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -855,8 +786,7 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
   transition: all 0.25s ease;
 }
 
-.form-input:focus,
-.select-wrapper select:focus {
+.form-input:focus {
   border-color: rgba(147, 197, 253, 0.4);
   background: rgba(0, 0, 0, 0.35);
   box-shadow: 0 0 10px rgba(147, 197, 253, 0.15);
@@ -916,13 +846,6 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
   font-family: monospace;
   font-size: 11px;
   color: #94a3b8;
-}
-
-.select-wrapper select {
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  padding-right: 40px;
 }
 
 .select-arrow {
