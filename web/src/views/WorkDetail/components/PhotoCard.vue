@@ -9,7 +9,7 @@
         <button class="menu-trigger" @click.stop="menuOpen = !menuOpen">⋯</button>
         <div v-if="menuOpen" class="menu-dropdown">
           <div class="menu-item" @click.stop="showMoveList = !showMoveList; deleteConfirm = false">
-            <span class="menu-icon">📦</span> 移动到…
+            移动到…
           </div>
           <div v-if="showMoveList" class="move-sublist">
             <div v-for="work in works" :key="work._id" class="move-option"
@@ -20,7 +20,7 @@
           </div>
           <div class="menu-divider"></div>
           <div class="menu-item menu-item-delete" @click.stop="deleteConfirm = !deleteConfirm; showMoveList = false">
-            <span class="menu-icon">🗑️</span> 删除
+            删除
           </div>
           <div v-if="deleteConfirm" class="delete-confirm">
             <span class="confirm-text">确认删除？</span>
@@ -158,12 +158,14 @@ onUnmounted(() => document.removeEventListener('click', handleDocClick))
   top: calc(100% + 6px);
   right: 0;
   min-width: 160px;
-  background: rgba(17, 22, 32, 0.95);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 14, 22, 0.8);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 6px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   z-index: 10;
 }
 
