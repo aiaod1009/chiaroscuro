@@ -15,7 +15,7 @@ const findFirstPhoto = async (workId) => {
     try {
       const oid = new mongoose.Types.ObjectId(workIdStr);
       photo = await Photo.findOne({ albumIds: oid }).sort({ createdAt: 1 }).lean();
-    } catch {}
+    } catch { }
   }
   return photo;
 };
@@ -102,7 +102,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // ==========================================
-// 🗑️ 删除作品集
+// 🗑️ 删除作品集(未使用）
 // ==========================================
 router.delete('/:id', async (req, res) => {
   try {
