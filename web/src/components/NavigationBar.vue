@@ -9,7 +9,6 @@
       <router-link to="/archive">ARCHIVE</router-link>
       <router-link to="/console">CONSOLE</router-link>
       <router-link to="/footprints">FOOTPRINTS</router-link>
-      <router-link to="/notes">NOTES</router-link>
     </div>
     <div class="nav-icons">
       <a href="#"><i class="icon-placeholder"></i></a>
