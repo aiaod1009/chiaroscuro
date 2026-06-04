@@ -330,11 +330,8 @@ const restoreSession = async () => {
   noHistory.value = false
   try {
     const style = STYLE_MAP[activePerspective.value]
-    const { data } = await axios.post('/api/ai/inspire/first-round', {
-      photoId: currentPhoto.id,
-      imageUrl: currentPhoto.imageUrl,
-      style,
-      restoreOnly: true
+    const { data } = await axios.get('/api/ai/inspire/session', {
+      params: { photoId: currentPhoto.id, style }
     })
     if (data.success && data.candidates.length) {
       applyCandidates(data)
