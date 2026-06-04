@@ -118,6 +118,10 @@
               </button>
             </div>
 
+            <div v-if="noHistory && !candidates.length && !isGenerating" class="no-history-hint">
+              该风格暂无历史记录，点击 AI GENERATE 开始生成
+            </div>
+
             <div v-if="activeCandidate.title" class="output-narrative" :class="{ iterating: isIterating }">
               <h2 class="narrative-title">{{ activeCandidate.title }}</h2>
               <p class="narrative-body">
@@ -191,7 +195,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -225,6 +229,7 @@ const toastMessage = ref('')
 let toastTimer = null
 const isSaving = ref(false)
 const saveSuccess = ref(false)
+const noHistory = ref(false)
 
 const showToast = (msg, duration = 5000) => {
   toastMessage.value = msg
@@ -317,18 +322,35 @@ const applyCandidates = (data) => {
 
 // 页面加载时尝试从数据库恢复已有会话（静默，不显示 loading）
 const restoreSession = async () => {
+  if (!currentPhoto.id) return
+  // 先清空当前候选，避免切换风格时残留旧数据
+  candidates.value = []
+  activeCandidate.value = { title: '', caption: '' }
+  sessionId.value = null
+  noHistory.value = false
   try {
     const style = STYLE_MAP[activePerspective.value]
     const { data } = await axios.post('/api/ai/inspire/first-round', {
       photoId: currentPhoto.id,
       imageUrl: currentPhoto.imageUrl,
-      style
+      style,
+      restoreOnly: true
     })
-    if (data.success && data.candidates.length) applyCandidates(data)
+    if (data.success && data.candidates.length) {
+      applyCandidates(data)
+      noHistory.value = false
+    } else {
+      noHistory.value = true
+    }
   } catch {
-    // 静默失败，用户可以手动点击 AI GENERATE
+    noHistory.value = true
   }
 }
+
+// 切换风格时自动恢复该风格的历史会话
+watch(activePerspective, () => {
+  if (currentPhoto.id) restoreSession()
+})
 
 // AI GENERATE：首次触发生成
 const handleAiGenerate = async () => {
@@ -898,6 +920,14 @@ const handleSave = async () => {
 .candidate-tab:hover:not(.active) {
   border-color: rgba(255, 255, 255, 0.15);
   color: #9ca3af;
+}
+
+.no-history-hint {
+  font-size: 12px;
+  color: #4b5563;
+  text-align: center;
+  padding: 24px 0;
+  font-family: monospace;
 }
 
 .output-narrative {

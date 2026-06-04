@@ -12,7 +12,7 @@ const AISession = require('../models/AISession');
 // 接口 1：首次触发（根据选定风格生成 3 个备选方案，或直接复用历史记录）
 router.post('/inspire/first-round', async (req, res) => {
   try {
-    const { photoId, imageUrl, style } = req.body; // style 如 '诗意'、'叙事'、'极简'
+    const { photoId, imageUrl, style, restoreOnly } = req.body; // style 如 '诗意'、'叙事'、'极简'
 
     // 1. 【核心亮点】：分流检查！看看数据库里有没有这张照片对应这个风格的专属抽屉
     const query = photoId ? { photoId, chosenStyle: style } : { imageUrl, chosenStyle: style };
@@ -26,6 +26,11 @@ router.post('/inspire/first-round', async (req, res) => {
         chosenStyle: style,
         candidates: existingSession.candidates // 直接复用
       });
+    }
+
+    // restoreOnly 模式：只查历史，不触发生成
+    if (restoreOnly) {
+      return res.json({ success: true, candidates: [], noHistory: true });
     }
 
     // 2. 没找到旧抽屉，说明是第一次玩这个风格，老老实实走大模型全新生成链路
