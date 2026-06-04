@@ -130,7 +130,8 @@
             </div>
 
             <div v-if="candidates.length" class="select-action">
-              <button class="btn-apply" :disabled="isSaving" @click="applyToPhoto(activeCandidate.title, activeCandidate.caption)">
+              <button class="btn-apply" :disabled="isSaving"
+                @click="applyToPhoto(activeCandidate.title, activeCandidate.caption)">
                 {{ isSaving ? 'SAVING...' : 'APPLY TO PHOTO' }}
               </button>
               <span v-if="saveSuccess" class="save-hint">已保存</span>
@@ -172,7 +173,8 @@
             </div>
 
             <div class="select-action">
-              <button class="btn-apply" :disabled="isSaving || (!manualTitle && !manualContent)" @click="applyToPhoto(manualTitle, manualContent)">
+              <button class="btn-apply" :disabled="isSaving || (!manualTitle && !manualContent)"
+                @click="applyToPhoto(manualTitle, manualContent)">
                 {{ isSaving ? 'SAVING...' : 'APPLY TO PHOTO' }}
               </button>
               <span v-if="saveSuccess" class="save-hint">已保存</span>
@@ -258,7 +260,9 @@ onMounted(async () => {
   if (route.query.photoId) currentPhoto.id = route.query.photoId
   if (route.query.imageUrl) currentPhoto.imageUrl = route.query.imageUrl
   if (currentPhoto.id) {
-    fetchPhotoDetail(currentPhoto.id)
+    await fetchPhotoDetail(currentPhoto.id)
+    // 尝试从数据库恢复已有 AI 会话
+    restoreSession()
   }
 })
 

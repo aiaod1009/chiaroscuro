@@ -4,7 +4,6 @@ const router = require('express').Router();
 const Photo = require('../models/Photo');
 const AISession = require('../models/AISession');
 
-// const apiKey = process.env.ZHIPU_AI_KEY;
 // =======================================================
 // 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）
 // =======================================================
