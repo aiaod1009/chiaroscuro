@@ -5,6 +5,7 @@ dist-ssr/
 .env
 .env.*
 .DS_Store
+.claude/
 .vscode/*
 !.vscode/extensions.json
 npm-debug.log*
