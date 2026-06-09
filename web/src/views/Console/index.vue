@@ -69,14 +69,14 @@
 
       <div class="assets-grid-flow">
 
-        <AlbumPlaceholder :album-count="worksList.length" @create="openCreateWorks" />
+        <AlbumPlaceholder :album-count="filteredWorks.length" @create="openCreateWorks" />
 
         <WorkCard v-for="work in pagedWorks" :key="work._id" :work="work"
           @open="openWork" />
 
       </div>
 
-      <Pagination :current-page="currentPage" :total="worksList.length" :page-size="pageSize"
+      <Pagination :current-page="currentPage" :total="filteredWorks.length" :page-size="pageSize"
         @update:currentPage="currentPage = $event" />
     </main>
   </div>
@@ -103,15 +103,23 @@ const pageSize = 12
 const drafts = ref([])
 const worksList = ref([])
 
-const pagedWorks = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return worksList.value.slice(start, start + pageSize)
+const filteredWorks = computed(() => {
+  if (!searchQuery.value) return worksList.value
+  const q = searchQuery.value.toLowerCase()
+  return worksList.value.filter(w => w.name && w.name.toLowerCase().includes(q))
 })
 
-watch(() => worksList.value.length, (len) => {
+const pagedWorks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredWorks.value.slice(start, start + pageSize)
+})
+
+watch(() => filteredWorks.value.length, (len) => {
   const maxPage = Math.max(1, Math.ceil(len / pageSize))
   if (currentPage.value > maxPage) currentPage.value = maxPage
 })
+
+watch(searchQuery, () => { currentPage.value = 1 })
 
 const fetchDrafts = async () => {
   try {
