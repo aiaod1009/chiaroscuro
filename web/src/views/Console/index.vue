@@ -17,16 +17,6 @@
       <UploadCard @upload="openUpload()" />
 
 
-      <nav class="filter-navigation">
-        <button v-for="nav in filterNavs" :key="nav.id" class="nav-item" :class="{ active: currentCategory === nav.id }"
-          @click="currentCategory = nav.id">
-          <div class="nav-left">
-            <span class="status-dot" :style="{ backgroundColor: nav.dotColor }"></span>
-            <span class="nav-name">{{ nav.name }}</span>
-          </div>
-          <span class="nav-count">{{ nav.count }}</span>
-        </button>
-      </nav>
     </aside>
 
     <main class="content-main">
@@ -80,7 +70,6 @@ const router = useRouter()
 
 const openUpload = inject('openUpload')
 const openCreateWorks = inject('openCreateWorks')
-const currentCategory = ref('all')
 const searchQuery = ref('')
 const selectedTime = ref(null)
 const currentPage = ref(1)
@@ -153,12 +142,6 @@ onUnmounted(() => {
   window.removeEventListener('works-complete', fetchWorks)
 })
 
-// 左侧分类过滤器源
-const filterNavs = ref([
-  { id: 'all', name: 'All Drafts', count: 24, dotColor: '#ffffff' },
-  { id: 'processing', name: 'Processing', count: '08', dotColor: '#64748b' },
-  { id: 'ready', name: 'Ready', count: 13, dotColor: '#475569' }
-])
 </script>
 
 <style scoped>
@@ -290,62 +273,6 @@ const filterNavs = ref([
   height: 100%;
   background-color: #57606a;
   border-radius: 2px;
-}
-
-/* 左侧分类过滤器组 */
-.filter-navigation {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nav-item {
-  width: 100%;
-  background: transparent;
-  border: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.nav-name {
-  font-size: 13px;
-  color: #8b949e;
-}
-
-.nav-count {
-  font-size: 12px;
-  font-family: monospace;
-  color: #4b5563;
-}
-
-.nav-item.active {
-  background-color: rgba(255, 255, 255, 0.04);
-}
-
-.nav-item.active .nav-name {
-  color: #ffffff;
-  font-weight: 500;
-}
-
-.nav-item.active .nav-count {
-  color: #8b949e;
 }
 
 /* ==========================================================================
