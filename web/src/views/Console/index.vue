@@ -71,32 +71,24 @@
 
         <AlbumPlaceholder :album-count="worksList.length" @create="openCreateWorks" />
 
-        <WorkCard v-for="work in worksList" :key="work._id" :work="work"
+        <WorkCard v-for="work in pagedWorks" :key="work._id" :work="work"
           @open="openWork" />
 
       </div>
 
-      <footer class="pagination-footer">
-        <button class="page-arrow" :disabled="currentPage === 1" @click="currentPage--">&lt;</button>
-        <div class="page-numbers">
-          <button v-for="p in pageRange" :key="p" class="page-num-btn"
-            :class="{ active: currentPage === p, 'is-dot': p === '...' }" :disabled="p === '...'"
-            @click="currentPage = p">
-            {{ p }}
-          </button>
-        </div>
-        <button class="page-arrow" :disabled="currentPage === 12" @click="currentPage++">&gt;</button>
-      </footer>
+      <Pagination :current-page="currentPage" :total="worksList.length" :page-size="pageSize"
+        @update:currentPage="currentPage = $event" />
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import WorkCard from './components/WorkCard.vue'
 import AlbumPlaceholder from './components/AlbumPlaceholder.vue'
+import Pagination from './components/Pagination.vue'
 import SearchInput from '../../components/SearchInput.vue'
 
 const router = useRouter()
@@ -106,9 +98,20 @@ const openCreateWorks = inject('openCreateWorks')
 const currentCategory = ref('all')
 const searchQuery = ref('')
 const currentPage = ref(1)
+const pageSize = 12
 
 const drafts = ref([])
 const worksList = ref([])
+
+const pagedWorks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return worksList.value.slice(start, start + pageSize)
+})
+
+watch(() => worksList.value.length, (len) => {
+  const maxPage = Math.max(1, Math.ceil(len / pageSize))
+  if (currentPage.value > maxPage) currentPage.value = maxPage
+})
 
 const fetchDrafts = async () => {
   try {
@@ -151,9 +154,6 @@ const filterNavs = ref([
   { id: 'processing', name: 'Processing', count: '08', dotColor: '#64748b' },
   { id: 'ready', name: 'Ready', count: 13, dotColor: '#475569' }
 ])
-
-// 底部分页模拟数组
-const pageRange = ref([1, 2, 3, '...', 12])
 </script>
 
 <style scoped>
@@ -632,67 +632,4 @@ const pageRange = ref([1, 2, 3, '...', 12])
   color: #64748b;
 }
 
-
-/* ==========================================================================
-   6. 底部科技感分页器 (Pagination)
-   ========================================================================== */
-.pagination-footer {
-  margin-top: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-
-.page-arrow {
-  background: transparent;
-  border: none;
-  color: #4b5563;
-  font-size: 14px;
-  cursor: pointer;
-  font-family: monospace;
-}
-
-.page-arrow:disabled {
-  cursor: not-allowed;
-  opacity: 0.3;
-}
-
-.page-numbers {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.page-num-btn {
-  background: transparent;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  color: #8b949e;
-  font-size: 12px;
-  font-family: monospace;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.page-num-btn:hover:not(:disabled) {
-  color: #ffffff;
-}
-
-.page-num-btn.active {
-  background-color: #ffffff;
-  color: #0d0f12;
-  font-weight: 700;
-}
-
-.page-num-btn.is-dot {
-  color: #4b5563;
-  cursor: default;
-}
 </style>
