@@ -31,14 +31,7 @@
 
     <main class="content-main">
       <header class="top-filter-bar">
-        <div class="dropdown-filters">
-          <div class="custom-dropdown">
-            <span>Time</span> <span class="arrow-down">▼</span>
-          </div>
-          <div class="custom-dropdown">
-            <span>Location</span> <span class="arrow-down">▼</span>
-          </div>
-        </div>
+        <TimeFilter v-model="selectedTime" :works="worksList" />
 
         <SearchInput v-model="searchQuery" placeholder="Search visual chronicles..." />
 
@@ -80,6 +73,7 @@ import WorkCard from './components/WorkCard.vue'
 import AlbumPlaceholder from './components/AlbumPlaceholder.vue'
 import Pagination from './components/Pagination.vue'
 import UploadCard from './components/UploadCard.vue'
+import TimeFilter from './components/TimeFilter.vue'
 import SearchInput from '../../components/SearchInput.vue'
 
 const router = useRouter()
@@ -88,6 +82,7 @@ const openUpload = inject('openUpload')
 const openCreateWorks = inject('openCreateWorks')
 const currentCategory = ref('all')
 const searchQuery = ref('')
+const selectedTime = ref(null)
 const currentPage = ref(1)
 const pageSize = 12
 
@@ -95,9 +90,19 @@ const drafts = ref([])
 const worksList = ref([])
 
 const filteredWorks = computed(() => {
-  if (!searchQuery.value) return worksList.value
-  const q = searchQuery.value.toLowerCase()
-  return worksList.value.filter(w => w.name && w.name.toLowerCase().includes(q))
+  let result = worksList.value
+  if (selectedTime.value) {
+    result = result.filter(w => {
+      const d = new Date(w.realDate || w.createdAt)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      return key === selectedTime.value
+    })
+  }
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    result = result.filter(w => w.name && w.name.toLowerCase().includes(q))
+  }
+  return result
 })
 
 const pagedWorks = computed(() => {
@@ -111,6 +116,7 @@ watch(() => filteredWorks.value.length, (len) => {
 })
 
 watch(searchQuery, () => { currentPage.value = 1 })
+watch(selectedTime, () => { currentPage.value = 1 })
 
 const fetchDrafts = async () => {
   try {
@@ -358,31 +364,6 @@ const filterNavs = ref([
   gap: 16px;
   margin-bottom: 32px;
 }
-
-.dropdown-filters {
-  display: flex;
-  gap: 10px;
-}
-
-.custom-dropdown {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 12px;
-  color: #8b949e;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.arrow-down {
-  font-size: 8px;
-  color: #4b5563;
-  transform: scale(0.8);
-}
-
 
 /* 视图切换键 */
 .view-toggle-btns {
