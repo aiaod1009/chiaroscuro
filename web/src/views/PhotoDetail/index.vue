@@ -19,14 +19,12 @@
       <div class="grid-left-col">
 
         <div class="comparison-viewer">
-          <img :src="imageSrc"
-            alt="AI Version" class="image-layer" />
+          <img :src="imageSrc" alt="AI Version" class="image-layer" />
           <div class="badge badge-right">AI VERSION - CINEMATIC 04</div>
 
           <div class="original-layer-wrapper"
             :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
-            <img :src="imageSrc"
-              alt="Original Input" class="image-layer original-img" />
+            <img :src="imageSrc" alt="Original Input" class="image-layer original-img" />
             <div class="badge badge-left">ORIGINAL - RAW INPUT</div>
           </div>
 
@@ -58,8 +56,7 @@
 
             <div class="version-card">
               <div class="card-thumb">
-                <img
-                  :src="imageSrc" />
+                <img :src="imageSrc" />
               </div>
               <div class="card-title-zh">版本 04</div>
               <div class="card-title-en">Active Selection</div>
@@ -67,8 +64,7 @@
 
             <div class="version-card">
               <div class="card-thumb grayscale-thumb">
-                <img
-                  :src="imageSrc" />
+                <img :src="imageSrc" />
               </div>
               <div class="card-title-zh">版本 03</div>
               <div class="card-title-en">Cinematic Noir</div>
@@ -89,52 +85,33 @@
 
       <div class="grid-right-col">
 
-        <div class="scifi-panel exif-panel">
-          <div class="panel-main-content">
+        <!-- EXIF 面板 -->
+        <ExifPanel :exifData="exifData" />
+
+        <!-- 色彩配置 - 突出右侧 -->
+        <div class="color-panel-outer">
+          <div class="scifi-panel color-panel">
             <div class="panel-header">
               <div class="title-group">
-                <span class="panel-title-zh">EXIF 信息</span>
-                <span class="panel-title-en">Exif Data</span>
-              </div>
-              <span class="info-icon">ⓘ</span>
-            </div>
-
-            <div class="exif-list">
-              <div v-for="item in exifData" :key="item.label" class="exif-item">
-                <span class="exif-label">{{ item.label }}</span>
-                <span class="exif-value">{{ item.value }}</span>
+                <span class="panel-title-zh">色彩配置</span>
+                <span class="panel-title-en">Color</span>
               </div>
             </div>
-          </div>
-
-          <div class="panel-actions">
-            <button class="btn-reset">Reset</button>
-            <button class="btn-export">Export</button>
+            <ColorPalette :colors="colorPalette" />
           </div>
         </div>
 
+        <!-- AI 构图分析 -->
         <div class="scifi-panel analysis-panel">
           <div class="panel-header">
             <div class="title-group">
               <span class="panel-title-zh">AI 构图分析</span>
               <span class="panel-title-en">Analysis</span>
             </div>
-            <svg class="analysis-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
           </div>
 
-          <div class="composition-grid-box">
-            <div class="grid-lines-bg">
-              <div v-for="n in 16" :key="n" class="grid-cell"></div>
-            </div>
-            <div class="golden-ratio-box"></div>
-
-            <div class="focus-dot dot-primary"></div>
-            <div class="focus-dot dot-secondary"></div>
-
-            <span class="grid-data-tag">Golden Ratio Optimized</span>
+          <div class="radar-section">
+            <RadarChart :data="radarData" :size="180" />
           </div>
 
           <div class="analysis-result" v-if="analysisResult">
@@ -161,32 +138,46 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import ColorPalette from './components/ColorPalette.vue'
+import RadarChart from './components/RadarChart.vue'
+import ExifPanel from './components/ExifPanel.vue'
+import { extractColors } from '../../utils/colorExtractor'
 
 const route = useRoute()
 const sliderPosition = ref(53)
 const photoData = ref(null)
 const analysisResult = ref('')
 const isAnalyzing = ref(false)
+const colorPalette = ref([])
+
+const radarData = ref([
+  { label: '黄金比例', value: 86 },
+  { label: '三分构图', value: 78 },
+  { label: '对称平衡', value: 64 },
+  { label: '视觉引导', value: 92 },
+  { label: '层次感', value: 88 },
+  { label: '空间感', value: 76 }
+])
 
 const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
 
 const exifData = computed(() => {
   const exif = photoData.value?.exif
   if (!exif) return [
-    { label: 'Camera', value: '-' },
-    { label: 'Lens', value: '-' },
+    { label: '相机', value: '-' },
+    { label: '镜头', value: '-' },
     { label: 'ISO', value: '-' },
-    { label: 'Shutter', value: '-' },
-    { label: 'Aperture', value: '-' },
-    { label: 'Focal Length', value: '-' },
+    { label: '快门', value: '-' },
+    { label: '光圈', value: '-' },
+    { label: '焦距', value: '-' },
   ]
   return [
-    { label: 'Camera', value: exif.camera || '-' },
-    { label: 'Lens', value: exif.lens || '-' },
+    { label: '相机', value: exif.camera || '-' },
+    { label: '镜头', value: exif.lens || '-' },
     { label: 'ISO', value: exif.iso || '-' },
-    { label: 'Shutter', value: exif.shutterSpeed || '-' },
-    { label: 'Aperture', value: exif.aperture || '-' },
-    { label: 'Focal Length', value: exif.focalLength || '-' },
+    { label: '快门', value: exif.shutterSpeed || '-' },
+    { label: '光圈', value: exif.aperture || '-' },
+    { label: '焦距', value: exif.focalLength || '-' },
   ]
 })
 
@@ -195,7 +186,17 @@ const fetchPhoto = async () => {
   if (!id) return
   try {
     const { data } = await axios.get(`/api/photos/${id}`)
-    if (data.success) photoData.value = data.data
+    if (data.success) {
+      photoData.value = data.data
+      // 提取图片主色
+      if (data.data.imageUrl) {
+        try {
+          colorPalette.value = await extractColors(data.data.imageUrl)
+        } catch (e) {
+          console.error('提取颜色失败:', e)
+        }
+      }
+    }
   } catch (err) {
     console.error('加载照片详情失败:', err)
   }
@@ -479,7 +480,7 @@ watch(() => route.params.id, fetchPhoto)
 .title-en {
   font-size: 12px;
   color: #6b7280;
-  font-family: monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-transform: uppercase;
 }
 
@@ -573,7 +574,7 @@ watch(() => route.params.id, fetchPhoto)
 .card-title-en {
   font-size: 9px;
   color: #6b7280;
-  font-family: monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-transform: uppercase;
   margin-top: 2px;
 }
@@ -631,14 +632,13 @@ watch(() => route.params.id, fetchPhoto)
 
 .exif-panel {
   justify-content: space-between;
-  min-height: 380px;
+  min-height: 340px;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
 }
 
 .panel-title-zh {
@@ -651,95 +651,8 @@ watch(() => route.params.id, fetchPhoto)
 .panel-title-en {
   font-size: 12px;
   color: #6b7280;
-  font-family: monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   text-transform: uppercase;
-}
-
-.info-icon {
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.info-icon:hover {
-  color: #d1d5db;
-}
-
-/* EXIF 数据明细 */
-.exif-list {
-  display: flex;
-  flex-direction: column;
-  font-family: monospace;
-  font-size: 12px;
-}
-
-.exif-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(31, 41, 55, 0.6);
-}
-
-.exif-item:last-child {
-  border-bottom: none;
-}
-
-.exif-label {
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 11px;
-}
-
-.exif-value {
-  color: #e5e7eb;
-  font-weight: 500;
-}
-
-/* 按钮组 */
-.panel-actions {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.btn-reset {
-  padding: 12px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-reset:hover {
-  border-color: #4b5563;
-  color: #ffffff;
-}
-
-.btn-export {
-  padding: 12px;
-  border-radius: 12px;
-  background: linear-gradient(to right, #67e8f9, #a7f3d0);
-  border: none;
-  color: #000000;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.1);
-}
-
-.btn-export:hover {
-  background: linear-gradient(to right, #22d3ee, #6ee7b7);
 }
 
 /* AI 构图分析 */
@@ -747,129 +660,27 @@ watch(() => route.params.id, fetchPhoto)
   gap: 20px;
 }
 
-.analysis-icon {
-  width: 16px;
-  height: 16px;
-  color: #22d3ee;
+.color-panel {
+  gap: 15px;
 }
 
-.composition-grid-box {
+.color-panel-outer {
+  position: absolute;
+  right: -160px;
+  top: 0;
+  width: 140px;
+}
+
+.grid-right-col {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 16px;
-  background-color: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(17, 24, 39, 0.6);
-  overflow: hidden;
+}
+
+.radar-section {
   display: flex;
-  align-items: center;
   justify-content: center;
+  margin-bottom: 16px;
 }
 
-/* 4x4 网格背景线 */
-.grid-lines-bg {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(4, 1fr);
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-.grid-cell {
-  border: 0.5px solid #4b5563;
-}
-
-/* 核心黄金分割矩形框 */
-.golden-ratio-box {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  border: 1px dashed rgba(34, 211, 238, 0.2);
-  pointer-events: none;
-}
-
-/* 构图焦点 */
-.focus-dot {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.dot-primary {
-  top: 35%;
-  left: 40%;
-  width: 12px;
-  height: 12px;
-  background-color: #22d3ee;
-  box-shadow: 0 0 15px #22d3ee;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.dot-secondary {
-  top: 55%;
-  left: 55%;
-  width: 8px;
-  height: 8px;
-  background-color: #9ca3af;
-  opacity: 0.6;
-}
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: .5;
-    transform: scale(1.1);
-  }
-}
-
-.grid-data-tag {
-  position: absolute;
-  bottom: 16px;
-  font-family: monospace;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #22d3ee;
-  background-color: rgba(8, 51, 68, 0.4);
-  backdrop-filter: blur(4px);
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(34, 211, 238, 0.2);
-}
-
-.btn-reanalyze {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background-color: rgba(17, 24, 39, 0.8);
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-reanalyze:hover {
-  background-color: #1a2232;
-  border-color: #374151;
-  color: #ffffff;
-}
-
-.btn-reanalyze:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 分析结果 */
 .analysis-result {
   max-height: 300px;
   overflow-y: auto;
@@ -904,4 +715,27 @@ watch(() => route.params.id, fetchPhoto)
   font-size: 12px;
 }
 
+.btn-reanalyze {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: rgba(17, 24, 39, 0.8);
+  border: 1px solid #1f2937;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reanalyze:hover {
+  background-color: #1a2232;
+  border-color: #374151;
+  color: #ffffff;
+}
+
+.btn-reanalyze:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
