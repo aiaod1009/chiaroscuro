@@ -116,8 +116,7 @@ export default {
 <style scoped>
 .hero-viewer {
   width: 100%;
-  height: 72vh;
-  min-height: 520px;
+  aspect-ratio: 3 / 2;
   position: relative;
   border-radius: 18px;
   overflow: hidden;
