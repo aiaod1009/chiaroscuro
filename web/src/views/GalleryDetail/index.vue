@@ -73,10 +73,9 @@
         </div>
 
         <div class="masonry-grid">
-          <div class="masonry-item" v-for="(img, idx) in waterfallImages" :key="img.id || idx"
-            @click="$router.push({ path: `/photo-detail/${img.id || idx}`, query: { src: img.src } })">
-            <img :src="img.src" :alt="img.alt" />
-          </div>
+          <WaterfallCard v-for="(img, idx) in waterfallImages" :key="img.id || idx"
+            :src="img.src" :alt="img.alt" :title="img.title" :caption="img.caption"
+            @click="$router.push({ path: `/photo-detail/${img.id || idx}`, query: { src: img.src } })" />
         </div>
       </div>
 
@@ -87,9 +86,11 @@
 <script>
 import { PageFlip } from 'page-flip';
 import axios from 'axios';
+import WaterfallCard from '../../components/WaterfallCard.vue';
 
 export default {
   name: 'GalleryDetail',
+  components: { WaterfallCard },
   data() {
     return {
       currentIndex: 0,
@@ -108,51 +109,37 @@ export default {
   async mounted() {
     const id = this.$route.params.id;
     try {
-      // 判断是作品集ID（24位十六进制）还是地区代码
-      const isWorkId = /^[0-9a-fA-F]{24}$/.test(id);
-      let photos, title;
+      const { data } = await axios.get(`/api/works/${id}`);
+      if (data.success) {
+        const photos = (data.data.photos || []).map(p => ({
+          id: p._id,
+          src: p.imageUrl,
+          alt: p.fileName || '',
+          title: p.title,
+          caption: p.caption,
+          exif: p.exif,
+          createdAt: p.createdAt
+        }));
 
-      if (isWorkId) {
-        // 按作品集ID获取
-        const { data } = await axios.get(`/api/works/${id}`);
-        if (data.success) {
-          photos = data.data.photos || [];
-          title = data.data.name;
-          photos = photos.map(p => ({
-            id: p._id,
-            src: p.imageUrl,
-            alt: p.fileName || '',
-            exif: p.exif,
-            createdAt: p.createdAt
-          }));
-        }
-      } else {
-        // 按地区代码获取
-        const { data } = await axios.get(`/api/photos/gallery/${id}`);
-        if (data.success) {
-          photos = data.data.photos;
-          title = data.data.title;
-        }
-      }
+        if (photos.length) {
+          this.images = photos.map(p => p.src);
+          this.waterfallImages = photos.map(p => ({ id: p.id, src: p.src, alt: p.alt || p.fileName, title: p.title, caption: p.caption }));
+          this.galleryTitle = data.data.name;
 
-      if (photos && photos.length) {
-        this.images = photos.map(p => p.src);
-        this.waterfallImages = photos.map(p => ({ id: p.id, src: p.src, alt: p.alt }));
-        this.galleryTitle = title;
-
-        const first = photos[0];
-        if (first.exif) {
-          this.exifPrimary = first.exif.focalLength && first.exif.aperture
-            ? `${first.exif.focalLength} ${first.exif.aperture}`
-            : '';
-          this.exifSecondary = [first.exif.iso && `ISO ${first.exif.iso}`, first.exif.shutterSpeed].filter(Boolean).join(' | ');
+          const first = photos[0];
+          if (first.exif) {
+            this.exifPrimary = first.exif.focalLength && first.exif.aperture
+              ? `${first.exif.focalLength} ${first.exif.aperture}`
+              : '';
+            this.exifSecondary = [first.exif.iso && `ISO ${first.exif.iso}`, first.exif.shutterSpeed].filter(Boolean).join(' | ');
+          }
+          if (first.createdAt) {
+            this.locationDate = new Date(first.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric', month: 'short', day: '2-digit'
+            });
+          }
+          this.locationName = data.data.name;
         }
-        if (first.createdAt) {
-          this.locationDate = new Date(first.createdAt).toLocaleDateString('en-US', {
-            year: 'numeric', month: 'short', day: '2-digit'
-          });
-        }
-        this.locationName = title;
       }
     } catch (err) {
       console.error('[GalleryDetail] 加载失败:', err.message);
@@ -527,30 +514,6 @@ export default {
 .masonry-grid {
   column-count: 3;
   column-gap: 20px;
-}
-
-.masonry-item {
-  break-inside: avoid;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.4s;
-}
-
-.masonry-item img {
-  width: 100%;
-  display: block;
-  transition: transform 0.4s;
-}
-
-.masonry-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.masonry-item:hover img {
-  transform: scale(1.05);
 }
 
 @media (max-width: 1024px) {
