@@ -3,21 +3,7 @@
     <div class="content-wrapper">
 
       <!-- 书本翻页效果容器 -->
-      <div class="hero-viewer" v-if="images.length">
-        <div class="flip-book" ref="flipBook">
-          <template v-for="(url, idx) in images" :key="idx">
-            <div class="flip-page">
-              <div class="page-half page-left" :style="{ backgroundImage: `url(${url})` }"></div>
-            </div>
-            <div class="flip-page">
-              <div class="page-half page-right" :style="{ backgroundImage: `url(${url})` }"></div>
-            </div>
-          </template>
-        </div>
-      </div>
-      <div v-else class="hero-empty">
-        <p>暂无影像数据</p>
-      </div>
+      <FlipBook ref="flipBook" :images="images" @flip="currentIndex = $event" />
 
       <!-- 中间信息与控制器 -->
       <div class="meta-section" v-if="images.length">
@@ -84,13 +70,13 @@
 </template>
 
 <script>
-import { PageFlip } from 'page-flip';
 import axios from 'axios';
 import WaterfallCard from '../../components/WaterfallCard.vue';
+import FlipBook from './components/FlipBook.vue';
 
 export default {
   name: 'GalleryDetail',
-  components: { WaterfallCard },
+  components: { WaterfallCard, FlipBook },
   data() {
     return {
       currentIndex: 0,
@@ -144,62 +130,14 @@ export default {
     } catch (err) {
       console.error('[GalleryDetail] 加载失败:', err.message);
     }
-
-    if (this.images.length) {
-      await this.$nextTick();
-      this.initFlipBook();
-    }
-    window.addEventListener('resize', this.onResize);
   },
   methods: {
-    initFlipBook() {
-      const container = this.$refs.flipBook;
-      if (!container) return;
-
-      const W = container.clientWidth;
-      const pageW = Math.floor(W / 2);
-      const pageH = container.clientHeight;
-
-      this.flipBook = new PageFlip(container, {
-        width: pageW,
-        height: pageH,
-        size: 'fixed',
-        maxShadowOpacity: 0.5,
-        showCover: false,
-        mobileScrollSupport: true,
-        clickEventForward: false,
-        useMouseEvents: true,
-        swipeDistance: 30,
-        flippingTime: 800,
-      });
-
-      this.flipBook.loadFromHTML(container.querySelectorAll('.flip-page'));
-
-      this.flipBook.on('flip', (e) => {
-        this.currentIndex = Math.floor(e.data / 2);
-      });
-    },
-
-    onResize() {
-      if (!this.flipBook || !this.$refs.flipBook) return;
-      const W = this.$refs.flipBook.clientWidth;
-      const pageW = Math.floor(W / 2);
-      const pageH = this.$refs.flipBook.clientHeight;
-      this.flipBook.updateFromHtml(this.$refs.flipBook.querySelectorAll('.flip-page'));
-    },
-
     next() {
-      if (!this.flipBook) return;
-      const cur = this.flipBook.getCurrentPageIndex();
-      const target = cur + 2;
-      if (target < this.images.length * 2) this.flipBook.flip(target);
+      this.$refs.flipBook?.next();
     },
 
     prev() {
-      if (!this.flipBook) return;
-      const cur = this.flipBook.getCurrentPageIndex();
-      const target = cur - 2;
-      if (target >= 0) this.flipBook.flip(target);
+      this.$refs.flipBook?.prev();
     },
 
     togglePlay() {
@@ -207,10 +145,12 @@ export default {
       if (this.isPlaying) {
         this.next();
         this.autoPlayTimer = setInterval(() => {
-          const cur = this.flipBook.getCurrentPageIndex();
+          const flipBook = this.$refs.flipBook;
+          if (!flipBook) return;
+          const cur = flipBook.getCurrentPageIndex();
           const maxPage = (this.images.length - 1) * 2;
           if (cur >= maxPage) {
-            this.flipBook.flip(0);
+            flipBook.flip(0);
           } else {
             this.next();
           }
@@ -223,8 +163,6 @@ export default {
 
   beforeUnmount() {
     if (this.autoPlayTimer) clearInterval(this.autoPlayTimer);
-    window.removeEventListener('resize', this.onResize);
-    if (this.flipBook) this.flipBook.destroy();
   },
 }
 </script>
@@ -245,65 +183,6 @@ export default {
   margin: 0 auto;
   padding: 0 2rem;
 }
-
-/* 3D 图片查看器 */
-.hero-viewer {
-  width: 100%;
-  height: 72vh;
-  min-height: 520px;
-  position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #080d18;
-}
-
-.flip-book {
-  width: 100%;
-  height: 100%;
-}
-
-.flip-page {
-  background: #080d18;
-  overflow: hidden;
-}
-
-.flip-page img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  pointer-events: none;
-  user-select: none;
-}
-
-.page-half {
-  width: 100%;
-  height: 100%;
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  pointer-events: none;
-  user-select: none;
-}
-
-.page-left {
-  background-position: left center;
-}
-
-.page-right {
-  background-position: right center;
-}
-
-.hero-empty {
-  width: 100%;
-  height: 40vh;
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 1.1rem;
-}
-
 
 /* 元数据与播放器区 */
 .meta-section {
