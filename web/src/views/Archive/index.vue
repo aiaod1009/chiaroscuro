@@ -46,7 +46,7 @@
                 <h3 class="blog-title">{{ blog.title }}</h3>
                 <p class="blog-desc">{{ blog.desc }}</p>
                 <!-- 改为 router-link 跳转详情页 -->
-                <router-link :to="`/gallery-detail/${index + 1}`" class="view-entry">View Entry &rarr;</router-link>
+                <router-link :to="`/gallery-detail/${blog.id}`" class="view-entry">View Entry &rarr;</router-link>
               </div>
             </div>
           </div>
@@ -86,6 +86,7 @@ export default {
           return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase();
         });
         this.blogs = works.map(w => ({
+          id: w._id,
           date: new Date(w.realDate || w.createdAt).toISOString().split('T')[0],
           category: 'Photography',
           title: w.name,
@@ -224,20 +225,11 @@ export default {
   letter-spacing: 0.5px;
 }
 
-.time-label.active {
-  color: #e2e8f0;
-}
-
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: #64748b;
-}
-
-.dot.active {
-  background-color: #e2e8f0;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 .timeline-item:hover .dot {

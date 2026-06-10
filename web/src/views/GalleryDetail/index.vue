@@ -106,14 +106,39 @@ export default {
     }
   },
   async mounted() {
-    const mapCode = this.$route.params.id;
+    const id = this.$route.params.id;
     try {
-      const { data } = await axios.get(`/api/photos/gallery/${mapCode}`);
-      if (data.success && data.data.photos.length) {
-        const photos = data.data.photos;
+      // 判断是作品集ID（24位十六进制）还是地区代码
+      const isWorkId = /^[0-9a-fA-F]{24}$/.test(id);
+      let photos, title;
+
+      if (isWorkId) {
+        // 按作品集ID获取
+        const { data } = await axios.get(`/api/works/${id}`);
+        if (data.success) {
+          photos = data.data.photos || [];
+          title = data.data.name;
+          photos = photos.map(p => ({
+            id: p._id,
+            src: p.imageUrl,
+            alt: p.fileName || '',
+            exif: p.exif,
+            createdAt: p.createdAt
+          }));
+        }
+      } else {
+        // 按地区代码获取
+        const { data } = await axios.get(`/api/photos/gallery/${id}`);
+        if (data.success) {
+          photos = data.data.photos;
+          title = data.data.title;
+        }
+      }
+
+      if (photos && photos.length) {
         this.images = photos.map(p => p.src);
         this.waterfallImages = photos.map(p => ({ id: p.id, src: p.src, alt: p.alt }));
-        this.galleryTitle = data.data.title;
+        this.galleryTitle = title;
 
         const first = photos[0];
         if (first.exif) {
@@ -127,7 +152,7 @@ export default {
             year: 'numeric', month: 'short', day: '2-digit'
           });
         }
-        this.locationName = data.data.title;
+        this.locationName = title;
       }
     } catch (err) {
       console.error('[GalleryDetail] 加载失败:', err.message);
