@@ -62,6 +62,7 @@
 
 <script>
 import AccordionGallery from './components/AccordionGallery.vue';
+import axios from 'axios';
 
 export default {
   name: 'ArchiveView',
@@ -69,47 +70,31 @@ export default {
   data() {
     return {
       activeGallery: 0,
-      gallery: [
-        '/DSC_6174.jpg',
-        '/DSC_6510.jpg',
-        '/DSC_6760.JPG',
-        '/DSC_6174.jpg',
-        '/DSC_6510.jpg',
-        '/DSC_6760.JPG',
-        '/DSC_6174.jpg',
-        '/DSC_6510.jpg'
-      ],
-      timelinePoints: ['Jun 2025', 'Mar 2025', 'Oct 2024', 'Sep 2024', 'Feb 2024'],
-      blogs: [
-        {
-          date: '2024-07-09',
+      gallery: [],
+      timelinePoints: [],
+      blogs: []
+    }
+  },
+  async mounted() {
+    try {
+      const { data } = await axios.get('/api/works');
+      if (data.success && data.data.length) {
+        const works = data.data;
+        this.gallery = works.map(w => w.coverImage).filter(Boolean);
+        this.timelinePoints = works.map(w => {
+          const d = new Date(w.realDate || w.createdAt);
+          return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase();
+        });
+        this.blogs = works.map(w => ({
+          date: new Date(w.realDate || w.createdAt).toISOString().split('T')[0],
           category: 'Photography',
-          title: 'Beyond Light and Shadow',
-          desc: 'In an era where technology rapidly reshapes the way we capture the world, photography stands at a fascinating crossroads. Beyond the advances in equipment and software lie...',
-          image: '/DSC_6174.jpg'
-        },
-        {
-          date: '2024-05-22',
-          category: 'Personal',
-          title: 'Photography and Self-Expression',
-          desc: 'Finding your own perspective in a world saturated with images. It\'s not about what you see, but how you feel it. Exploring the internal landscapes through external triggers.',
-          image: '/DSC_6510.jpg'
-        },
-        {
-          date: '2024-03-15',
-          category: 'Travel',
-          title: 'The Nordic Silence',
-          desc: 'Measuring the world through the lens. From the busy streets of Tokyo to the silent plains of Iceland, every journey is a frame waiting to be captured.',
-          image: '/DSC_6760.JPG'
-        },
-        {
-          date: '2024-01-05',
-          category: 'Process',
-          title: 'From Shutter to Post-Process',
-          desc: 'The beauty of the entire photography process. Why post-processing is the second half of the creative act, not just fixing mistakes.',
-          image: '/DSC_6174.jpg'
-        }
-      ]
+          title: w.name,
+          desc: w.description || '',
+          image: w.coverImage || ''
+        }));
+      }
+    } catch (err) {
+      console.error('[Archive] 加载失败:', err);
     }
   }
 }
