@@ -249,6 +249,7 @@
 | GET | `/api/ai/inspire/session` | 查询历史会话 |
 | POST | `/api/ai/inspire/first-round` | 首次生成（3个备选方案） |
 | POST | `/api/ai/inspire/iterate` | 多轮迭代优化 |
+| POST | `/api/ai/analyze-composition` | 构图分析（流式输出） |
 
 #### GET `/api/ai/inspire/session`
 
@@ -313,6 +314,48 @@
 {
   "success": true,
   "updatedCandidate": { "optionId": 1, "title": "新标题", "caption": "新配文" }
+}
+```
+
+#### POST `/api/ai/analyze-composition`
+
+构图分析，使用流式输出（SSE）。
+
+**请求体：**
+```json
+{
+  "imageUrl": "图片URL",
+  "photoId": "照片ID（可选）"
+}
+```
+
+**响应（流式）：**
+```
+data: {"content": "主体"}
+data: {"content": "位于"}
+data: {"content": "黄金"}
+data: {"content": "分割"}
+data: {"content": "点"}
+data: [DONE]
+```
+
+**前端接收示例：**
+```javascript
+const response = await fetch('/api/ai/analyze-composition', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ imageUrl: '...' })
+})
+
+const reader = response.body.getReader()
+const decoder = new TextDecoder()
+
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  
+  const chunk = decoder.decode(value, { stream: true })
+  // 解析 data: 前缀的行
 }
 ```
 

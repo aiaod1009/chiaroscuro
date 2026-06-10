@@ -137,7 +137,18 @@
             <span class="grid-data-tag">Golden Ratio Optimized</span>
           </div>
 
-          <button class="btn-reanalyze">重新分析构图</button>
+          <div class="analysis-result" v-if="analysisResult">
+            <div class="analysis-text">{{ analysisResult }}</div>
+          </div>
+
+          <div class="analysis-loading" v-if="isAnalyzing">
+            <div class="spinner"></div>
+            <span>AI 正在分析构图...</span>
+          </div>
+
+          <button class="btn-reanalyze" @click="analyzeComposition" :disabled="isAnalyzing">
+            {{ isAnalyzing ? '分析中...' : '重新分析构图' }}
+          </button>
         </div>
 
       </div>
@@ -154,6 +165,8 @@ import axios from 'axios'
 const route = useRoute()
 const sliderPosition = ref(53)
 const photoData = ref(null)
+const analysisResult = ref('')
+const isAnalyzing = ref(false)
 
 const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
 
@@ -185,6 +198,55 @@ const fetchPhoto = async () => {
     if (data.success) photoData.value = data.data
   } catch (err) {
     console.error('加载照片详情失败:', err)
+  }
+}
+
+const analyzeComposition = async () => {
+  if (isAnalyzing.value) return
+  isAnalyzing.value = true
+  analysisResult.value = ''
+
+  try {
+    const response = await fetch('/api/ai/analyze-composition', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageUrl: imageSrc.value,
+        photoId: photoData.value?._id
+      })
+    })
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') continue
+
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.content) {
+              analysisResult.value += parsed.content
+            }
+          } catch (e) {
+            // 忽略解析错误
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('构图分析失败:', err)
+    analysisResult.value = '分析失败，请稍后重试'
+  } finally {
+    isAnalyzing.value = false
   }
 }
 
@@ -800,6 +862,46 @@ watch(() => route.params.id, fetchPhoto)
   background-color: #1a2232;
   border-color: #374151;
   color: #ffffff;
+}
+
+.btn-reanalyze:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 分析结果 */
+.analysis-result {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(31, 41, 55, 0.6);
+}
+
+.analysis-result::-webkit-scrollbar {
+  width: 4px;
+}
+
+.analysis-result::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.analysis-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #d1d5db;
+  white-space: pre-wrap;
+}
+
+.analysis-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 </style>

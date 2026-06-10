@@ -231,4 +231,101 @@ router.post('/inspire/iterate', async (req, res) => {
     res.status(500).json({ success: false, message: "服务器内部错误" });
   }
 });
+// ==========================================
+// 🔍 接口 3：构图分析（流式输出）
+// ==========================================
+router.post('/analyze-composition', async (req, res) => {
+  try {
+    const { imageUrl, photoId } = req.body;
+    if (!imageUrl) return res.status(400).json({ success: false, message: '缺少图片URL' });
+
+    // 设置 SSE 头部
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    const systemPrompt = `分析这张照片，200字以内，纯文本不要用#号。重点分析：
+1. 色彩（色调、搭配、氛围）
+2. 构图（主体位置、引导线、层次）
+3. 优点
+4. 缺点与改进建议`;
+
+    console.log('[构图分析] 开始请求智谱API, imageUrl:', imageUrl);
+
+    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.ZHIPU_AI_KEY}`
+      },
+      body: JSON.stringify({
+        model: "glm-4.6v-flash",
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: systemPrompt },
+              { type: 'image_url', image_url: { url: imageUrl } }
+            ]
+          }
+        ],
+        stream: true
+      })
+    });
+
+    console.log('[构图分析] 智谱响应状态:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[构图分析] 智谱API错误:', errorText);
+      res.write(`data: ${JSON.stringify({ error: 'AI分析请求失败' })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // 流式读取并转发给前端
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // 保留不完整的行
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data:')) continue;
+
+        const data = trimmed.slice(5).trim();
+        if (data === '[DONE]') {
+          res.write('data: [DONE]\n\n');
+          continue;
+        }
+
+        try {
+          const parsed = JSON.parse(data);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) {
+            res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          }
+        } catch (e) {
+          console.error('[构图分析] 解析错误:', e.message, 'data:', data);
+        }
+      }
+    }
+
+    console.log('[构图分析] 流式输出完成');
+    res.end();
+  } catch (error) {
+    console.error('[构图分析] 异常:', error);
+    res.write(`data: ${JSON.stringify({ error: '服务器内部错误: ' + error.message })}\n\n`);
+    res.end();
+  }
+});
+
 module.exports = router;
