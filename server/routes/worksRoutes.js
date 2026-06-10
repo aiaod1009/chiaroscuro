@@ -27,10 +27,12 @@ router.get('/', async (req, res) => {
   try {
     const portfolios = await Works.find().sort({ realDate: -1 }).lean();
 
-    // 补全封面：取每个作品集的第一张照片
+    // 补全封面：优先使用自定义封面，否则取第一张照片
     await Promise.all(portfolios.map(async (work) => {
-      const first = await findFirstPhoto(work._id)
-      work.coverImage = first?.imageUrl || ''
+      if (!work.coverImage) {
+        const first = await findFirstPhoto(work._id)
+        work.coverImage = first?.imageUrl || ''
+      }
     }))
 
     res.json({ success: true, data: portfolios });

@@ -34,7 +34,8 @@
           @click="goToPhotoDetail(item)" @delete="handleDelete(item._id)"
           @move="(targetId) => handleMove(item._id, targetId)"
           @copy="(targetId) => handleCopy(item._id, targetId)"
-          @removeAlbum="handleRemoveAlbum(item._id, route.params.id)" />
+          @removeAlbum="handleRemoveAlbum(item._id, route.params.id)"
+          @setCover="handleSetCover(item.imageUrl)" />
       </div>
     </main>
   </div>
@@ -143,6 +144,16 @@ const handleCopy = async (photoId, targetAlbumId) => {
     await axios.patch(`/api/photos/${photoId}/copy`, { targetAlbumId })
   } catch {
     alert('复制失败')
+  }
+}
+
+const handleSetCover = async (imageUrl) => {
+  try {
+    const workId = route.params.id
+    await axios.patch(`/api/works/${workId}`, { coverImage: imageUrl })
+    alert('封面设置成功')
+  } catch {
+    alert('封面设置失败')
   }
 }
 

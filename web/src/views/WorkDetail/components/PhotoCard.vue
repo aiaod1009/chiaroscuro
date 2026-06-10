@@ -29,6 +29,10 @@
             <div v-if="!works.length" class="move-empty">无其他作品集</div>
           </div>
           <div class="menu-divider"></div>
+          <div class="menu-item" @click.stop="$emit('setCover'); closeMenu()">
+            设为封面
+          </div>
+          <div class="menu-divider"></div>
           <div class="menu-item menu-item-delete" @click.stop="showDeleteModal = true; closeMenu()">
             删除
           </div>
@@ -77,7 +81,7 @@ const props = defineProps({
   albumCount: { type: Number, default: 1 }
 })
 
-defineEmits(['click', 'delete', 'move', 'copy', 'removeAlbum'])
+defineEmits(['click', 'delete', 'move', 'copy', 'removeAlbum', 'setCover'])
 
 const menuOpen = ref(false)
 const showMoveList = ref(false)

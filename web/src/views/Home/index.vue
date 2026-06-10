@@ -13,7 +13,7 @@
           <div class="pre-title">PHOTOGRAPHY / STORY / TIME</div>
           <h1 class="main-title" v-html="activeCollection.title"></h1>
           <p class="desc" v-html="activeCollection.desc"></p>
-          <button class="explore-btn">EXPLORE MY WORK &rarr;</button>
+          <button class="explore-btn" @click="$router.push('/archive')">EXPLORE MY WORK &rarr;</button>
         </div>
       </transition>
 
