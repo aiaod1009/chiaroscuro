@@ -8,41 +8,22 @@
           <FlipBook ref="flipBook" :images="images" @flip="currentIndex = $event" />
         </div>
         <div class="hero-right">
-          <div class="lyrics-scroll" ref="lyricsScroll">
-            <div v-for="(img, idx) in waterfallImages" :key="img.id || idx" :ref="el => { if (el) lyricRefs[idx] = el }"
-              class="lyric-item" :class="{ active: currentIndex === idx }">
-              <div class="lyric-title">{{ img.title || '未命名' }}</div>
-              <div class="lyric-caption">{{ img.caption || '' }}</div>
-            </div>
-          </div>
+          <LyricsPanel :images="waterfallImages" :currentIndex="currentIndex" @goToPage="goToPage" />
         </div>
       </div>
 
       <!-- 中间信息与控制器 -->
-      <div class="meta-section" v-if="images.length">
-        <div class="meta-left">
-          <div class="volume-label">CHRONICLE VOLUME</div>
-          <h1 class="gallery-title">{{ galleryTitle }}</h1>
-          <p class="gallery-desc">{{ galleryDesc }}</p>
-        </div>
-
-        <div class="meta-center">
-          <PlayerControls :isPlaying="isPlaying" @prev="prev" @next="next" @togglePlay="togglePlay" />
-        </div>
-
-        <div class="meta-right">
-          <div class="meta-block" v-if="exifPrimary">
-            <div class="m-label">EXIF DATA</div>
-            <div class="m-val-primary">{{ exifPrimary }}</div>
-            <div class="m-val-sec">{{ exifSecondary }}</div>
-          </div>
-          <div class="meta-block" v-if="locationDate">
-            <div class="m-label">LOCATION</div>
-            <div class="m-val-primary">{{ locationDate }}</div>
-            <div class="m-val-sec">{{ locationName }}</div>
-          </div>
-        </div>
-      </div>
+      <MetaSection v-if="images.length"
+        :title="galleryTitle"
+        :description="galleryDesc"
+        :isPlaying="isPlaying"
+        :exifPrimary="exifPrimary"
+        :exifSecondary="exifSecondary"
+        :locationDate="locationDate"
+        :locationName="locationName"
+        @prev="prev"
+        @next="next"
+        @togglePlay="togglePlay" />
 
       <!-- 瀑布流画廊长廊 -->
       <div class="waterfall-section">
@@ -68,11 +49,12 @@
 import axios from 'axios';
 import WaterfallCard from '../../components/WaterfallCard.vue';
 import FlipBook from './components/FlipBook.vue';
-import PlayerControls from './components/PlayerControls.vue';
+import MetaSection from './components/MetaSection.vue';
+import LyricsPanel from './components/LyricsPanel.vue';
 
 export default {
   name: 'GalleryDetail',
-  components: { WaterfallCard, FlipBook, PlayerControls },
+  components: { WaterfallCard, FlipBook, MetaSection, LyricsPanel },
   data() {
     return {
       currentIndex: 0,
@@ -86,17 +68,6 @@ export default {
       exifSecondary: '',
       locationDate: '',
       locationName: '',
-      lyricRefs: {},
-    }
-  },
-  watch: {
-    currentIndex(idx) {
-      this.$nextTick(() => {
-        const el = this.lyricRefs[idx];
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      });
     }
   },
   async mounted() {
@@ -145,6 +116,11 @@ export default {
 
     prev() {
       this.$refs.flipBook?.prev();
+    },
+
+    goToPage(idx) {
+      this.currentIndex = idx;
+      this.$refs.flipBook?.flip(idx * 2);
     },
 
     togglePlay() {
@@ -208,137 +184,6 @@ export default {
   display: flex;
   align-items: center;
   overflow: hidden;
-}
-
-.lyrics-scroll {
-  max-height: 55vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 1rem;
-  width: 100%;
-}
-
-.lyrics-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.lyrics-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-}
-
-.lyric-item {
-  padding: 1rem 0;
-  padding-left: 1.2rem;
-  transition: all 0.4s ease;
-  opacity: 0.4;
-  transform: scale(0.9);
-  transform-origin: center center;
-}
-
-.lyric-item.active {
-  opacity: 1;
-  transform: scale(1.15);
-}
-
-.lyric-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  color: #e2e8f0;
-}
-
-.lyric-item.active .lyric-title {
-  font-size: 1.4rem;
-  color: #fff;
-}
-
-.lyric-caption {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  line-height: 1.5;
-}
-
-.lyric-item.active .lyric-caption {
-  font-size: 1rem;
-  color: #e2e8f0;
-}
-
-/* 元数据与播放器区 */
-.meta-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: start;
-  gap: 2rem;
-  margin-top: 4rem;
-  padding-bottom: 5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.meta-left {
-  max-width: 100%;
-}
-
-.meta-center {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 2rem;
-  /* 向下微调以居中对齐左侧排版 */
-}
-
-/* 右侧 Meta */
-.meta-right {
-  display: flex;
-  justify-content: flex-end;
-  gap: 3rem;
-  padding-top: 2rem;
-}
-
-.volume-label {
-  color: #00e0c6;
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-}
-
-.gallery-title {
-  font-size: 2.5rem;
-  margin: 0 0 1rem;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.gallery-desc {
-  color: #a0aec0;
-  line-height: 1.8;
-  margin-bottom: 2.5rem;
-  font-size: 0.95rem;
-}
-
-.meta-block {
-  border-left: 1px solid #1e293b;
-  padding-left: 1.5rem;
-}
-
-.m-label {
-  font-size: 0.65rem;
-  color: #64748b;
-  letter-spacing: 1px;
-  margin-bottom: 0.8rem;
-}
-
-.m-val-primary {
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 0.4rem;
-}
-
-.m-val-sec {
-  font-size: 0.85rem;
-  color: #94a3b8;
 }
 
 /* 瀑布流长廊 */
