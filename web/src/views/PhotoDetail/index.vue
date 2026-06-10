@@ -86,7 +86,7 @@
       <div class="grid-right-col">
 
         <!-- EXIF 面板 -->
-        <ExifPanel :exifData="exifData" />
+        <ExifPanel :exifData="exifData" class="exif-gap" />
 
         <!-- 色彩配置 - 突出右侧 -->
         <div class="color-panel-outer">
@@ -102,31 +102,11 @@
         </div>
 
         <!-- AI 构图分析 -->
-        <div class="scifi-panel analysis-panel">
-          <div class="panel-header">
-            <div class="title-group">
-              <span class="panel-title-zh">AI 构图分析</span>
-              <span class="panel-title-en">Analysis</span>
-            </div>
-          </div>
-
-          <div class="radar-section">
-            <RadarChart :data="radarData" :size="180" />
-          </div>
-
-          <div class="analysis-result" v-if="analysisResult">
-            <div class="analysis-text">{{ analysisResult }}</div>
-          </div>
-
-          <div class="analysis-loading" v-if="isAnalyzing">
-            <div class="spinner"></div>
-            <span>AI 正在分析构图...</span>
-          </div>
-
-          <button class="btn-reanalyze" @click="analyzeComposition" :disabled="isAnalyzing">
-            {{ isAnalyzing ? '分析中...' : '重新分析构图' }}
-          </button>
-        </div>
+        <AnalysisPanel
+          :radarData="radarData"
+          :analysisResult="analysisResult"
+          :isAnalyzing="isAnalyzing"
+          @analyze="analyzeComposition" />
 
       </div>
 
@@ -139,8 +119,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ColorPalette from './components/ColorPalette.vue'
-import RadarChart from './components/RadarChart.vue'
 import ExifPanel from './components/ExifPanel.vue'
+import AnalysisPanel from './components/AnalysisPanel.vue'
 import { extractColors } from '../../utils/colorExtractor'
 
 const route = useRoute()
@@ -656,86 +636,25 @@ watch(() => route.params.id, fetchPhoto)
 }
 
 /* AI 构图分析 */
-.analysis-panel {
-  gap: 20px;
-}
-
 .color-panel {
   gap: 15px;
 }
 
 .color-panel-outer {
   position: absolute;
-  right: -160px;
+  right: -180px;
   top: 0;
-  width: 140px;
+  width: 160px;
 }
 
 .grid-right-col {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.radar-section {
-  display: flex;
-  justify-content: center;
+.exif-gap {
   margin-bottom: 16px;
-}
-
-.analysis-result {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 16px;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  border: 1px solid rgba(31, 41, 55, 0.6);
-}
-
-.analysis-result::-webkit-scrollbar {
-  width: 4px;
-}
-
-.analysis-result::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-}
-
-.analysis-text {
-  font-size: 13px;
-  line-height: 1.8;
-  color: #d1d5db;
-  white-space: pre-wrap;
-}
-
-.analysis-loading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  color: #6b7280;
-  font-size: 12px;
-}
-
-.btn-reanalyze {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  background-color: rgba(17, 24, 39, 0.8);
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-reanalyze:hover {
-  background-color: #1a2232;
-  border-color: #374151;
-  color: #ffffff;
-}
-
-.btn-reanalyze:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>
