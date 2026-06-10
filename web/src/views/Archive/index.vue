@@ -30,8 +30,8 @@
           <div class="timeline-item" v-for="(blog, index) in blogs" :key="index">
             <!-- 左侧：时间点 -->
             <div class="timeline-left">
-              <span class="time-label" :class="{ active: index === 0 }">{{ timelinePoints[index] }}</span>
-              <div class="dot" :class="{ active: index === 0 }"></div>
+              <span class="time-label">{{ timelinePoints[index] }}</span>
+              <div class="dot"></div>
             </div>
 
             <!-- 右侧：博客卡片 -->
@@ -238,6 +238,15 @@ export default {
 .dot.active {
   background-color: #e2e8f0;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+.timeline-item:hover .dot {
+  background-color: #e2e8f0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+.timeline-item:hover .time-label {
+  color: #e2e8f0;
 }
 
 .timeline-right {
