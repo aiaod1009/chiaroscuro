@@ -42,12 +42,12 @@ export default {
       isAnalyzing: false,
       analysisResult: '',
       radarData: [
-        { label: '构图平衡', value: 0 },
-        { label: '三分法则', value: 0 },
-        { label: '引导线', value: 0 },
-        { label: '主体突出', value: 0 },
-        { label: '景深层次', value: 0 },
-        { label: '色彩光影', value: 0 }
+        { label: '光影', value: 0 },
+        { label: '构图与线条', value: 0 },
+        { label: '色彩', value: 0 },
+        { label: '情感表达', value: 0 },
+        { label: '主题与叙事性', value: 0 },
+        { label: '技术呈现', value: 0 }
       ]
     }
   },

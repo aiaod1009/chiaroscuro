@@ -35,7 +35,7 @@
 
     <!-- 数据点 -->
     <circle
-      v-for="(item, i) in data"
+      v-for="(item, i) in animatedData"
       :key="'dot-'+i"
       :cx="getPoint(i, item.value / 100).x"
       :cy="getPoint(i, item.value / 100).y"
@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   data: { type: Array, required: true },
@@ -70,6 +70,38 @@ const props = defineProps({
   gridColor: { type: String, default: '#4a5568' },
   textColor: { type: String, default: '#a0aec0' }
 })
+
+// 动画用的本地数据，初始全 0
+const animatedValues = ref(props.data.map(() => 0))
+
+// 缓动函数：ease-out cubic
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3)
+
+// 动画时长
+const DURATION = 800
+
+// 监听 data 变化，触发动画
+watch(() => props.data, (newData) => {
+  const startValues = [...animatedValues.value]
+  const targetValues = newData.map(d => d.value)
+  const startTime = performance.now()
+
+  const animate = (now) => {
+    const elapsed = now - startTime
+    const progress = Math.min(elapsed / DURATION, 1)
+    const eased = easeOutCubic(progress)
+
+    animatedValues.value = startValues.map((start, i) =>
+      start + (targetValues[i] - start) * eased
+    )
+
+    if (progress < 1) {
+      requestAnimationFrame(animate)
+    }
+  }
+
+  requestAnimationFrame(animate)
+}, { deep: true })
 
 const center = computed(() => props.size / 2)
 const radius = computed(() => (props.size / 2) - 20)
@@ -93,10 +125,18 @@ const getGridPoints = (level) => {
 }
 
 const dataPoints = computed(() => {
-  return props.data.map((item, i) => {
-    const p = getPoint(i, item.value / 100)
+  return props.data.map((_, i) => {
+    const p = getPoint(i, animatedValues.value[i] / 100)
     return `${p.x},${p.y}`
   }).join(' ')
+})
+
+// 动画中的数据点圆圈位置
+const animatedData = computed(() => {
+  return props.data.map((item, i) => ({
+    ...item,
+    value: animatedValues.value[i]
+  }))
 })
 
 const getLabelPos = (index) => {
