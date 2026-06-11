@@ -15,7 +15,8 @@
         </div>
 
         <div class="timeline-right">
-          <img :src="blog.image" alt="blog cover" class="blog-img" />
+          <img v-if="blog.image" :src="blog.image" alt="blog cover" class="blog-img" />
+          <div v-else class="blog-img-placeholder">暂无图片</div>
           <div class="blog-content">
             <div class="blog-meta">
               <span class="date">{{ blog.date }}</span>
@@ -144,6 +145,19 @@ export default {
   margin-left: 40px;
 }
 
+.blog-img-placeholder {
+  width: 320px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .blog-img {
   width: 320px;
   height: 200px;
@@ -247,7 +261,8 @@ export default {
     gap: 1.5rem;
   }
 
-  .blog-img {
+  .blog-img,
+  .blog-img-placeholder {
     width: 100%;
     height: auto;
     aspect-ratio: 16/9;
