@@ -33,7 +33,13 @@ const PhotoSchema = new mongoose.Schema({
     lng: { type: Number }
   },
 
-  // 4. 内容叙事层
+  // 4. 色彩分析（前端提取后传入，避免每次刷新重新计算）
+  colors: [{
+    hex: { type: String },
+    name: { type: String }
+  }],
+
+  // 5. 内容叙事层
   title: { type: String, default: '' },
   caption: { type: String, default: '' },
 

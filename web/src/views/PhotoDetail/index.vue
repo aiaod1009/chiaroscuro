@@ -168,10 +168,15 @@ const fetchPhoto = async () => {
     const { data } = await axios.get(`/api/photos/${id}`)
     if (data.success) {
       photoData.value = data.data
-      // 提取图片主色
-      if (data.data.imageUrl) {
+      // 优先用数据库缓存的颜色，没有才提取
+      if (data.data.colors?.length) {
+        colorPalette.value = data.data.colors
+      } else if (data.data.imageUrl) {
         try {
-          colorPalette.value = await extractColors(data.data.imageUrl)
+          const extracted = await extractColors(data.data.imageUrl)
+          colorPalette.value = extracted
+          // 存回数据库，下次就不用再提取了
+          axios.patch(`/api/photos/${id}/colors`, { colors: extracted }).catch(() => {})
         } catch (e) {
           console.error('提取颜色失败:', e)
         }

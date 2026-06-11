@@ -84,6 +84,24 @@ router.patch('/:id', async (req, res) => {
 })
 
 // ==========================================
+// 🎨 缓存色彩分析结果
+// ==========================================
+router.patch('/:id/colors', async (req, res) => {
+  try {
+    const { colors } = req.body
+    const photo = await Photo.findByIdAndUpdate(
+      req.params.id,
+      { $set: { colors } },
+      { new: true }
+    )
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    res.json({ success: true, data: photo })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 🗑️ 删除照片
 // ==========================================
 router.delete('/:id', async (req, res) => {

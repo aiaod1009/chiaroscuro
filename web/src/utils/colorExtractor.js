@@ -1,10 +1,10 @@
 /**
  * 从图片提取主色调
  * @param {string} imageUrl - 图片URL
- * @param {number} colorCount - 提取颜色数量（默认5）
- * @returns {Promise<Array>} 颜色数组
+ * @param {number} colorCount - 提取颜色数量（默认10）
+ * @returns {Promise<Array<{hex: string, name: string}>>} 颜色数组
  */
-export async function extractColors(imageUrl, colorCount = 5) {
+export async function extractColors(imageUrl, colorCount = 10) {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -78,27 +78,55 @@ function quantize(pixels, colorCount) {
 }
 
 /**
- * 根据颜色值返回颜色名称
+ * 根据颜色值返回细分颜色名称
  */
 function getColorName({ r, g, b }) {
   const hsl = rgbToHsl(r, g, b)
+  const { h, s, l } = hsl
 
-  if (hsl.s < 10) {
-    if (hsl.l < 20) return '深黑'
-    if (hsl.l > 80) return '浅白'
-    return '灰色'
+  // 无饱和度 → 灰阶
+  if (s < 8) {
+    if (l < 10) return '漆黑'
+    if (l < 25) return '深灰'
+    if (l < 45) return '中灰'
+    if (l < 65) return '浅灰'
+    if (l < 85) return '银白'
+    return '纯白'
   }
 
-  const hue = hsl.h
-  if (hue < 15) return '红色'
-  if (hue < 45) return '橙色'
-  if (hue < 75) return '黄色'
-  if (hue < 150) return '绿色'
-  if (hue < 195) return '青色'
-  if (hue < 255) return '蓝色'
-  if (hue < 285) return '紫色'
-  if (hue < 330) return '粉色'
-  return '红色'
+  // 低饱和度 → 带灰调
+  if (s < 25) {
+    if (l < 30) return '暗灰调'
+    if (l > 70) return '雾灰调'
+    const prefix = l < 50 ? '暗' : '浅'
+    return prefix + getHueName(h) + '灰'
+  }
+
+  // 按亮度细分
+  const lightness = l < 30 ? '暗' : l > 70 ? '浅' : ''
+  return lightness + getHueName(h)
+}
+
+function getHueName(h) {
+  if (h < 10) return '红'
+  if (h < 25) return '橘红'
+  if (h < 40) return '橙'
+  if (h < 50) return '金橙'
+  if (h < 65) return '黄'
+  if (h < 80) return '柠檬黄'
+  if (h < 100) return '黄绿'
+  if (h < 130) return '草绿'
+  if (h < 155) return '翠绿'
+  if (h < 170) return '青绿'
+  if (h < 190) return '青'
+  if (h < 210) return '天蓝'
+  if (h < 235) return '蓝'
+  if (h < 255) return '宝蓝'
+  if (h < 275) return '蓝紫'
+  if (h < 295) return '紫'
+  if (h < 315) return '品红'
+  if (h < 335) return '玫红'
+  return '红'
 }
 
 function rgbToHsl(r, g, b) {
@@ -120,3 +148,4 @@ function rgbToHsl(r, g, b) {
 
   return { h: h * 360, s: s * 100, l: l * 100 }
 }
+
