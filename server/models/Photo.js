@@ -43,6 +43,16 @@ const PhotoSchema = new mongoose.Schema({
   title: { type: String, default: '' },
   caption: { type: String, default: '' },
 
+  // 6. AI 构图分析
+  analysis: {
+    radar: [{
+      label: { type: String },
+      value: { type: Number }
+    }],
+    result: { type: String, default: '' },
+    analyzedAt: { type: Date }
+  },
+
   createdAt: { type: Date, default: Date.now }
 });
 

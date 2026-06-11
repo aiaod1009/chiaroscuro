@@ -290,10 +290,11 @@ router.post('/analyze-composition', async (req, res) => {
       return;
     }
 
-    // 流式读取并转发给前端
+    // 流式读取并转发给前端，同时累积完整内容用于存库
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let fullContent = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -317,11 +318,34 @@ router.post('/analyze-composition', async (req, res) => {
           const parsed = JSON.parse(data);
           const content = parsed.choices?.[0]?.delta?.content;
           if (content) {
+            fullContent += content;
             res.write(`data: ${JSON.stringify({ content })}\n\n`);
           }
         } catch (e) {
           console.error('[构图分析] 解析错误:', e.message, 'data:', data);
         }
+      }
+    }
+
+    // 解析并存库
+    if (photoId && fullContent.includes('---')) {
+      try {
+        const parts = fullContent.split('---');
+        const jsonPart = parts[0].trim();
+        const textPart = parts.slice(1).join('---').trim();
+        const scoreData = JSON.parse(jsonPart);
+
+        if (scoreData.radar) {
+          const radar = Object.entries(scoreData.radar).map(([label, value]) => ({ label, value }));
+          await Photo.findByIdAndUpdate(photoId, {
+            'analysis.radar': radar,
+            'analysis.result': textPart,
+            'analysis.analyzedAt': new Date()
+          });
+          console.log('[构图分析] 已存入数据库, photoId:', photoId);
+        }
+      } catch (e) {
+        console.error('[构图分析] 存库失败:', e.message);
       }
     }
 

@@ -8,7 +8,7 @@
     </div>
 
     <div class="radar-section">
-      <RadarChart :data="radarData" :size="180" />
+      <RadarChart :data="radarData" :size="200" />
     </div>
 
     <div class="analysis-result" v-if="analysisResult">
@@ -33,7 +33,9 @@ export default {
   name: 'AnalysisPanel',
   components: { RadarChart },
   props: {
-    imageSrc: { type: String, required: true }
+    imageSrc: { type: String, required: true },
+    photoId: { type: String, default: null },
+    cachedAnalysis: { type: Object, default: null }
   },
   data() {
     return {
@@ -49,17 +51,31 @@ export default {
       ]
     }
   },
+  watch: {
+    cachedAnalysis: {
+      immediate: true,
+      handler(val) {
+        if (val?.result) {
+          this.analysisResult = val.result
+        }
+        if (val?.radar?.length) {
+          this.radarData = val.radar
+        }
+      }
+    }
+  },
   methods: {
     async analyze() {
       if (this.isAnalyzing) return
       this.isAnalyzing = true
       this.analysisResult = ''
+      this.radarData = this.radarData.map(d => ({ ...d, value: 0 }))
 
       try {
         const response = await fetch('/api/ai/analyze-composition', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: this.imageSrc })
+          body: JSON.stringify({ imageUrl: this.imageSrc, photoId: this.photoId })
         })
 
         const reader = response.body.getReader()
@@ -156,6 +172,7 @@ export default {
 .radar-section {
   display: flex;
   justify-content: center;
+  margin-bottom: 8px;
 }
 
 .analysis-result {

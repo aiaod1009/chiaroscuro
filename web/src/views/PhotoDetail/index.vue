@@ -77,7 +77,7 @@
         <ColorPalette :colors="colorPalette" />
 
         <!-- AI 构图分析 -->
-        <AnalysisPanel :imageSrc="imageSrc" />
+        <AnalysisPanel :imageSrc="imageSrc" :photoId="photoData?._id" :cachedAnalysis="photoData?.analysis" />
 
       </div>
 
@@ -160,7 +160,7 @@ watch(() => route.params.id, fetchPhoto)
   background-color: #0d1117;
   color: #adb5bd;
   margin-top: -5rem;
-  padding-top: 8rem;
+  padding-top: 6rem;
   padding-bottom: 5rem;
   padding-left: 32px;
   padding-right: 32px;

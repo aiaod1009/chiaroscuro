@@ -1,5 +1,5 @@
 <template>
-  <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`">
+  <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" style="overflow: visible">
     <!-- 背景网格 -->
     <g v-for="(level, i) in 5" :key="'grid-'+i">
       <polygon
@@ -64,7 +64,7 @@ import { computed } from 'vue'
 
 const props = defineProps({
   data: { type: Array, required: true },
-  size: { type: Number, default: 150 },
+  size: { type: Number, default: 200 },
   lineColor: { type: String, default: '#3ec1d3' },
   areaColor: { type: String, default: '#3ec1d3' },
   gridColor: { type: String, default: '#4a5568' },
