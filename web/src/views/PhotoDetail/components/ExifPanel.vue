@@ -85,7 +85,7 @@ export default {
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .exif-value {

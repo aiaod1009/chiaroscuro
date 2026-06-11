@@ -21,7 +21,7 @@
     </div>
 
     <button class="btn-reanalyze" @click="$emit('analyze')" :disabled="isAnalyzing">
-      {{ isAnalyzing ? '分析中...' : '重新分析构图' }}
+      {{ isAnalyzing ? '分析中...' : '分析构图' }}
     </button>
   </div>
 </template>
@@ -125,7 +125,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-reanalyze {

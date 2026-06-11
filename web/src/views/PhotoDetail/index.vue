@@ -102,10 +102,7 @@
         </div>
 
         <!-- AI 构图分析 -->
-        <AnalysisPanel
-          :radarData="radarData"
-          :analysisResult="analysisResult"
-          :isAnalyzing="isAnalyzing"
+        <AnalysisPanel :radarData="radarData" :analysisResult="analysisResult" :isAnalyzing="isAnalyzing"
           @analyze="analyzeComposition" />
 
       </div>
@@ -176,7 +173,7 @@ const fetchPhoto = async () => {
           const extracted = await extractColors(data.data.imageUrl)
           colorPalette.value = extracted
           // 存回数据库，下次就不用再提取了
-          axios.patch(`/api/photos/${id}/colors`, { colors: extracted }).catch(() => {})
+          axios.patch(`/api/photos/${id}/colors`, { colors: extracted }).catch(() => { })
         } catch (e) {
           console.error('提取颜色失败:', e)
         }
@@ -419,7 +416,6 @@ watch(() => route.params.id, fetchPhoto)
   letter-spacing: 0.1em;
   color: #22d3ee;
   text-transform: uppercase;
-  transform: translateX(-50%);
   box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
 }
 

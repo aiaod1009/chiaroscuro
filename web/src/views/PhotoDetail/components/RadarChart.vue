@@ -7,7 +7,7 @@
         fill="none"
         :stroke="gridColor"
         stroke-width="0.5"
-        :opacity="0.3"
+        :opacity="0.5"
       />
     </g>
 
@@ -21,14 +21,14 @@
       :y2="getPoint(i, 1).y"
       :stroke="gridColor"
       stroke-width="0.5"
-      :opacity="0.3"
+      :opacity="0.5"
     />
 
     <!-- 数据区域 -->
     <polygon
       :points="dataPoints"
       :fill="areaColor"
-      :fill-opacity="0.2"
+      :fill-opacity="0.35"
       :stroke="lineColor"
       stroke-width="2"
     />
@@ -67,8 +67,8 @@ const props = defineProps({
   size: { type: Number, default: 150 },
   lineColor: { type: String, default: '#3ec1d3' },
   areaColor: { type: String, default: '#3ec1d3' },
-  gridColor: { type: String, default: '#333' },
-  textColor: { type: String, default: '#888' }
+  gridColor: { type: String, default: '#4a5568' },
+  textColor: { type: String, default: '#a0aec0' }
 })
 
 const center = computed(() => props.size / 2)

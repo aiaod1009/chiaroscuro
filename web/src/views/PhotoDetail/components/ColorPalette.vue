@@ -1,16 +1,8 @@
 <template>
   <div class="color-palette">
-    <div
-      v-for="(color, index) in colors"
-      :key="index"
-      class="color-item"
-    >
-      <div
-        class="swatch"
-        :style="{ backgroundColor: color.hex }"
-        :title="'点击复制 ' + color.hex"
-        @click="copyHex(color.hex, index)"
-      >
+    <div v-for="(color, index) in colors" :key="index" class="color-item">
+      <div class="swatch" :style="{ backgroundColor: color.hex }" :title="'点击复制 ' + color.hex"
+        @click="copyHex(color.hex, index)">
         <span v-if="copiedIndex === index" class="copied-tip">Copied!</span>
       </div>
       <div class="color-info">
@@ -40,7 +32,7 @@ export default {
       navigator.clipboard.writeText(hex).then(() => {
         this.copiedIndex = index
         setTimeout(() => { this.copiedIndex = -1 }, 1000)
-      }).catch(() => {})
+      }).catch(() => { })
     }
   }
 }
@@ -99,7 +91,7 @@ export default {
 }
 
 .color-hex {
-  font-size: 10px;
+  font-size: 12px;
   color: #6b7280;
   white-space: nowrap;
   letter-spacing: 0.03em;
