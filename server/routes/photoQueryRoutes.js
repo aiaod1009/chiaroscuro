@@ -135,6 +135,41 @@ router.get('/gallery/:mapCode', async (req, res) => {
 });
 
 // ==========================================
+// 🔀 获取照片的所有版本（原图 + 衍生版本）
+// ==========================================
+router.get('/:id/versions', async (req, res) => {
+  try {
+    const photo = await Photo.findById(req.params.id).lean()
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+
+    // 找到原图：如果当前照片有 parentId，原图就是 parentId 指向的那张；否则自己就是原图
+    const originalId = photo.parentId || photo._id
+    const original = photo.parentId
+      ? await Photo.findById(photo.parentId).lean()
+      : photo
+
+    // 查所有衍生版本（排除原图自己）
+    const versions = await Photo.find({ parentId: originalId }).sort({ createdAt: -1 }).lean()
+
+    res.json({
+      success: true,
+      data: {
+        original: original ? { _id: original._id, imageUrl: original.imageUrl, versionName: original.versionName || '原图', fileName: original.fileName } : null,
+        versions: versions.map(v => ({
+          _id: v._id,
+          imageUrl: v.imageUrl,
+          versionName: v.versionName || '版本',
+          fileName: v.fileName
+        }))
+      }
+    })
+  } catch (error) {
+    console.error('获取版本列表失败:', error)
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 📷 获取单张照片详情（含 EXIF）
 // ==========================================
 router.get('/:id', async (req, res) => {

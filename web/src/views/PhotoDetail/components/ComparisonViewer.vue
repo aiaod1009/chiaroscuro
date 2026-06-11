@@ -1,11 +1,11 @@
 <template>
   <div class="comparison-viewer">
-    <img :src="imageSrc" alt="AI Version" class="image-layer" />
-    <div class="badge badge-right">AI VERSION - CINEMATIC 04</div>
+    <img :src="versionSrc" alt="AI Version" class="image-layer" />
+    <div class="badge badge-right">AI VERSION</div>
 
     <div class="original-layer-wrapper"
       :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
-      <img :src="imageSrc" alt="Original Input" class="image-layer original-img" />
+      <img :src="originalSrc" alt="Original Input" class="image-layer original-img" />
       <div class="badge badge-left">ORIGINAL - RAW INPUT</div>
     </div>
 
@@ -21,7 +21,8 @@
 export default {
   name: 'ComparisonViewer',
   props: {
-    imageSrc: { type: String, required: true }
+    originalSrc: { type: String, required: true },
+    versionSrc: { type: String, required: true }
   },
   data() {
     return {

@@ -18,68 +18,24 @@
 
       <div class="grid-left-col">
 
-        <ComparisonViewer :imageSrc="imageSrc" />
+        <ComparisonViewer :originalSrc="originalSrc" :versionSrc="activeVersionSrc" />
 
-        <div class="versions-section">
-          <div class="section-title-bar">
-            <div class="title-group">
-              <span class="title-zh">版本记录</span>
-              <span class="title-en">Versions</span>
-            </div>
-            <div class="carousel-arrows">
-              <button class="arrow-btn">&lt;</button>
-              <button class="arrow-btn">&gt;</button>
-            </div>
-          </div>
-
-          <div class="cards-list">
-            <div class="version-card active-card">
-              <div class="card-thumb empty-thumb">RAW THUMB</div>
-              <div class="card-title-zh">原图</div>
-              <div class="card-title-en">Original Raw</div>
-            </div>
-
-            <div class="version-card">
-              <div class="card-thumb">
-                <img :src="imageSrc" />
-              </div>
-              <div class="card-title-zh">版本 04</div>
-              <div class="card-title-en">Active Selection</div>
-            </div>
-
-            <div class="version-card">
-              <div class="card-thumb grayscale-thumb">
-                <img :src="imageSrc" />
-              </div>
-              <div class="card-title-zh">版本 03</div>
-              <div class="card-title-en">Cinematic Noir</div>
-            </div>
-
-            <div class="version-card rendering-card">
-              <div class="card-thumb loading-thumb">
-                <div class="spinner"></div>
-                <span class="spinner-text">Rendering</span>
-              </div>
-              <div class="card-title-zh">版本 05</div>
-              <div class="card-title-en">AI Generating...</div>
-            </div>
-          </div>
-        </div>
+        <VersionCards
+          :originalPhoto="originalPhoto"
+          :versions="versions"
+          :activeVersionId="activeVersionId"
+          @select="activeVersionId = $event"
+        />
 
       </div>
 
-      <div class="grid-right-col">
-
-        <!-- EXIF 面板 -->
-        <ExifPanel :exifData="exifData" class="exif-gap" />
-
-        <!-- 色彩配置 - 突出右侧 -->
-        <ColorPalette :colors="colorPalette" />
-
-        <!-- AI 构图分析 -->
-        <AnalysisPanel :imageSrc="imageSrc" :photoId="photoData?._id" :cachedAnalysis="photoData?.analysis" />
-
-      </div>
+      <DetailPanels
+        :imageSrc="originalSrc"
+        :photoId="photoData?._id"
+        :exifData="exifData"
+        :colors="colorPalette"
+        :cachedAnalysis="photoData?.analysis"
+      />
 
     </div>
   </div>
@@ -90,16 +46,26 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import ComparisonViewer from './components/ComparisonViewer.vue'
-import ColorPalette from './components/ColorPalette.vue'
-import ExifPanel from './components/ExifPanel.vue'
-import AnalysisPanel from './components/AnalysisPanel.vue'
+import VersionCards from './components/VersionCards.vue'
+import DetailPanels from './components/DetailPanels.vue'
 import { extractColors } from '../../utils/colorExtractor'
 
 const route = useRoute()
 const photoData = ref(null)
 const colorPalette = ref([])
+const originalPhoto = ref(null)
+const versions = ref([])
+const activeVersionId = ref(null)
 
-const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
+// 原图地址
+const originalSrc = computed(() => originalPhoto.value?.imageUrl || photoData.value?.imageUrl || '/DSC_6510.jpg')
+
+// 当前选中的版本地址，没选就用原图
+const activeVersionSrc = computed(() => {
+  if (!activeVersionId.value) return originalSrc.value
+  const v = versions.value.find(v => v._id === activeVersionId.value)
+  return v?.imageUrl || originalSrc.value
+})
 
 const exifData = computed(() => {
   const exif = photoData.value?.exif
@@ -141,9 +107,26 @@ const fetchPhoto = async () => {
           console.error('提取颜色失败:', e)
         }
       }
+      // 加载版本列表
+      fetchVersions(id)
     }
   } catch (err) {
     console.error('加载照片详情失败:', err)
+  }
+}
+
+const fetchVersions = async (id) => {
+  try {
+    const { data } = await axios.get(`/api/photos/${id}/versions`)
+    if (data.success) {
+      originalPhoto.value = data.data.original
+      versions.value = data.data.versions
+      // 默认选中当前正在看的版本，如果当前是原图则不选
+      const currentIsOriginal = !photoData.value?.parentId
+      activeVersionId.value = currentIsOriginal ? null : id
+    }
+  } catch (err) {
+    console.error('加载版本列表失败:', err)
   }
 }
 
@@ -247,184 +230,5 @@ watch(() => route.params.id, fetchPhoto)
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-/* ==========================================================================
-   3. 版本历史卡片 (Versions Carousel)
-   ========================================================================== */
-.versions-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.section-title-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.title-group {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.title-zh {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.title-en {
-  font-size: 12px;
-  color: #6b7280;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  text-transform: uppercase;
-}
-
-.carousel-arrows {
-  display: flex;
-  gap: 8px;
-}
-
-.arrow-btn {
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background-color: #111827;
-  border: 1px solid #1f2937;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-}
-
-.arrow-btn:hover {
-  border-color: #374151;
-  color: #ffffff;
-}
-
-.cards-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 640px) {
-  .cards-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.version-card {
-  background-color: rgba(17, 24, 39, 0.3);
-  border: 1px solid rgba(31, 41, 55, 0.8);
-  padding: 8px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.version-card:hover {
-  border-color: #374151;
-}
-
-/* 激活选中的原图卡片样式 */
-.active-card {
-  background-color: rgba(17, 24, 39, 0.5);
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.2);
-}
-
-.card-thumb {
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #1f2937;
-  margin-bottom: 8px;
-}
-
-.card-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.empty-thumb {
-  background: linear-gradient(135deg, #374151, #111827);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: #4b5563;
-}
-
-.grayscale-thumb img {
-  filter: saturate(50%);
-}
-
-.card-title-zh {
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.card-title-en {
-  font-size: 9px;
-  color: #6b7280;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-/* 渲染状态卡片 */
-.rendering-card {
-  opacity: 0.6;
-}
-
-.loading-thumb {
-  background-color: #030712;
-  border: 1px solid #1f2937;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #4b5563;
-  border-top-color: #22d3ee;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.spinner-text {
-  font-size: 8px;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transform: scale(0.9);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 右侧栏布局 */
-.grid-right-col {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.exif-gap {
-  margin-bottom: 16px;
 }
 </style>
