@@ -29,12 +29,19 @@ export default {
 </script>
 
 <style scoped>
-.exif-panel {
+.scifi-panel {
   background-color: rgba(18, 24, 36, 0.6);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(31, 41, 55, 0.8);
   border-radius: 24px;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.exif-panel {
+  justify-content: space-between;
+  min-height: 340px;
 }
 
 .panel-header {

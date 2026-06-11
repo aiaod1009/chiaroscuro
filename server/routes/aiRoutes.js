@@ -245,11 +245,17 @@ router.post('/analyze-composition', async (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
 
-    const systemPrompt = `分析这张照片，200字以内，纯文本不要用#号。重点分析：
-1. 色彩（色调、搭配、氛围）
-2. 构图（主体位置、引导线、层次）
-3. 优点
-4. 缺点与改进建议`;
+    const systemPrompt = `分析这张照片，严格按照以下格式输出，不要有任何多余内容：
+
+第一步：先输出一个 JSON 对象，包含 6 个构图维度的评分（0-100）：
+{"radar":{"构图平衡":分数,"三分法则":分数,"引导线":分数,"主体突出":分数,"景深层次":分数,"色彩光影":分数}}
+
+第二步：输出三个减号作为分隔符：
+---
+
+第三步：输出 200 字以内的纯文本分析，不要用#号，重点分析色彩、构图、优缺点。
+
+注意：JSON 和分析文本之间必须用 --- 分隔，不要加任何其他内容。`;
 
     console.log('[构图分析] 开始请求智谱API, imageUrl:', imageUrl);
 

@@ -1,13 +1,23 @@
 <template>
-  <div class="color-palette">
-    <div v-for="(color, index) in colors" :key="index" class="color-item">
-      <div class="swatch" :style="{ backgroundColor: color.hex }" :title="'点击复制 ' + color.hex"
-        @click="copyHex(color.hex, index)">
-        <span v-if="copiedIndex === index" class="copied-tip">Copied!</span>
+  <div class="color-panel-outer">
+    <div class="scifi-panel color-panel">
+      <div class="panel-header">
+        <div class="title-group">
+          <span class="panel-title-zh">色彩配置</span>
+          <span class="panel-title-en">Color</span>
+        </div>
       </div>
-      <div class="color-info">
-        <span class="color-name">{{ color.name }}</span>
-        <span class="color-hex">{{ color.hex }}</span>
+      <div class="color-list">
+        <div v-for="(color, index) in colors" :key="index" class="color-item">
+          <div class="swatch" :style="{ backgroundColor: color.hex }" :title="'点击复制 ' + color.hex"
+            @click="copyHex(color.hex, index)">
+            <span v-if="copiedIndex === index" class="copied-tip">Copied!</span>
+          </div>
+          <div class="color-info">
+            <span class="color-name">{{ color.name }}</span>
+            <span class="color-hex">{{ color.hex }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -39,7 +49,54 @@ export default {
 </script>
 
 <style scoped>
-.color-palette {
+.color-panel-outer {
+  position: absolute;
+  right: -180px;
+  top: 0;
+  width: 160px;
+}
+
+.scifi-panel {
+  background-color: rgba(18, 24, 36, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(31, 41, 55, 0.8);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.color-panel {
+  gap: 15px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.panel-title-zh {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.panel-title-en {
+  font-size: 12px;
+  color: #6b7280;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-transform: uppercase;
+}
+
+.color-list {
   display: flex;
   flex-direction: column;
   gap: 12px;

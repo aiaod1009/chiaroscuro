@@ -18,22 +18,7 @@
 
       <div class="grid-left-col">
 
-        <div class="comparison-viewer">
-          <img :src="imageSrc" alt="AI Version" class="image-layer" />
-          <div class="badge badge-right">AI VERSION - CINEMATIC 04</div>
-
-          <div class="original-layer-wrapper"
-            :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
-            <img :src="imageSrc" alt="Original Input" class="image-layer original-img" />
-            <div class="badge badge-left">ORIGINAL - RAW INPUT</div>
-          </div>
-
-          <div class="slider-handle" :style="{ left: `${sliderPosition}%` }">
-            <div class="handle-button">Unfold</div>
-          </div>
-
-          <input type="range" min="0" max="100" v-model="sliderPosition" class="hidden-range-input" />
-        </div>
+        <ComparisonViewer :imageSrc="imageSrc" />
 
         <div class="versions-section">
           <div class="section-title-bar">
@@ -89,21 +74,10 @@
         <ExifPanel :exifData="exifData" class="exif-gap" />
 
         <!-- 色彩配置 - 突出右侧 -->
-        <div class="color-panel-outer">
-          <div class="scifi-panel color-panel">
-            <div class="panel-header">
-              <div class="title-group">
-                <span class="panel-title-zh">色彩配置</span>
-                <span class="panel-title-en">Color</span>
-              </div>
-            </div>
-            <ColorPalette :colors="colorPalette" />
-          </div>
-        </div>
+        <ColorPalette :colors="colorPalette" />
 
         <!-- AI 构图分析 -->
-        <AnalysisPanel :radarData="radarData" :analysisResult="analysisResult" :isAnalyzing="isAnalyzing"
-          @analyze="analyzeComposition" />
+        <AnalysisPanel :imageSrc="imageSrc" />
 
       </div>
 
@@ -115,26 +89,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import ComparisonViewer from './components/ComparisonViewer.vue'
 import ColorPalette from './components/ColorPalette.vue'
 import ExifPanel from './components/ExifPanel.vue'
 import AnalysisPanel from './components/AnalysisPanel.vue'
 import { extractColors } from '../../utils/colorExtractor'
 
 const route = useRoute()
-const sliderPosition = ref(53)
 const photoData = ref(null)
-const analysisResult = ref('')
-const isAnalyzing = ref(false)
 const colorPalette = ref([])
-
-const radarData = ref([
-  { label: '黄金比例', value: 86 },
-  { label: '三分构图', value: 78 },
-  { label: '对称平衡', value: 64 },
-  { label: '视觉引导', value: 92 },
-  { label: '层次感', value: 88 },
-  { label: '空间感', value: 76 }
-])
 
 const imageSrc = computed(() => photoData.value?.imageUrl || route.query.src || '/DSC_6510.jpg')
 
@@ -181,55 +144,6 @@ const fetchPhoto = async () => {
     }
   } catch (err) {
     console.error('加载照片详情失败:', err)
-  }
-}
-
-const analyzeComposition = async () => {
-  if (isAnalyzing.value) return
-  isAnalyzing.value = true
-  analysisResult.value = ''
-
-  try {
-    const response = await fetch('/api/ai/analyze-composition', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageUrl: imageSrc.value,
-        photoId: photoData.value?._id
-      })
-    })
-
-    const reader = response.body.getReader()
-    const decoder = new TextDecoder()
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      const chunk = decoder.decode(value, { stream: true })
-      const lines = chunk.split('\n').filter(line => line.trim() !== '')
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim()
-          if (data === '[DONE]') continue
-
-          try {
-            const parsed = JSON.parse(data)
-            if (parsed.content) {
-              analysisResult.value += parsed.content
-            }
-          } catch (e) {
-            // 忽略解析错误
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error('构图分析失败:', err)
-    analysisResult.value = '分析失败，请稍后重试'
-  } finally {
-    isAnalyzing.value = false
   }
 }
 
@@ -333,102 +247,6 @@ watch(() => route.params.id, fetchPhoto)
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-/* ==========================================================================
-   2. 图片对比核心组件样式 (Comparison Split Viewer)
-   ========================================================================== */
-.comparison-viewer {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 24px;
-  overflow: hidden;
-  border: 1px solid #1f2937;
-  background-color: #111827;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-.image-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.original-layer-wrapper {
-  position: absolute;
-  inset: 0;
-  user-select: none;
-  pointer-events: none;
-}
-
-.original-img {
-  filter: grayscale(100%) brightness(70%);
-}
-
-.badge {
-  position: absolute;
-  top: 16px;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  padding: 6px 12px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  color: #d1d5db;
-}
-
-.badge-left {
-  left: 16px;
-}
-
-.badge-right {
-  right: 16px;
-}
-
-/* 拖拽中心中轴 */
-.slider-handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background-color: #22d3ee;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.handle-button {
-  width: 48px;
-  height: 48px;
-  border-radius: 50px;
-  background-color: #083344;
-  border: 2px solid #22d3ee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: #22d3ee;
-  text-transform: uppercase;
-  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
-}
-
-/* 隐藏的原生拖动滑块覆盖整张图 */
-.hidden-range-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: ew-resize;
-  z-index: 10;
-  margin: 0;
 }
 
 /* ==========================================================================
@@ -598,56 +416,7 @@ watch(() => route.params.id, fetchPhoto)
   }
 }
 
-/* ==========================================================================
-   4. 右侧科幻面板样式 (Panels & EXIF & Analysis)
-   ========================================================================== */
-.scifi-panel {
-  background-color: rgba(18, 24, 36, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 41, 55, 0.8);
-  border-radius: 24px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.exif-panel {
-  justify-content: space-between;
-  min-height: 340px;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.panel-title-zh {
-  font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.05em;
-}
-
-.panel-title-en {
-  font-size: 12px;
-  color: #6b7280;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  text-transform: uppercase;
-}
-
-/* AI 构图分析 */
-.color-panel {
-  gap: 15px;
-}
-
-.color-panel-outer {
-  position: absolute;
-  right: -180px;
-  top: 0;
-  width: 160px;
-}
-
+/* 右侧栏布局 */
 .grid-right-col {
   position: relative;
   display: flex;

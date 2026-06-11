@@ -20,7 +20,7 @@
       <span>AI 正在分析构图...</span>
     </div>
 
-    <button class="btn-reanalyze" @click="$emit('analyze')" :disabled="isAnalyzing">
+    <button class="btn-reanalyze" @click="analyze" :disabled="isAnalyzing">
       {{ isAnalyzing ? '分析中...' : '分析构图' }}
     </button>
   </div>
@@ -33,11 +33,88 @@ export default {
   name: 'AnalysisPanel',
   components: { RadarChart },
   props: {
-    radarData: { type: Array, default: () => [] },
-    analysisResult: { type: String, default: '' },
-    isAnalyzing: { type: Boolean, default: false }
+    imageSrc: { type: String, required: true }
   },
-  emits: ['analyze']
+  data() {
+    return {
+      isAnalyzing: false,
+      analysisResult: '',
+      radarData: [
+        { label: '构图平衡', value: 0 },
+        { label: '三分法则', value: 0 },
+        { label: '引导线', value: 0 },
+        { label: '主体突出', value: 0 },
+        { label: '景深层次', value: 0 },
+        { label: '色彩光影', value: 0 }
+      ]
+    }
+  },
+  methods: {
+    async analyze() {
+      if (this.isAnalyzing) return
+      this.isAnalyzing = true
+      this.analysisResult = ''
+
+      try {
+        const response = await fetch('/api/ai/analyze-composition', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: this.imageSrc })
+        })
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let fullContent = ''
+        let scoresParsed = false
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim()
+              if (data === '[DONE]') continue
+
+              try {
+                const parsed = JSON.parse(data)
+                if (parsed.content) {
+                  fullContent += parsed.content
+
+                  if (!scoresParsed && fullContent.includes('---')) {
+                    const parts = fullContent.split('---')
+                    const jsonPart = parts[0].trim()
+                    try {
+                      const scoreData = JSON.parse(jsonPart)
+                      if (scoreData.radar) {
+                        this.radarData = Object.entries(scoreData.radar).map(([label, value]) => ({ label, value }))
+                        scoresParsed = true
+                      }
+                    } catch (e) {
+                      // JSON 还没完整，继续累积
+                    }
+                    this.analysisResult = parts.slice(1).join('---').trim()
+                  } else if (scoresParsed) {
+                    this.analysisResult = fullContent.split('---').slice(1).join('---').trim()
+                  }
+                }
+              } catch (e) {
+                // 忽略解析错误
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('构图分析失败:', err)
+        this.analysisResult = '分析失败，请稍后重试'
+      } finally {
+        this.isAnalyzing = false
+      }
+    }
+  }
 }
 </script>
 
