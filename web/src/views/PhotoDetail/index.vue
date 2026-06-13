@@ -5,13 +5,15 @@
         <span class="section-tag">Section 03</span>
         <div class="divider-line"></div>
       </div>
-      <button class="upload-btn">
+      <button class="upload-btn" @click="uploadMasterRef?.open()">
         <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
-        <span>上传图片 UPLOAD RAW</span>
+        <span>上传成片 UPLOAD MASTER</span>
       </button>
+
+      <UploadMaster ref="uploadMasterRef" :parentId="originalPhoto?._id" @uploaded="onMasterUploaded" />
     </header>
 
     <div class="scifi-grid">
@@ -20,22 +22,13 @@
 
         <ComparisonViewer :originalSrc="originalSrc" :versionSrc="activeVersionSrc" />
 
-        <VersionCards
-          :originalPhoto="originalPhoto"
-          :versions="versions"
-          :activeVersionId="activeVersionId"
-          @select="activeVersionId = $event"
-        />
+        <VersionCards :originalPhoto="originalPhoto" :versions="versions" :activeVersionId="activeVersionId"
+          @select="activeVersionId = $event" />
 
       </div>
 
-      <DetailPanels
-        :imageSrc="originalSrc"
-        :photoId="photoData?._id"
-        :exifData="exifData"
-        :colors="colorPalette"
-        :cachedAnalysis="photoData?.analysis"
-      />
+      <DetailPanels :imageSrc="originalSrc" :photoId="photoData?._id" :exifData="exifData" :colors="colorPalette"
+        :cachedAnalysis="photoData?.analysis" />
 
     </div>
   </div>
@@ -48,6 +41,7 @@ import axios from 'axios'
 import ComparisonViewer from './components/ComparisonViewer.vue'
 import VersionCards from './components/VersionCards.vue'
 import DetailPanels from './components/DetailPanels.vue'
+import UploadMaster from './components/UploadMaster.vue'
 import { extractColors } from '../../utils/colorExtractor'
 
 const route = useRoute()
@@ -56,6 +50,11 @@ const colorPalette = ref([])
 const originalPhoto = ref(null)
 const versions = ref([])
 const activeVersionId = ref(null)
+const uploadMasterRef = ref(null)
+
+const onMasterUploaded = () => {
+  fetchVersions(route.params.id)
+}
 
 // 原图地址
 const originalSrc = computed(() => originalPhoto.value?.imageUrl || photoData.value?.imageUrl || '/DSC_6510.jpg')
@@ -175,7 +174,7 @@ watch(() => route.params.id, fetchPhoto)
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #22d3ee;
+  color: #93c5fd;
   text-transform: uppercase;
 }
 
