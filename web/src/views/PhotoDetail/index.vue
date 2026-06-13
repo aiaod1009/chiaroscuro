@@ -20,7 +20,7 @@
 
       <div class="grid-left-col">
 
-        <ComparisonViewer :originalSrc="originalSrc" :versionSrc="activeVersionSrc" />
+        <ComparisonViewer :originalSrc="originalSrc" :versions="versions" :activeVersionId="activeVersionId" />
 
         <VersionCards :originalPhoto="originalPhoto" :versions="versions" :activeVersionId="activeVersionId"
           @select="activeVersionId = $event" />
@@ -65,13 +65,6 @@ const onMasterUploaded = () => {
 
 // 原图地址
 const originalSrc = computed(() => originalPhoto.value?.imageUrl || photoData.value?.imageUrl || '/DSC_6510.jpg')
-
-// 当前选中的版本地址，没选就用原图
-const activeVersionSrc = computed(() => {
-  if (!activeVersionId.value) return originalSrc.value
-  const v = versions.value.find(v => v._id === activeVersionId.value)
-  return v?.imageUrl || originalSrc.value
-})
 
 const exifData = computed(() => {
   const exif = photoData.value?.exif
