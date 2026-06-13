@@ -23,7 +23,8 @@
         <ComparisonViewer :originalSrc="originalSrc" :versions="versions" :activeVersionId="activeVersionId" />
 
         <VersionCards :originalPhoto="originalPhoto" :versions="versions" :activeVersionId="activeVersionId"
-          @select="activeVersionId = $event" />
+          :displayVersionId="displayVersionId" @select="activeVersionId = $event"
+          @setDisplay="setDisplayVersion" />
 
       </div>
 
@@ -50,6 +51,7 @@ const colorPalette = ref([])
 const originalPhoto = ref(null)
 const versions = ref([])
 const activeVersionId = ref(null)
+const displayVersionId = ref(null)
 const uploadMasterRef = ref(null)
 
 // 无论当前看的是原图还是版本，都拿到原图 ID
@@ -61,6 +63,17 @@ const originalParentId = computed(() => {
 
 const onMasterUploaded = () => {
   fetchVersions(route.params.id)
+}
+
+const setDisplayVersion = async (versionId) => {
+  const parentId = originalParentId.value
+  if (!parentId) return
+  try {
+    await axios.patch(`/api/photos/${parentId}/display-version`, { versionId })
+    displayVersionId.value = versionId || null
+  } catch (err) {
+    console.error('设置展示版失败:', err)
+  }
 }
 
 // 原图地址
@@ -120,6 +133,7 @@ const fetchVersions = async (id) => {
     if (data.success) {
       originalPhoto.value = data.data.original
       versions.value = data.data.versions
+      displayVersionId.value = data.data.displayVersionId || null
       // 默认选中当前正在看的版本，如果当前是原图则不选
       const currentIsOriginal = !photoData.value?.parentId
       activeVersionId.value = currentIsOriginal ? null : id

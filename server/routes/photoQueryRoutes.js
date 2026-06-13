@@ -29,7 +29,7 @@ router.get('/footprints', async (req, res) => {
           _id: { region: '$region', locationName: '$locationName' },
           photoCount: { $sum: 1 },
           allAlbumIds: { $push: '$albumIds' },
-          allPhotos: { $push: { src: '$imageUrl', alt: '$fileName' } }
+          allPhotos: { $push: { src: { $ifNull: ['$displayImageUrl', '$imageUrl'] }, alt: '$fileName' } }
         }
       },
       {
@@ -119,7 +119,7 @@ router.get('/gallery/:mapCode', async (req, res) => {
         hasMore: skip + photos.length < total,
         photos: photos.map(p => ({
           id: p._id,
-          src: p.imageUrl,
+          src: p.displayImageUrl || p.imageUrl,
           alt: p.fileName || p.originalName || '',
           exif: p.exif,
           title: p.title,
@@ -154,6 +154,7 @@ router.get('/:id/versions', async (req, res) => {
     res.json({
       success: true,
       data: {
+        displayVersionId: original?.displayVersionId || null,
         original: original ? { _id: original._id, imageUrl: original.imageUrl, versionName: original.versionName || '原图', fileName: original.fileName } : null,
         versions: versions.map(v => ({
           _id: v._id,

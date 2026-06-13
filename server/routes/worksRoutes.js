@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
     await Promise.all(portfolios.map(async (work) => {
       if (!work.coverImage) {
         const first = await findFirstPhoto(work._id)
-        work.coverImage = first?.imageUrl || ''
+        work.coverImage = first?.displayImageUrl || first?.imageUrl || ''
       }
     }))
 
@@ -67,9 +67,15 @@ router.get('/:id', async (req, res) => {
     const query = oid
       ? { albumIds: { $in: [workIdStr, oid] } }
       : { albumIds: workIdStr };
-    const photos = await Photo.find(query).sort({ createdAt: -1 });
+    const photos = await Photo.find(query).sort({ createdAt: -1 }).lean();
 
-    res.json({ success: true, data: { ...portfolio.toObject(), photos } });
+    // 用展示版图片替换 imageUrl
+    const displayPhotos = photos.map(p => ({
+      ...p,
+      imageUrl: p.displayImageUrl || p.imageUrl
+    }))
+
+    res.json({ success: true, data: { ...portfolio.toObject(), photos: displayPhotos } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

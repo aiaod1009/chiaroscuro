@@ -84,6 +84,33 @@ router.patch('/:id', async (req, res) => {
 })
 
 // ==========================================
+// ⭐ 设为展示版（取消传 null）
+// ==========================================
+router.patch('/:id/display-version', async (req, res) => {
+  try {
+    const { versionId } = req.body
+    const photo = await Photo.findById(req.params.id)
+    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+
+    if (!versionId) {
+      // 取消展示版，恢复用原图
+      photo.displayVersionId = null
+      photo.displayImageUrl = ''
+    } else {
+      const version = await Photo.findById(versionId)
+      if (!version) return res.status(404).json({ success: false, message: '版本不存在' })
+      photo.displayVersionId = versionId
+      photo.displayImageUrl = version.imageUrl
+    }
+
+    await photo.save()
+    res.json({ success: true, data: photo })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ==========================================
 // 🎨 缓存色彩分析结果
 // ==========================================
 router.patch('/:id/colors', async (req, res) => {

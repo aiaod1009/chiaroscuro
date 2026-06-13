@@ -22,6 +22,13 @@
       >
         <div class="card-thumb">
           <img :src="v.imageUrl" />
+          <button class="display-btn" :class="{ 'is-display': isDisplay(v) }"
+            @click.stop="$emit('setDisplay', v.isOriginal ? null : v._id)" :title="isDisplay(v) ? '当前展示版' : '设为展示版'">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <path v-if="isDisplay(v)" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              <path v-else d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2zm0 3.28L9.71 9.97 5.18 10.7l3.41 3.32-.81 4.68L12 16.52l4.22 2.18-.81-4.68 3.41-3.32-4.53-.73L12 5.28z" />
+            </svg>
+          </button>
         </div>
         <div class="card-title-zh">{{ v.versionName }}</div>
         <div class="card-title-en">{{ (v.isOriginal ? !activeVersionId : v._id === activeVersionId) ? 'Active Selection' : 'Version' }}</div>
@@ -41,9 +48,10 @@ export default {
   props: {
     originalPhoto: { type: Object, default: null },
     versions: { type: Array, default: () => [] },
-    activeVersionId: { type: String, default: null }
+    activeVersionId: { type: String, default: null },
+    displayVersionId: { type: String, default: null }
   },
-  emits: ['select'],
+  emits: ['select', 'setDisplay'],
   computed: {
     allVersions() {
       if (!this.originalPhoto) return []
@@ -51,6 +59,12 @@ export default {
         { _id: this.originalPhoto._id, imageUrl: this.originalPhoto.imageUrl, versionName: this.originalPhoto.versionName || '原图', isOriginal: true },
         ...this.versions.map(v => ({ ...v, isOriginal: false }))
       ]
+    }
+  },
+  methods: {
+    isDisplay(v) {
+      if (v.isOriginal) return !this.displayVersionId
+      return v._id === this.displayVersionId
     }
   }
 }
@@ -141,6 +155,7 @@ export default {
 }
 
 .card-thumb {
+  position: relative;
   aspect-ratio: 16 / 9;
   width: 100%;
   border-radius: 12px;
@@ -153,6 +168,43 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* 展示版星标按钮 */
+.display-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+  color: #6b7280;
+}
+
+.version-card:hover .display-btn,
+.display-btn.is-display {
+  opacity: 1;
+}
+
+.display-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fbbf24;
+}
+
+.display-btn.is-display {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
 }
 
 .card-title-zh {

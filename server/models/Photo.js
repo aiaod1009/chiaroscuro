@@ -14,6 +14,10 @@ const PhotoSchema = new mongoose.Schema({
   parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo', default: null },
   versionName: { type: String, default: '原图' },
 
+  // 展示版：指向用作瀑布流/作品集展示的版本
+  displayVersionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo', default: null },
+  displayImageUrl: { type: String, default: '' },
+
   // 2. EXIF 子文档（前端 canvas 解析后传入）
   exif: {
     camera: { type: String, default: 'Unknown Camera' },
