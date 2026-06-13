@@ -74,7 +74,7 @@ export default {
     allVersions() {
       const list = [{ _id: '__original__', label: 'ORIGINAL', imageUrl: this.originalSrc }]
       for (const v of this.versions) {
-        list.push({ _id: v._id, label: v.name || ('V' + v._id.slice(-4)), imageUrl: v.imageUrl })
+        list.push({ _id: v._id, label: v.versionName || ('V' + v._id.slice(-4)), imageUrl: v.imageUrl })
       }
       return list
     },
