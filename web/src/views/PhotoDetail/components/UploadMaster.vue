@@ -14,11 +14,10 @@
 
         <!-- 拖拽/选择文件区 -->
         <div class="drop-zone" :class="{ 'is-dragover': isDragOver, 'has-file': !!selectedFile }"
-          @dragover.prevent="isDragOver = true"
-          @dragleave.prevent="isDragOver = false"
-          @drop.prevent="handleDrop"
+          @dragover.prevent="isDragOver = true" @dragleave.prevent="isDragOver = false" @drop.prevent="handleDrop"
           @click="triggerFileInput">
-          <input type="file" ref="fileInput" class="hidden-input" accept=".jpg,.jpeg,.png,.webp,.tiff" @change="handleFileChange" />
+          <input type="file" ref="fileInput" class="hidden-input" accept=".jpg,.jpeg,.png,.webp,.tiff"
+            @change="handleFileChange" />
 
           <template v-if="selectedFile">
             <div class="file-preview">
@@ -48,12 +47,7 @@
             <span class="label-zh">版本名称</span>
             <span class="label-en">VERSION NAME</span>
           </label>
-          <input
-            type="text"
-            v-model="versionName"
-            class="form-input"
-            placeholder="如：调色版、黑白版、日系清新..."
-          />
+          <input type="text" v-model="versionName" class="form-input" placeholder="如：调色版、黑白版、日系清新..." />
         </div>
 
         <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
@@ -159,9 +153,8 @@ const handleUpload = async () => {
     const { data } = await axios.post('/api/photos/upload-master', formData)
 
     if (data.success) {
-      uploadText.value = '上传成功！'
       emit('uploaded', data.data)
-      setTimeout(() => close(), 800)
+      isOpen.value = false
     } else {
       uploadText.value = '上传失败'
       errorMsg.value = data.message || '服务器返回失败'
