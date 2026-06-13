@@ -1,20 +1,48 @@
 <template>
-  <div class="comparison-viewer">
+  <div class="comparison-viewer" @click.self="openLeft = openRight = false">
     <img :src="rightSrc" alt="Right Version" class="image-layer" />
-    <div class="badge badge-right">
-      <select v-model="rightId" class="version-select">
-        <option v-for="v in allVersions" :key="v._id" :value="v._id">{{ v.label }}</option>
-      </select>
-    </div>
 
     <div class="original-layer-wrapper"
       :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
       <img :src="leftSrc" alt="Left Version" class="image-layer original-img" />
-      <div class="badge badge-left">
-        <select v-model="leftId" class="version-select">
-          <option v-for="v in allVersions" :key="v._id" :value="v._id">{{ v.label }}</option>
-        </select>
-      </div>
+    </div>
+
+    <!-- 左侧选择器 -->
+    <div class="selector selector-left" @click.stop>
+      <button class="selector-btn" @click="openLeft = !openLeft; openRight = false">
+        <span class="selector-label">{{ leftLabel }}</span>
+        <svg class="selector-arrow" :class="{ open: openLeft }" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 11L3 6h10z" />
+        </svg>
+      </button>
+      <transition name="dropdown">
+        <div v-if="openLeft" class="dropdown-menu">
+          <button v-for="v in allVersions" :key="v._id" class="dropdown-item"
+            :class="{ active: leftId === v._id }" @click="leftId = v._id; openLeft = false">
+            <span class="item-dot" :class="{ active: leftId === v._id }"></span>
+            {{ v.label }}
+          </button>
+        </div>
+      </transition>
+    </div>
+
+    <!-- 右侧选择器 -->
+    <div class="selector selector-right" @click.stop>
+      <button class="selector-btn" @click="openRight = !openRight; openLeft = false">
+        <span class="selector-label">{{ rightLabel }}</span>
+        <svg class="selector-arrow" :class="{ open: openRight }" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 11L3 6h10z" />
+        </svg>
+      </button>
+      <transition name="dropdown">
+        <div v-if="openRight" class="dropdown-menu">
+          <button v-for="v in allVersions" :key="v._id" class="dropdown-item"
+            :class="{ active: rightId === v._id }" @click="rightId = v._id; openRight = false">
+            <span class="item-dot" :class="{ active: rightId === v._id }"></span>
+            {{ v.label }}
+          </button>
+        </div>
+      </transition>
     </div>
 
     <div class="slider-handle" :style="{ left: `${sliderPosition}%` }">
@@ -30,7 +58,6 @@ export default {
   name: 'ComparisonViewer',
   props: {
     originalSrc: { type: String, required: true },
-    originalId: { type: String, default: '__original__' },
     versions: { type: Array, default: () => [] },
     activeVersionId: { type: String, default: null }
   },
@@ -38,24 +65,30 @@ export default {
     return {
       sliderPosition: 53,
       leftId: '__original__',
-      rightId: '__original__'
+      rightId: '__original__',
+      openLeft: false,
+      openRight: false
     }
   },
   computed: {
     allVersions() {
       const list = [{ _id: '__original__', label: 'ORIGINAL', imageUrl: this.originalSrc }]
       for (const v of this.versions) {
-        list.push({ _id: v._id, label: v.name || v._id.slice(-6), imageUrl: v.imageUrl })
+        list.push({ _id: v._id, label: v.name || ('V' + v._id.slice(-4)), imageUrl: v.imageUrl })
       }
       return list
     },
+    leftLabel() {
+      return this.allVersions.find(v => v._id === this.leftId)?.label || 'ORIGINAL'
+    },
+    rightLabel() {
+      return this.allVersions.find(v => v._id === this.rightId)?.label || 'ORIGINAL'
+    },
     leftSrc() {
-      const v = this.allVersions.find(v => v._id === this.leftId)
-      return v?.imageUrl || this.originalSrc
+      return this.allVersions.find(v => v._id === this.leftId)?.imageUrl || this.originalSrc
     },
     rightSrc() {
-      const v = this.allVersions.find(v => v._id === this.rightId)
-      return v?.imageUrl || this.originalSrc
+      return this.allVersions.find(v => v._id === this.rightId)?.imageUrl || this.originalSrc
     }
   },
   watch: {
@@ -65,6 +98,18 @@ export default {
         if (id) this.rightId = id
       }
     }
+  },
+  mounted() {
+    document.addEventListener('click', () => {
+      this.openLeft = false
+      this.openRight = false
+    })
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', () => {
+      this.openLeft = false
+      this.openRight = false
+    })
   }
 }
 </script>
@@ -96,45 +141,126 @@ export default {
   pointer-events: none;
 }
 
-.badge {
+/* 选择器 */
+.selector {
   position: absolute;
   top: 16px;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  padding: 6px 12px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 20;
-  pointer-events: auto;
 }
 
-.badge-left {
+.selector-left {
   left: 16px;
 }
 
-.badge-right {
+.selector-right {
   right: 16px;
 }
 
-.version-select {
-  background: transparent;
-  border: none;
-  color: #d1d5db;
-  font-size: 10px;
-  letter-spacing: 0.05em;
+.selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: #e5e7eb;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  padding-right: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23d1d5db' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right center;
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
-.version-select option {
-  background-color: #111827;
-  color: #d1d5db;
+.selector-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.selector-arrow {
+  width: 10px;
+  height: 10px;
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.selector-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单 */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 160px;
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  z-index: 30;
+}
+
+.selector-right .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+}
+
+.dropdown-item.active {
+  color: #22d3ee;
+}
+
+.item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #374151;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.item-dot.active {
+  background: #22d3ee;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+}
+
+/* 下拉动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 /* 拖拽中心中轴 */
