@@ -145,7 +145,7 @@ export default {
 .page-half {
   width: 100%;
   height: 100%;
-  background-size: 200% 100%;
+  background-size: cover;
   background-repeat: no-repeat;
   pointer-events: none;
   user-select: none;
