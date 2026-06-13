@@ -1,11 +1,8 @@
 <template>
   <div class="accordion-gallery">
-    <div v-for="(img, index) in images" :key="index"
-      class="gallery-item"
-      :class="{ active: activeIndex === index }"
-      @mouseenter="$emit('update:activeIndex', index)"
-      @click="$router.push(`/gallery-detail/${index + 1}`)"
-      :style="{ backgroundImage: 'url(' + img + ')' }">
+    <div v-for="(img, index) in images" :key="index" class="gallery-item" :class="{ active: activeIndex === index }"
+      @mouseenter="$emit('update:activeIndex', index)" @click="$router.push(`/gallery-detail/${img.id}`)"
+      :style="{ backgroundImage: 'url(' + img.url + ')' }">
     </div>
   </div>
 </template>

@@ -13,8 +13,7 @@
       </div>
 
       <!-- 画廊 手风琴区 -->
-      <AccordionGallery :images="gallery" :active-index="activeGallery"
-        @update:activeIndex="activeGallery = $event" />
+      <AccordionGallery :images="gallery" :active-index="activeGallery" @update:activeIndex="activeGallery = $event" />
 
       <!-- 博客 & 时间轴 -->
       <BlogTimeline :blogs="blogs" :timeLabels="timelinePoints" />
@@ -43,7 +42,9 @@ export default {
       const { data } = await axios.get('/api/works');
       if (data.success && data.data.length) {
         const works = data.data;
-        this.gallery = works.map(w => w.coverImage).filter(Boolean);
+        this.gallery = works
+          .filter(w => w.coverImage)
+          .map(w => ({ id: w._id, url: w.coverImage }));
         this.timelinePoints = works.map(w => {
           const d = new Date(w.realDate || w.createdAt);
           return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }).toUpperCase();
