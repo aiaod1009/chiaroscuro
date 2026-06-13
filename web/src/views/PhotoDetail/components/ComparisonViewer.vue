@@ -1,7 +1,7 @@
 <template>
   <div class="comparison-viewer">
     <img :src="versionSrc" alt="AI Version" class="image-layer" />
-    <div class="badge badge-right">AI VERSION</div>
+    <div class="badge badge-right">NEW VERSION</div>
 
     <div class="original-layer-wrapper"
       :style="{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }">
@@ -57,10 +57,6 @@ export default {
   inset: 0;
   user-select: none;
   pointer-events: none;
-}
-
-.original-img {
-  filter: grayscale(100%) brightness(70%);
 }
 
 .badge {

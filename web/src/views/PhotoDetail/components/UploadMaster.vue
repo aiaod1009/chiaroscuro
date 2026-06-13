@@ -56,6 +56,8 @@
           />
         </div>
 
+        <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+
         <!-- 提交 -->
         <div class="form-actions">
           <button class="btn-cancel" @click="close">取消</button>
@@ -74,7 +76,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 const props = defineProps({
-  parentId: { type: String, required: true }
+  parentId: { type: String, default: null }
 })
 
 const emit = defineEmits(['uploaded'])
@@ -94,6 +96,7 @@ const open = () => {
   selectedFile.value = null
   previewUrl.value = ''
   versionName.value = ''
+  errorMsg.value = ''
 }
 
 const close = () => {
@@ -135,8 +138,15 @@ const formatSize = (bytes) => {
   return (bytes / 1048576).toFixed(1) + ' MB'
 }
 
+const errorMsg = ref('')
+
 const handleUpload = async () => {
-  if (!selectedFile.value || !props.parentId) return
+  if (!selectedFile.value) return
+  if (!props.parentId) {
+    errorMsg.value = '原图数据未加载，请稍后再试'
+    return
+  }
+  errorMsg.value = ''
   isUploading.value = true
   uploadText.value = '正在上传...'
 
@@ -146,9 +156,7 @@ const handleUpload = async () => {
     formData.append('parentId', props.parentId)
     formData.append('versionName', versionName.value || '未命名调色版')
 
-    const { data } = await axios.post('/api/photos/upload-master', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    const { data } = await axios.post('/api/photos/upload-master', formData)
 
     if (data.success) {
       uploadText.value = '上传成功！'
@@ -156,10 +164,12 @@ const handleUpload = async () => {
       setTimeout(() => close(), 800)
     } else {
       uploadText.value = '上传失败'
+      errorMsg.value = data.message || '服务器返回失败'
     }
   } catch (err) {
     console.error('上传成片失败:', err)
     uploadText.value = '上传失败'
+    errorMsg.value = err.response?.data?.message || err.message || '网络错误'
   } finally {
     setTimeout(() => { isUploading.value = false; uploadText.value = '上传中...' }, 1500)
   }
@@ -406,6 +416,13 @@ defineExpose({ open })
 
 .form-input::placeholder {
   color: #475569;
+}
+
+.error-msg {
+  margin: 0;
+  font-size: 12px;
+  color: #f87171;
+  letter-spacing: 0.02em;
 }
 
 /* 按钮 */

@@ -5,7 +5,7 @@
         <span class="section-tag">Section 03</span>
         <div class="divider-line"></div>
       </div>
-      <button class="upload-btn" @click="uploadMasterRef?.open()">
+      <button class="upload-btn" :disabled="!originalPhoto" @click="uploadMasterRef?.open()">
         <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -13,7 +13,7 @@
         <span>上传成片 UPLOAD MASTER</span>
       </button>
 
-      <UploadMaster ref="uploadMasterRef" :parentId="originalPhoto?._id" @uploaded="onMasterUploaded" />
+      <UploadMaster ref="uploadMasterRef" :parentId="originalParentId" @uploaded="onMasterUploaded" />
     </header>
 
     <div class="scifi-grid">
@@ -51,6 +51,13 @@ const originalPhoto = ref(null)
 const versions = ref([])
 const activeVersionId = ref(null)
 const uploadMasterRef = ref(null)
+
+// 无论当前看的是原图还是版本，都拿到原图 ID
+const originalParentId = computed(() => {
+  if (originalPhoto.value?._id) return originalPhoto.value._id
+  if (photoData.value?._id && !photoData.value?.parentId) return photoData.value._id
+  return null
+})
 
 const onMasterUploaded = () => {
   fetchVersions(route.params.id)
@@ -202,6 +209,11 @@ watch(() => route.params.id, fetchPhoto)
 .upload-btn:hover {
   background-color: #1f2937;
   border-color: #4b5563;
+}
+
+.upload-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .upload-icon {
