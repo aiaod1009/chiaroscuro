@@ -45,35 +45,14 @@
 </template>
 
 <script>
-import { fetchPhotoPostcards } from '../../../utils/photoApi';
-
-const fallbackPostcards = [
-  {
-    id: 'forest',
-    title: '秘境之森',
-    caption: '探寻林间的微光与翠意，感受自然最原始的呼吸与宁静。',
-    image: '/DSC_6510.jpg'
-  },
-  {
-    id: 'light',
-    title: '光影之间',
-    caption: '穿行于城市与旷野之间，用镜头收藏那些转瞬即逝的真实。',
-    image: '/DSC_6174.jpg'
-  },
-  {
-    id: 'ice',
-    title: '极寒构造',
-    caption: '在冰雪巨构中，捕捉极致冰棱刻线与冷静的物理美学。',
-    image: '/DSC_6760.JPG'
-  }
-];
+import { fetchPhotosByRegion } from '../../../utils/photoApi';
 
 export default {
   name: 'MailboxPostcards',
   data() {
     return {
       activeIndex: 0,
-      postcards: fallbackPostcards,
+      postcards: [],
       timer: null,
       isReady: false,
       isPulled: false,
@@ -97,21 +76,21 @@ export default {
   methods: {
     async loadPostcards() {
       try {
-        const photos = await fetchPhotoPostcards(11);
-        const mapped = photos
-          .filter((photo) => photo.imageUrl)
-          .map((photo) => ({
-            id: photo.id,
-            title: photo.title || photo.locationName || '未命名',
-            caption: photo.caption || '这张影像还在等待一段合适的叙述。',
-            image: photo.imageUrl
-          }));
+        const res = await fetchPhotosByRegion('CN', 1, 50);
+        const photos = res?.photos || [];
+        const hasTitle = photos.filter((p) => p.src && p.title);
+        const shuffled = hasTitle.sort(() => Math.random() - 0.5).slice(0, 11);
 
-        if (mapped.length) {
-          this.postcards = mapped;
+        if (shuffled.length) {
+          this.postcards = shuffled.map((photo) => ({
+            id: photo.id,
+            title: photo.title,
+            caption: photo.caption || '这张影像还在等待一段合适的叙述。',
+            image: photo.src
+          }));
         }
       } catch {
-        this.postcards = fallbackPostcards;
+        this.postcards = [];
       }
     },
     showNext() {
