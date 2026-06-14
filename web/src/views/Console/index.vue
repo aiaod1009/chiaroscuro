@@ -58,7 +58,7 @@
 <script setup>
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { fetchDrafts as apiFetchDrafts, fetchWorks as apiFetchWorks } from '../../utils/photoApi'
 import WorkCard from './components/WorkCard.vue'
 import AlbumPlaceholder from './components/AlbumPlaceholder.vue'
 import Pagination from './components/Pagination.vue'
@@ -109,8 +109,7 @@ watch(selectedTime, () => { currentPage.value = 1 })
 
 const fetchDrafts = async () => {
   try {
-    const { data } = await axios.get('/api/photos/drafts')
-    if (data.success) drafts.value = data.data
+    drafts.value = await apiFetchDrafts()
   } catch (err) {
     console.error('加载草稿失败:', err)
   }
@@ -118,8 +117,8 @@ const fetchDrafts = async () => {
 
 const fetchWorks = async () => {
   try {
-    const { data } = await axios.get('/api/works')
-    if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
+    const data = await apiFetchWorks()
+    worksList.value = data.filter(w => !w.locationCode)
   } catch (err) {
     console.error('加载作品集失败:', err)
   }

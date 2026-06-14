@@ -68,7 +68,7 @@
 <script>
 import { geoCentroid, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature as topoFeature } from 'topojson-client';
-import axios from 'axios';
+import { fetchFootprints } from '../../utils/photoApi';
 import LocationCard from './components/LocationCard.vue';
 
 const REGION_CODE_MAP = {
@@ -293,12 +293,12 @@ export default {
     },
   },
   async mounted() {
-    const [worldTopo, chinaGeo, footprintsRes] = await Promise.all([
+    const [worldTopo, chinaGeo, apiData] = await Promise.all([
       fetch('/maps/world.json').then((response) => response.json()),
       fetch('/maps/china.json').then((response) => response.json()),
-      axios.get('/api/photos/footprints').catch(err => {
+      fetchFootprints().catch(err => {
         console.error('[Footprints] API 请求失败:', err.message);
-        return { data: { data: [] } };
+        return [];
       }),
     ]);
 
@@ -318,8 +318,6 @@ export default {
       FI: [25.75, 61.92], IS: [-19.02, 64.96], DK: [9.5, 56.26],
       RU: [105.32, 61.52], AU: [133.78, -25.27], NZ: [174.88, -40.9],
     };
-
-    const apiData = footprintsRes.data?.data || [];
     this.regions = apiData
       .map(item => {
         const isProvince = item.mapCode?.startsWith('CN-');

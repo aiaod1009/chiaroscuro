@@ -4,6 +4,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Works = require('../models/Works');
 const Photo = require('../models/Photo');
+const { sendError } = require('./utils');
 
 // 查找作品集下的第一张照片（同时匹配字符串和 ObjectId）
 const findFirstPhoto = async (workId) => {
@@ -37,7 +38,7 @@ router.get('/', async (req, res) => {
 
     res.json({ success: true, data: portfolios });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -49,7 +50,7 @@ router.get('/travel', async (req, res) => {
     const travels = await Works.find({ isTravel: true }).sort({ realDate: -1 });
     res.json({ success: true, data: travels });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -59,7 +60,7 @@ router.get('/travel', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const portfolio = await Works.findById(req.params.id);
-    if (!portfolio) return res.status(404).json({ success: false, message: '作品集不存在' });
+    if (!portfolio) return sendError(res, 404, '作品集不存在');
 
     const workIdStr = portfolio._id.toString();
     // 同时匹配字符串和 ObjectId
@@ -77,7 +78,7 @@ router.get('/:id', async (req, res) => {
 
     res.json({ success: true, data: { ...portfolio.toObject(), photos: displayPhotos } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -87,12 +88,12 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, description, realDate, coverImage } = req.body;
-    if (!name) return res.status(400).json({ success: false, message: '名称为必填项' });
+    if (!name) return sendError(res, 400, '名称为必填项');
 
     const portfolio = await Works.create({ name, description, realDate, coverImage });
     res.json({ success: true, data: portfolio });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -102,10 +103,10 @@ router.post('/', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const portfolio = await Works.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
-    if (!portfolio) return res.status(404).json({ success: false, message: '作品集不存在' });
+    if (!portfolio) return sendError(res, 404, '作品集不存在');
     res.json({ success: true, data: portfolio });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -115,10 +116,10 @@ router.patch('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const portfolio = await Works.findByIdAndDelete(req.params.id);
-    if (!portfolio) return res.status(404).json({ success: false, message: '作品集不存在' });
+    if (!portfolio) return sendError(res, 404, '作品集不存在');
     res.json({ success: true, message: '作品集已删除' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 

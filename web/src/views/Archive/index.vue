@@ -24,7 +24,7 @@
 <script>
 import AccordionGallery from './components/AccordionGallery.vue';
 import BlogTimeline from './components/BlogTimeline.vue';
-import axios from 'axios';
+import { fetchWorks } from '../../utils/photoApi';
 
 export default {
   name: 'ArchiveView',
@@ -39,9 +39,8 @@ export default {
   },
   async mounted() {
     try {
-      const { data } = await axios.get('/api/works');
-      if (data.success && data.data.length) {
-        const works = data.data;
+      const works = await fetchWorks();
+      if (works.length) {
         this.gallery = works
           .filter(w => w.coverImage)
           .map(w => ({ id: w._id, url: w.coverImage }));

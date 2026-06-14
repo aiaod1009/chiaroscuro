@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { fetchWorkDetail } from '../../utils/photoApi';
 import WaterfallCard from '../../components/WaterfallCard.vue';
 import FlipBook from './components/FlipBook.vue';
 import MetaSection from './components/MetaSection.vue';
@@ -73,9 +73,9 @@ export default {
   async mounted() {
     const id = this.$route.params.id;
     try {
-      const { data } = await axios.get(`/api/works/${id}`);
-      if (data.success) {
-        const photos = (data.data.photos || []).map(p => ({
+      const data = await fetchWorkDetail(id);
+      if (data) {
+        const photos = (data.photos || []).map(p => ({
           id: p._id,
           src: p.imageUrl,
           alt: p.fileName || '',
@@ -88,7 +88,7 @@ export default {
         if (photos.length) {
           this.images = photos.map(p => p.src);
           this.waterfallImages = photos.map(p => ({ id: p.id, src: p.src, alt: p.alt || p.fileName, title: p.title, caption: p.caption }));
-          this.galleryTitle = data.data.name;
+          this.galleryTitle = data.name;
 
           const first = photos[0];
           if (first.exif) {
@@ -102,7 +102,7 @@ export default {
               year: 'numeric', month: 'short', day: '2-digit'
             });
           }
-          this.locationName = data.data.name;
+          this.locationName = data.name;
         }
       }
     } catch (err) {

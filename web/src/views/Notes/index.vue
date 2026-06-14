@@ -78,7 +78,7 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { fetchPhotoDetail as apiFetchPhotoDetail, updatePhoto, generateFirstRound, iterateGeneration, fetchAISession } from '../../utils/photoApi'
 import ImageViewer from './components/ImageViewer.vue'
 import MetaSpecBar from './components/MetaSpecBar.vue'
 import ModeTabs from './components/ModeTabs.vue'
@@ -160,9 +160,8 @@ onMounted(async () => {
 // 拉取照片详情（含 EXIF）
 const fetchPhotoDetail = async (id) => {
   try {
-    const { data } = await axios.get(`/api/photos/${id}`)
-    if (data.success) {
-      const p = data.data
+    const p = await apiFetchPhotoDetail(id)
+    if (p) {
       if (p.imageUrl) currentPhoto.imageUrl = p.imageUrl
       if (p.exif) {
         photoExif.camera = p.exif.camera || ''
@@ -199,9 +198,7 @@ const restoreSession = async () => {
   noHistory.value = false
   try {
     const style = STYLE_MAP[activePerspective.value]
-    const { data } = await axios.get('/api/ai/inspire/session', {
-      params: { photoId: currentPhoto.id, style }
-    })
+    const data = await fetchAISession(currentPhoto.id, style)
     if (data.success && data.candidates.length) {
       applyCandidates(data)
       noHistory.value = false
@@ -228,11 +225,7 @@ const handleAiGenerate = async () => {
 
   try {
     const style = STYLE_MAP[activePerspective.value]
-    const { data } = await axios.post('/api/ai/inspire/first-round', {
-      photoId: currentPhoto.id,
-      imageUrl: currentPhoto.imageUrl,
-      style
-    })
+    const data = await generateFirstRound(currentPhoto.id, currentPhoto.imageUrl, style)
 
     if (data.success) applyCandidates(data)
   } catch (error) {
@@ -265,15 +258,15 @@ const handleOptimize = async () => {
 
   try {
     const currentOption = candidates.value[activeCandidateIndex.value]
-    const { data } = await axios.post('/api/ai/inspire/iterate', {
-      sessionId: sessionId.value,
-      optionId: currentOption.optionId,
-      currentContent: {
+    const data = await iterateGeneration(
+      sessionId.value,
+      currentOption.optionId,
+      aiPrompt.value.trim(),
+      {
         title: activeCandidate.value.title,
         caption: activeCandidate.value.caption
-      },
-      userFeedback: aiPrompt.value.trim()
-    })
+      }
+    )
 
     if (data.success) {
       const updated = data.updatedCandidate
@@ -308,7 +301,7 @@ const applyToPhoto = async (title, caption) => {
   isSaving.value = true
   saveSuccess.value = false
   try {
-    await axios.patch(`/api/photos/${currentPhoto.id}`, { title, caption })
+    await updatePhoto(currentPhoto.id, { title, caption })
     saveSuccess.value = true
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (e) {

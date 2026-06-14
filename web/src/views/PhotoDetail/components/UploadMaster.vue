@@ -67,7 +67,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import { formatFileSize, createFilePreview, revokeFilePreview } from '../../../utils/fileHandler'
+import { uploadMasterVersion } from '../../../utils/photoApi'
 
 const props = defineProps({
   parentId: { type: String, default: null }
@@ -116,21 +117,17 @@ const handleDrop = (e) => {
 
 const setFile = (file) => {
   selectedFile.value = file
-  previewUrl.value = URL.createObjectURL(file)
+  previewUrl.value = createFilePreview(file)
 }
 
 const removeFile = () => {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
+  revokeFilePreview(previewUrl.value)
   selectedFile.value = null
   previewUrl.value = ''
   if (fileInput.value) fileInput.value.value = ''
 }
 
-const formatSize = (bytes) => {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
-  return (bytes / 1048576).toFixed(1) + ' MB'
-}
+const formatSize = formatFileSize
 
 const errorMsg = ref('')
 
@@ -145,12 +142,7 @@ const handleUpload = async () => {
   uploadText.value = '正在上传...'
 
   try {
-    const formData = new FormData()
-    formData.append('photo', selectedFile.value)
-    formData.append('parentId', props.parentId)
-    formData.append('versionName', versionName.value || '未命名调色版')
-
-    const { data } = await axios.post('/api/photos/upload-master', formData)
+    const data = await uploadMasterVersion(selectedFile.value, props.parentId, versionName.value || '未命名调色版')
 
     if (data.success) {
       emit('uploaded', data.data)

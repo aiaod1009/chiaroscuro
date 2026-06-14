@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const tencentcloud = require('tencentcloud-sdk-nodejs-sts');
+const { sendError } = require('./utils');
 
 const StsClient = tencentcloud.sts.v20180813.Client;
 
@@ -43,7 +44,7 @@ router.get('/sts', async (req, res) => {
     });
   } catch (error) {
     console.error('STS 签发失败:', error);
-    res.status(500).json({ success: false, message: 'STS 签发失败', error: error.message });
+    sendError(res, 500, 'STS 签发失败');
   }
 });
 

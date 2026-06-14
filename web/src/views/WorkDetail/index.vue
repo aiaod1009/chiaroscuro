@@ -44,7 +44,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import { fetchWorks as apiFetchWorks, fetchWorkDetail as apiFetchWorkDetail, deletePhoto, removePhotoFromAlbum, movePhoto, copyPhoto, updateWork } from '../../utils/photoApi'
 import SearchInput from '../../components/SearchInput.vue'
 import PhotoCard from './components/PhotoCard.vue'
 
@@ -92,8 +92,7 @@ const otherWorks = computed(() => allWorks.value.filter(w => w._id !== route.par
 
 const fetchAllWorks = async () => {
   try {
-    const { data } = await axios.get('/api/works')
-    if (data.success) allWorks.value = data.data
+    allWorks.value = await apiFetchWorks()
   } catch { }
 }
 
@@ -101,9 +100,9 @@ const fetchWorkDetail = async () => {
   const id = route.params.id
   if (!id) return
   try {
-    const { data } = await axios.get(`/api/works/${id}`)
-    if (data.success) {
-      const { photos: workPhotos, ...workMeta } = data.data
+    const data = await apiFetchWorkDetail(id)
+    if (data) {
+      const { photos: workPhotos, ...workMeta } = data
       workInfo.value = workMeta || {}
       photos.value = workPhotos || []
     }
@@ -114,7 +113,7 @@ const fetchWorkDetail = async () => {
 
 const handleDelete = async (photoId) => {
   try {
-    await axios.delete(`/api/photos/${photoId}`)
+    await deletePhoto(photoId)
     photos.value = photos.value.filter(p => p._id !== photoId)
   } catch {
     alert('删除失败')
@@ -123,7 +122,7 @@ const handleDelete = async (photoId) => {
 
 const handleRemoveAlbum = async (photoId, albumId) => {
   try {
-    await axios.patch(`/api/photos/${photoId}/remove-album`, { albumId })
+    await removePhotoFromAlbum(photoId, albumId)
     photos.value = photos.value.filter(p => p._id !== photoId)
   } catch {
     alert('移除失败')
@@ -132,7 +131,7 @@ const handleRemoveAlbum = async (photoId, albumId) => {
 
 const handleMove = async (photoId, targetAlbumId) => {
   try {
-    await axios.patch(`/api/photos/${photoId}/move`, { targetAlbumId })
+    await movePhoto(photoId, targetAlbumId)
     photos.value = photos.value.filter(p => p._id !== photoId)
   } catch {
     alert('移动失败')
@@ -141,7 +140,7 @@ const handleMove = async (photoId, targetAlbumId) => {
 
 const handleCopy = async (photoId, targetAlbumId) => {
   try {
-    await axios.patch(`/api/photos/${photoId}/copy`, { targetAlbumId })
+    await copyPhoto(photoId, targetAlbumId)
   } catch {
     alert('复制失败')
   }
@@ -150,7 +149,7 @@ const handleCopy = async (photoId, targetAlbumId) => {
 const handleSetCover = async (imageUrl) => {
   try {
     const workId = route.params.id
-    await axios.patch(`/api/works/${workId}`, { coverImage: imageUrl })
+    await updateWork(workId, { coverImage: imageUrl })
     alert('封面设置成功')
   } catch {
     alert('封面设置失败')

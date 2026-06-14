@@ -53,7 +53,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
+import { createWork } from '../utils/photoApi'
 
 const isOpen = ref(false)
 defineExpose({ isOpen })
@@ -105,7 +105,7 @@ const handleSubmit = async () => {
   if (!form.name || !form.realDate) return
   isSubmitting.value = true
   try {
-    await axios.post('/api/works', { ...form })
+    await createWork({ ...form })
     resetForm()
     isOpen.value = false
     window.dispatchEvent(new CustomEvent('works-complete'))

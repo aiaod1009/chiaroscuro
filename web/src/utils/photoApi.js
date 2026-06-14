@@ -7,20 +7,21 @@ import axios from 'axios'
 const API_BASE = '/api'
 
 /**
- * 上传原图
- * @param {File} file - 图片文件
- * @param {object} metadata - 元数据 {locationName, region, exif, selectedAlbumId}
+ * 获取 COS 临时上传凭证
+ * @returns {Promise<object>} STS 凭证数据
+ */
+export async function fetchCOSCredentials() {
+  const { data } = await axios.get(`${API_BASE}/cos/sts`)
+  return data
+}
+
+/**
+ * 上传原图（WebP 草稿）
+ * @param {object} payload - {imageUrl, fileName, locationName, region, exif, selectedAlbumId}
  * @returns {Promise<object>} API 响应
  */
-export async function uploadRawPhoto(file, metadata = {}) {
-  const formData = new FormData()
-  formData.append('photo', file)
-  if (metadata.locationName) formData.append('locationName', metadata.locationName)
-  if (metadata.region) formData.append('region', metadata.region)
-  if (metadata.exif) formData.append('exif', JSON.stringify(metadata.exif))
-  if (metadata.selectedAlbumId) formData.append('selectedAlbumId', metadata.selectedAlbumId)
-
-  const { data } = await axios.post(`${API_BASE}/photos/upload-raw`, formData)
+export async function uploadRawPhoto(payload) {
+  const { data } = await axios.post(`${API_BASE}/photos/upload-raw`, payload)
   return data
 }
 
@@ -106,10 +107,11 @@ export async function updatePhoto(photoId, updateData) {
 /**
  * 从作品集移除照片
  * @param {string} photoId - 照片 ID
+ * @param {string} albumId - 作品集 ID
  * @returns {Promise<object>} API 响应
  */
-export async function removePhotoFromAlbum(photoId) {
-  const { data } = await axios.patch(`${API_BASE}/photos/${photoId}/remove-album`)
+export async function removePhotoFromAlbum(photoId, albumId) {
+  const { data } = await axios.patch(`${API_BASE}/photos/${photoId}/remove-album`, { albumId })
   return data
 }
 
@@ -150,6 +152,69 @@ export async function deletePhoto(photoId) {
 }
 
 /**
+ * 设置展示版本
+ * @param {string} photoId - 照片 ID
+ * @param {string|null} versionId - 版本 ID，null 表示取消展示版
+ * @returns {Promise<object>} API 响应
+ */
+export async function setDisplayVersion(photoId, versionId) {
+  const { data } = await axios.patch(`${API_BASE}/photos/${photoId}/display-version`, { versionId })
+  return data
+}
+
+/**
+ * 缓存色彩分析结果
+ * @param {string} photoId - 照片 ID
+ * @param {Array} colors - 颜色数组
+ * @returns {Promise<object>} API 响应
+ */
+export async function savePhotoColors(photoId, colors) {
+  const { data } = await axios.patch(`${API_BASE}/photos/${photoId}/colors`, { colors })
+  return data
+}
+
+/**
+ * 获取照片的所有版本
+ * @param {string} photoId - 照片 ID
+ * @returns {Promise<object>} 版本列表数据
+ */
+export async function fetchPhotoVersions(photoId) {
+  const { data } = await axios.get(`${API_BASE}/photos/${photoId}/versions`)
+  return data.success ? data.data : null
+}
+
+/**
+ * 获取单个作品集详情
+ * @param {string} workId - 作品集 ID
+ * @returns {Promise<object>} 作品集详情
+ */
+export async function fetchWorkDetail(workId) {
+  const { data } = await axios.get(`${API_BASE}/works/${workId}`)
+  return data.success ? data.data : null
+}
+
+/**
+ * 创建作品集
+ * @param {object} workData - {name, description, realDate, coverImage}
+ * @returns {Promise<object>} API 响应
+ */
+export async function createWork(workData) {
+  const { data } = await axios.post(`${API_BASE}/works`, workData)
+  return data
+}
+
+/**
+ * 更新作品集
+ * @param {string} workId - 作品集 ID
+ * @param {object} updateData - 更新数据
+ * @returns {Promise<object>} API 响应
+ */
+export async function updateWork(workId, updateData) {
+  const { data } = await axios.patch(`${API_BASE}/works/${workId}`, updateData)
+  return data
+}
+
+/**
  * AI 首轮生成
  * @param {string} photoId - 照片 ID
  * @param {string} imageUrl - 照片 URL
@@ -170,12 +235,14 @@ export async function generateFirstRound(photoId, imageUrl, style) {
  * @param {string} sessionId - 会话 ID
  * @param {number} optionId - 方案 ID
  * @param {string} userFeedback - 用户反馈
+ * @param {object} currentContent - 当前内容 {title, caption}
  * @returns {Promise<object>} API 响应
  */
-export async function iterateGeneration(sessionId, optionId, userFeedback) {
+export async function iterateGeneration(sessionId, optionId, userFeedback, currentContent) {
   const { data } = await axios.post(`${API_BASE}/ai/inspire/iterate`, {
     sessionId,
     optionId,
+    currentContent,
     userFeedback
   })
   return data
@@ -183,12 +250,13 @@ export async function iterateGeneration(sessionId, optionId, userFeedback) {
 
 /**
  * 获取 AI 会话历史
- * @param {string} sessionId - 会话 ID
+ * @param {string} photoId - 照片 ID
+ * @param {string} style - 风格
  * @returns {Promise<object>} API 响应
  */
-export async function fetchAISession(sessionId) {
+export async function fetchAISession(photoId, style) {
   const { data } = await axios.get(`${API_BASE}/ai/inspire/session`, {
-    params: { sessionId }
+    params: { photoId, style }
   })
   return data
 }

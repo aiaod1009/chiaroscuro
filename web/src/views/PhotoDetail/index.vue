@@ -38,7 +38,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { fetchPhotoDetail as apiFetchPhotoDetail, setDisplayVersion as apiSetDisplayVersion, savePhotoColors, fetchPhotoVersions } from '../../utils/photoApi'
 import ComparisonViewer from './components/ComparisonViewer.vue'
 import VersionCards from './components/VersionCards.vue'
 import DetailPanels from './components/DetailPanels.vue'
@@ -69,7 +69,7 @@ const setDisplayVersion = async (versionId) => {
   const parentId = originalParentId.value
   if (!parentId) return
   try {
-    await axios.patch(`/api/photos/${parentId}/display-version`, { versionId })
+    await apiSetDisplayVersion(parentId, versionId)
     displayVersionId.value = versionId || null
   } catch (err) {
     console.error('设置展示版失败:', err)
@@ -103,18 +103,18 @@ const fetchPhoto = async () => {
   const id = route.params.id
   if (!id) return
   try {
-    const { data } = await axios.get(`/api/photos/${id}`)
-    if (data.success) {
-      photoData.value = data.data
+    const data = await apiFetchPhotoDetail(id)
+    if (data) {
+      photoData.value = data
       // 优先用数据库缓存的颜色，没有才提取
-      if (data.data.colors?.length) {
-        colorPalette.value = data.data.colors
-      } else if (data.data.imageUrl) {
+      if (data.colors?.length) {
+        colorPalette.value = data.colors
+      } else if (data.imageUrl) {
         try {
-          const extracted = await extractColors(data.data.imageUrl)
+          const extracted = await extractColors(data.imageUrl)
           colorPalette.value = extracted
           // 存回数据库，下次就不用再提取了
-          axios.patch(`/api/photos/${id}/colors`, { colors: extracted }).catch(() => { })
+          savePhotoColors(id, extracted).catch(() => { })
         } catch (e) {
           console.error('提取颜色失败:', e)
         }
@@ -129,11 +129,11 @@ const fetchPhoto = async () => {
 
 const fetchVersions = async (id) => {
   try {
-    const { data } = await axios.get(`/api/photos/${id}/versions`)
-    if (data.success) {
-      originalPhoto.value = data.data.original
-      versions.value = data.data.versions
-      displayVersionId.value = data.data.displayVersionId || null
+    const data = await fetchPhotoVersions(id)
+    if (data) {
+      originalPhoto.value = data.original
+      versions.value = data.versions
+      displayVersionId.value = data.displayVersionId || null
       // 默认选中当前正在看的版本，如果当前是原图则不选
       const currentIsOriginal = !photoData.value?.parentId
       activeVersionId.value = currentIsOriginal ? null : id

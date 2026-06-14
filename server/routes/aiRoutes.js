@@ -3,6 +3,7 @@ const express = require('express');
 const router = require('express').Router();
 const Photo = require('../models/Photo');
 const AISession = require('../models/AISession');
+const { sendError } = require('./utils');
 
 // =======================================================
 // 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）
@@ -20,7 +21,7 @@ router.get('/inspire/session', async (req, res) => {
     }
     res.json({ success: true, candidates: [] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -85,11 +86,11 @@ router.post('/inspire/first-round', async (req, res) => {
 
     // 智谱限流 429 或错误码 1305
     if (response.status === 429 || data.error?.code === '1305') {
-      return res.status(429).json({ success: false, message: "灵感中枢繁忙，请稍后再试" });
+      return sendError(res, 429, "灵感中枢繁忙，请稍后再试");
     }
 
     if (!data.choices || data.choices.length === 0) {
-      return res.status(400).json({ success: false, message: "大模型返回异常", errorDetails: data });
+      return sendError(res, 400, "大模型返回异常");
     }
 
     const replyContent = data.choices[0].message.content;
@@ -121,7 +122,7 @@ router.post('/inspire/first-round', async (req, res) => {
 
   } catch (error) {
     console.error("单风格首轮生成失败:", error);
-    res.status(500).json({ success: false, message: "服务器内部错误" });
+    sendError(res, 500, "服务器内部错误");
   }
 });
 
@@ -133,7 +134,7 @@ router.post('/inspire/iterate', async (req, res) => {
 
     const session = await AISession.findById(sessionId);
     if (!session) {
-      return res.status(404).json({ success: false, message: "该 AI 会话不存在" });
+      return sendError(res, 404, "该 AI 会话不存在");
     }
 
     // 1. 【核心优化】：对历史记忆进行大扫除，彻底剥离过时的 JSON 结构
@@ -205,7 +206,7 @@ router.post('/inspire/iterate', async (req, res) => {
 
     const data = await response.json();
     if (!data.choices || data.choices.length === 0) {
-      return res.status(400).json({ success: false, message: "大模型微调接口报错", errorDetails: data });
+      return sendError(res, 400, "大模型微调接口报错");
     }
 
     const replyContent = data.choices[0].message.content;
@@ -228,7 +229,7 @@ router.post('/inspire/iterate', async (req, res) => {
 
   } catch (error) {
     console.error("多轮迭代失败:", error);
-    res.status(500).json({ success: false, message: "服务器内部错误" });
+    sendError(res, 500, "服务器内部错误");
   }
 });
 // ==========================================
@@ -237,7 +238,7 @@ router.post('/inspire/iterate', async (req, res) => {
 router.post('/analyze-composition', async (req, res) => {
   try {
     const { imageUrl, photoId } = req.body;
-    if (!imageUrl) return res.status(400).json({ success: false, message: '缺少图片URL' });
+    if (!imageUrl) return sendError(res, 400, '缺少图片URL');
 
     // 设置 SSE 头部
     res.setHeader('Content-Type', 'text/event-stream');

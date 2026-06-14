@@ -29,7 +29,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import { fetchPhotosByRegion } from '../../utils/photoApi'
 
 const route = useRoute()
 
@@ -46,14 +46,12 @@ const fetchPhotos = async () => {
   if (loading.value || !hasMore.value) return
   loading.value = true
   try {
-    const { data } = await axios.get(`/api/photos/gallery/${route.params.mapCode}`, {
-      params: { page: page.value, limit: 20 }
-    })
-    if (data.success) {
-      title.value = data.data.title
-      total.value = data.data.total
-      photos.value.push(...data.data.photos)
-      hasMore.value = data.data.hasMore
+    const data = await fetchPhotosByRegion(route.params.mapCode, page.value, 20)
+    if (data) {
+      title.value = data.title
+      total.value = data.total
+      photos.value.push(...data.photos)
+      hasMore.value = data.hasMore
       page.value++
     }
   } catch (err) {

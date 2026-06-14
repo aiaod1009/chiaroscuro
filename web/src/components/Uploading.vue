@@ -134,7 +134,7 @@
 <script setup>
 import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue'
 import exifr from 'exifr'
-import axios from 'axios'
+import { fetchWorks as apiFetchWorks, uploadRawPhoto, fetchCOSCredentials } from '../utils/photoApi'
 
 const openCreateWorks = inject('openCreateWorks')
 
@@ -144,7 +144,7 @@ const getCosInstance = async () => {
   const COS = (await import('cos-js-sdk-v5')).default
   cosInstance = new COS({
     getAuthorization: (options, callback) => {
-      axios.get('/api/cos/sts').then(({ data }) => {
+      fetchCOSCredentials().then(data => {
         if (!data.success) throw new Error(data.message)
         callback({
           TmpSecretId: data.tmpSecretId,
@@ -188,8 +188,8 @@ const formData = reactive({
 const worksList = ref([])
 const fetchWorks = async () => {
   try {
-    const { data } = await axios.get('/api/works')
-    if (data.success) worksList.value = data.data.filter(w => !w.locationCode)
+    const data = await apiFetchWorks()
+    worksList.value = data.filter(w => !w.locationCode)
   } catch { }
 }
 fetchWorks()
@@ -440,7 +440,7 @@ const handleUpload = async () => {
 
       // 步骤 D：调用后端 /api/photos/upload-raw，落盘 MongoDB
       uploadProgressText.value = `[${index + 1}/${selectedFilesCount.value}] 写入 MongoDB 索引...`
-      const { data: saveRes } = await axios.post('/api/photos/upload-raw', {
+      await uploadRawPhoto({
         imageUrl: cosUrl,
         fileName: webpFile.name,
         selectedAlbumId: formData.collection || null,

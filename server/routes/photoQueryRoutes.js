@@ -4,6 +4,7 @@ const router = express.Router();
 const Photo = require('../models/Photo');
 const Works = require('../models/Works');
 const { REGION_CODE_TO_NAME, COUNTRY_CN_TO_CODE, COUNTRY_CODE_TO_CN } = require('./constants');
+const { sendError, parsePagination } = require('./utils');
 
 // ==========================================
 // 📋 获取草稿箱列表
@@ -13,7 +14,7 @@ router.get('/drafts', async (req, res) => {
     const drafts = await Photo.find({ isDraft: true }).sort({ createdAt: -1 })
     res.json({ success: true, data: drafts })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    sendError(res, 500, error.message);
   }
 })
 
@@ -76,7 +77,7 @@ router.get('/footprints', async (req, res) => {
     res.json({ success: true, data });
   } catch (error) {
     console.error('足迹聚合查询失败:', error);
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -94,14 +95,12 @@ router.get('/gallery/:mapCode', async (req, res) => {
       title = REGION_CODE_TO_NAME[mapCode] || mapCode;
     } else {
       const cnName = COUNTRY_CODE_TO_CN[mapCode];
-      if (!cnName) return res.status(400).json({ success: false, message: '未知地区代码' });
+      if (!cnName) return sendError(res, 400, '未知地区代码');
       query = { locationName: cnName };
       title = cnName;
     }
 
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = parsePagination(req.query);
 
     const [photos, total] = await Promise.all([
       Photo.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
@@ -130,7 +129,7 @@ router.get('/gallery/:mapCode', async (req, res) => {
     });
   } catch (error) {
     console.error('画廊详情查询失败:', error);
-    res.status(500).json({ success: false, message: error.message });
+    sendError(res, 500, error.message);
   }
 });
 
@@ -140,7 +139,7 @@ router.get('/gallery/:mapCode', async (req, res) => {
 router.get('/:id/versions', async (req, res) => {
   try {
     const photo = await Photo.findById(req.params.id).lean()
-    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    if (!photo) return sendError(res, 404, '照片不存在');
 
     // 找到原图：如果当前照片有 parentId，原图就是 parentId 指向的那张；否则自己就是原图
     const originalId = photo.parentId || photo._id
@@ -165,8 +164,8 @@ router.get('/:id/versions', async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('获取版本列表失败:', error)
-    res.status(500).json({ success: false, message: error.message })
+    console.error('获取版本列表失败:', error);
+    sendError(res, 500, error.message);
   }
 })
 
@@ -176,10 +175,10 @@ router.get('/:id/versions', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const photo = await Photo.findById(req.params.id)
-    if (!photo) return res.status(404).json({ success: false, message: '照片不存在' })
+    if (!photo) return sendError(res, 404, '照片不存在');
     res.json({ success: true, data: photo })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    sendError(res, 500, error.message);
   }
 })
 

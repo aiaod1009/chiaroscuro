@@ -1,10 +1,10 @@
 // server/routes/photoUploadRoutes.js
 const express = require('express');
 const router = express.Router();
-const { cos } = require('../config/cos');
 const { upload } = require('../config/cos');
 const Photo = require('../models/Photo');
 const Works = require('../models/Works');
+const { sendError, uploadToCOS } = require('./utils');
 
 // ==========================================
 // 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
@@ -13,7 +13,7 @@ router.post('/upload-raw', async (req, res) => {
   try {
     const { imageUrl, fileName, locationName, region, exif, selectedAlbumId } = req.body;
 
-    if (!imageUrl) return res.status(400).json({ success: false, message: '没收到图片链接' });
+    if (!imageUrl) return sendError(res, 400, '没收到图片链接');
 
     // albumIds：仅用户手动选择的作品集
     const albumIds = [];
@@ -54,7 +54,7 @@ router.post('/upload-raw', async (req, res) => {
     });
   } catch (error) {
     console.error('上传落盘异常:', error);
-    res.status(500).json({ success: false, message: '服务器入库失败' });
+    sendError(res, 500, '服务器入库失败');
   }
 });
 
@@ -63,20 +63,18 @@ router.post('/upload-raw', async (req, res) => {
 // ==========================================
 router.post('/upload-master', upload.single('photo'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: '没收到成片文件' });
+    if (!req.file) return sendError(res, 400, '没收到成片文件');
 
     const { parentId, versionName } = req.body;
-    if (!parentId) return res.status(400).json({ success: false, message: '必须指定原图母体的 parentId 才能进行对比绑定！' });
+    if (!parentId) return sendError(res, 400, '必须指定原图母体的 parentId 才能进行对比绑定！');
 
     const parentPhoto = await Photo.findById(parentId);
-    if (!parentPhoto) return res.status(404).json({ success: false, message: '找不到指定的原图母体' });
+    if (!parentPhoto) return sendError(res, 404, '找不到指定的原图母体');
 
     // 把成片上传到腾讯云
     const originalName = req.file.originalname;
     const filename = `master-${Date.now()}-${originalName}`;
-    await new Promise((resolve, reject) => {
-      cos.putObject({ Bucket: process.env.COS_BUCKET, Region: process.env.COS_REGION, Key: `gallery/${filename}`, Body: req.file.buffer }, (err, data) => { if (err) reject(err); else resolve(data); });
-    });
+    await uploadToCOS(`gallery/${filename}`, req.file.buffer);
     const finalImageUrl = `https://${process.env.COS_BUCKET}.cos.${process.env.COS_REGION}.myqcloud.com/gallery/${filename}`;
 
     // 落地为子体记录
@@ -90,7 +88,7 @@ router.post('/upload-master', upload.single('photo'), async (req, res) => {
     });
 
     res.status(200).json({ success: true, message: `成片【${versionName}】发布成功，已与原图绑定纽带！`, data: masterPhoto });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+  } catch (error) { sendError(res, 500, error.message); }
 });
 
 module.exports = router;

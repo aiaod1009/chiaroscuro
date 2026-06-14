@@ -13,7 +13,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import { fetchWorkDetail } from '../../../utils/photoApi'
 
 const props = defineProps({
   work: { type: Object, required: true }
@@ -28,8 +28,8 @@ const onCoverError = async () => {
   if (retried.value) { coverSrc.value = ''; return }
   retried.value = true
   try {
-    const { data } = await axios.get(`/api/works/${props.work._id}`)
-    const url = data.success && data.data.photos?.length ? data.data.photos[0].imageUrl : ''
+    const data = await fetchWorkDetail(props.work._id)
+    const url = data?.photos?.length ? data.photos[0].imageUrl : ''
     coverSrc.value = url ? `${url}!small` : ''
   } catch {
     coverSrc.value = ''
