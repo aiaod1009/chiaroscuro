@@ -82,6 +82,40 @@ router.get('/footprints', async (req, res) => {
 });
 
 // ==========================================
+// ✉️ 首页明信片：获取带标题/配文的照片
+// ==========================================
+router.get('/postcards', async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 11, 20);
+    const photos = await Photo.find({
+      isDraft: { $ne: true },
+      $or: [
+        { title: { $regex: /\S/ } },
+        { caption: { $regex: /\S/ } }
+      ]
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      data: photos.map((p) => ({
+        id: p._id,
+        imageUrl: p.displayImageUrl || p.imageUrl,
+        title: p.title || p.fileName || '未命名',
+        caption: p.caption || '',
+        locationName: p.locationName,
+        createdAt: p.createdAt,
+        exif: p.exif
+      }))
+    });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+});
+
+// ==========================================
 // 🖼️ 画廊详情：按地区获取全部照片
 // ==========================================
 router.get('/gallery/:mapCode', async (req, res) => {

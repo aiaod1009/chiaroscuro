@@ -94,6 +94,18 @@ export async function fetchFootprints() {
 }
 
 /**
+ * 获取首页明信片照片
+ * @param {number} limit - 返回数量，默认 11
+ * @returns {Promise<Array>} 明信片照片数组
+ */
+export async function fetchPhotoPostcards(limit = 11) {
+  const { data } = await axios.get(`${API_BASE}/photos/postcards`, {
+    params: { limit }
+  })
+  return data.success ? data.data : []
+}
+
+/**
  * 更新照片标题和配文
  * @param {string} photoId - 照片 ID
  * @param {object} updateData - {title, caption}
