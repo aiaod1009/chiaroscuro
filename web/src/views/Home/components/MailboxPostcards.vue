@@ -7,16 +7,11 @@
       </div>
 
       <div class="postcard-stack">
-        <article
-          v-for="(card, index) in postcards"
-          :key="card.id"
-          class="postcard"
-          :class="{
-            'is-active': index === activeIndex,
-            'is-next': index === nextIndex,
-            'is-tall': index % 3 === 2
-          }"
-        >
+        <article v-for="(card, index) in postcards" :key="card.id" class="postcard" :class="{
+          'is-active': index === activeIndex,
+          'is-next': index === nextIndex,
+          'is-tall': index % 3 === 2
+        }">
           <div class="photo-window">
             <img :src="card.image" :alt="card.title" />
           </div>
@@ -178,7 +173,7 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  height: 116px;
+  height: 81px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%),
     #7d1808;
@@ -343,7 +338,6 @@ export default {
   font-size: clamp(1rem, 1.7vw, 1.35rem);
   line-height: 1.6;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -372,12 +366,10 @@ export default {
   width: 78px;
   height: 24px;
   background:
-    repeating-linear-gradient(
-      0deg,
+    repeating-linear-gradient(0deg,
       transparent 0 5px,
       rgba(39, 33, 29, 0.44) 5px 6px,
-      transparent 6px 9px
-    );
+      transparent 6px 9px);
 }
 
 .address-grid {
@@ -433,6 +425,7 @@ export default {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .postcard,
   .postcard-scene.is-ready .postcard.is-active {
     animation: none;
