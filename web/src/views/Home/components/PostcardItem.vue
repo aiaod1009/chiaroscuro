@@ -49,7 +49,7 @@ export default {
   z-index: 1;
   width: min(80vw, 780px);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 4fr;
   gap: 22px;
   padding: 22px 26px;
   background: #fff9ee;
@@ -97,7 +97,7 @@ export default {
 .message-panel {
   position: relative;
   min-width: 0;
-  padding: 24px 12px 10px 26px;
+  padding: 2px 12px 10px 26px;
   text-align: left;
   border-left: 1px solid rgba(39, 33, 29, 0.16);
 }
@@ -147,7 +147,7 @@ export default {
 }
 
 .message-panel h3 {
-  max-width: calc(100% - 130px);
+  max-width: 100%;
   margin: 0 0 1.1rem;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: clamp(1.4rem, 2.5vw, 2.4rem);
@@ -155,7 +155,7 @@ export default {
 }
 
 .caption {
-  max-width: calc(100% - 100px);
+  max-width: 90%;
   margin: 0;
   color: rgba(39, 33, 29, 0.72);
   font-family: 'KaiTi', 'STKaiti', serif;

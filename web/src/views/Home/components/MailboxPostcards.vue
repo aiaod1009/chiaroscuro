@@ -11,14 +11,8 @@
       </div>
 
       <div class="postcard-stack">
-        <PostcardItem
-          v-for="(card, index) in postcards"
-          :key="card.id"
-          :card="card"
-          :is-active="index === activeIndex"
-          :is-next="index === nextIndex"
-          :is-delivering="index === activeIndex && isDelivering"
-        />
+        <PostcardItem v-for="(card, index) in postcards" :key="card.id" :card="card" :is-active="index === activeIndex"
+          :is-next="index === nextIndex" :is-delivering="index === activeIndex && isDelivering" />
       </div>
 
       <div class="counter">{{ activeIndex + 1 }}/{{ postcards.length }}</div>
@@ -168,7 +162,7 @@ export default {
   position: relative;
   z-index: 8;
   height: 16px;
-  margin: 48px auto 30px;
+  margin: 50px auto 30px;
   border-radius: 14px;
   background: #030303;
   box-shadow:
@@ -266,5 +260,4 @@ export default {
 .lever:active .lever-knob {
   top: 80px;
 }
-
 </style>
