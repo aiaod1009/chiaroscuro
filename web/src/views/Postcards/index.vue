@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import MailboxPostcards from '../Home/components/MailboxPostcards.vue';
+import MailboxPostcards from './components/MailboxPostcards.vue';
 
 export default {
   name: 'PostcardsView',
