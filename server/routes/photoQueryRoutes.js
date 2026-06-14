@@ -4,7 +4,7 @@ const router = express.Router();
 const Photo = require('../models/Photo');
 const Works = require('../models/Works');
 const { REGION_CODE_TO_NAME, COUNTRY_CN_TO_CODE, COUNTRY_CODE_TO_CN } = require('./constants');
-const { sendError, parsePagination } = require('./utils');
+const { sendError, parsePagination } = require('../utils');
 
 // ==========================================
 // 📋 获取草稿箱列表

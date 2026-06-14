@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const tencentcloud = require('tencentcloud-sdk-nodejs-sts');
-const { sendError } = require('./utils');
+const { sendError } = require('../utils');
 
 const StsClient = tencentcloud.sts.v20180813.Client;
 

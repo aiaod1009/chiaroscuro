@@ -3,7 +3,7 @@ const express = require('express');
 const router = require('express').Router();
 const Photo = require('../models/Photo');
 const AISession = require('../models/AISession');
-const { sendError } = require('./utils');
+const { sendError } = require('../utils');
 
 // =======================================================
 // 📝 AI 独立路由：照片标题与文艺配文灵感生成器（腾讯云样式终盘通车版）

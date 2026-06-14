@@ -4,7 +4,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Works = require('../models/Works');
 const Photo = require('../models/Photo');
-const { sendError } = require('./utils');
+const { sendError } = require('../utils');
 
 // 查找作品集下的第一张照片（同时匹配字符串和 ObjectId）
 const findFirstPhoto = async (workId) => {

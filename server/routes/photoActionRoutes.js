@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Photo = require('../models/Photo');
-const { sendError, deleteFromCOS } = require('./utils');
+const { sendError, deleteFromCOS } = require('../utils');
 
 // ==========================================
 // 🚫 从指定作品集移除照片（不删除照片本身）

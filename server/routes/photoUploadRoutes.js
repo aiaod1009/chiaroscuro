@@ -4,7 +4,7 @@ const router = express.Router();
 const { upload } = require('../config/cos');
 const Photo = require('../models/Photo');
 const Works = require('../models/Works');
-const { sendError, uploadToCOS } = require('./utils');
+const { sendError, uploadToCOS } = require('../utils');
 
 // ==========================================
 // 📸 接口 1：上传 WebP 草稿（前端 canvas 转换 + 解析 EXIF）
