@@ -210,7 +210,7 @@ export default {
   z-index: 5;
   width: min(74vw, 720px);
   height: 560px;
-  margin: -106px auto 0;
+  margin: -145px auto 0;
 }
 
 .postcard {
