@@ -1,16 +1,21 @@
 <template>
   <section class="postcard-section" aria-label="Photo postcards">
     <div class="postcard-scene" :class="{ 'is-ready': isReady }">
-      <div class="letterbox" aria-hidden="true">
+      <div class="letterbox">
         <div class="letterbox-slot"></div>
         <div class="letterbox-title">Travel postcards</div>
+        <div class="lever" :class="{ 'is-pulled': isPulled }" @click="pullLever">
+          <div class="lever-track"></div>
+          <div class="lever-knob"></div>
+        </div>
       </div>
 
       <div class="postcard-stack">
         <article v-for="(card, index) in postcards" :key="card.id" class="postcard" :class="{
           'is-active': index === activeIndex,
           'is-next': index === nextIndex,
-          'is-tall': index % 3 === 2
+          'is-tall': index % 3 === 2,
+          'is-delivering': index === activeIndex && isDelivering
         }">
           <div class="photo-window">
             <img :src="card.image" :alt="card.title" />
@@ -70,7 +75,9 @@ export default {
       activeIndex: 0,
       postcards: fallbackPostcards,
       timer: null,
-      isReady: false
+      isReady: false,
+      isPulled: false,
+      isDelivering: false
     };
   },
   computed: {
@@ -83,7 +90,6 @@ export default {
     requestAnimationFrame(() => {
       this.isReady = true;
     });
-    this.timer = window.setInterval(this.showNext, 7200);
   },
   beforeUnmount() {
     window.clearInterval(this.timer);
@@ -110,6 +116,18 @@ export default {
     },
     showNext() {
       this.activeIndex = (this.activeIndex + 1) % this.postcards.length;
+    },
+    pullLever() {
+      if (this.isPulled) return;
+      this.isPulled = true;
+      this.isDelivering = false;
+      this.showNext();
+      this.$nextTick(() => {
+        this.isDelivering = true;
+      });
+      setTimeout(() => {
+        this.isPulled = false;
+      }, 800);
     }
   }
 };
@@ -156,6 +174,7 @@ export default {
     inset 0 0 0 12px rgba(72, 11, 3, 0.68),
     inset 0 -20px 36px rgba(40, 5, 0, 0.54),
     0 28px 50px rgba(0, 0, 0, 0.55);
+  overflow: visible;
 }
 
 .letterbox::before {
@@ -242,8 +261,8 @@ export default {
   transform: translate(-50%, 132px) scale(1);
 }
 
-.postcard-scene.is-ready .postcard.is-active {
-  animation: deliverPostcard 7.2s ease-in-out infinite;
+.postcard-scene.is-ready .postcard.is-active.is-delivering {
+  animation: deliverPostcard 4.5s ease-in-out forwards;
 }
 
 .postcard.is-next {
@@ -402,6 +421,63 @@ export default {
   line-height: 1;
 }
 
+.lever {
+  position: absolute;
+  z-index: 25;
+  right: -48px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 120px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lever-track {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #4a3a2a, #2a1a0a);
+  border-radius: 4px;
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.lever-knob {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, 0);
+  background:
+    radial-gradient(circle at 38% 35%, #d4a056, #8a5a2a 60%, #5a3a1a);
+  border-radius: 50%;
+  border: 2px solid #3a2a1a;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 220, 160, 0.4);
+  transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lever.is-pulled .lever-knob {
+  top: 82px;
+}
+
+.lever:hover .lever-knob {
+  background:
+    radial-gradient(circle at 38% 35%, #e4b066, #9a6a3a 60%, #6a4a2a);
+}
+
+.lever:active .lever-knob {
+  top: 60px;
+}
+
 @keyframes deliverPostcard {
   0% {
     opacity: 0;
@@ -506,6 +582,20 @@ export default {
 
   .address-grid {
     grid-template-columns: repeat(6, 22px);
+  }
+
+  .lever {
+    right: -38px;
+    height: 100px;
+  }
+
+  .lever-knob {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lever.is-pulled .lever-knob {
+    top: 66px;
   }
 
   @keyframes deliverPostcard {
