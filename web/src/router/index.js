@@ -8,6 +8,7 @@ import GalleryDetail from '../views/GalleryDetail/index.vue';
 import PhotoDetail from '../views/PhotoDetail/index.vue';
 import Waterfall from '../views/Waterfall/index.vue';
 import WorkDetail from '../views/WorkDetail/index.vue';
+import Postcards from '../views/Postcards/index.vue';
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -19,6 +20,7 @@ const routes = [
   { path: '/gallery-detail/:id', name: 'GalleryDetail', component: GalleryDetail },
   { path: '/photo-detail/:id', name: 'PhotoDetail', component: PhotoDetail },
   { path: '/waterfall/:mapCode', name: 'Waterfall', component: Waterfall },
+  { path: '/postcards', name: 'Postcards', component: Postcards },
 ];
 
 const router = createRouter({

@@ -23,17 +23,15 @@
           @select="selectCard" @prev="prevCard" @next="nextCard" />
       </div>
     </div>
-    <MailboxPostcards />
   </div>
 </template>
 
 <script>
 import CollectionCards from './components/CollectionCards.vue';
-import MailboxPostcards from './components/MailboxPostcards.vue';
 
 export default {
   name: 'HomeView',
-  components: { CollectionCards, MailboxPostcards },
+  components: { CollectionCards },
   data() {
     return {
       activeIndex: 0,
