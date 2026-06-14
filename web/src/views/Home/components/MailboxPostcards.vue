@@ -185,8 +185,8 @@ export default {
 .letterbox-slot {
   position: relative;
   z-index: 8;
-  height: 58px;
-  margin: 18px auto 24px;
+  height: 12px;
+  margin: 36px auto 24px;
   border-radius: 12px;
   background: #030303;
   box-shadow:
