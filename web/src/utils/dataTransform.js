@@ -4,15 +4,15 @@
  */
 
 // 导入地区常量（与后端保持一致）
-const REGION_CODE_MAP = {
+export const REGION_CODE_MAP = {
   'CN-11': { id: 'beijing', name: '北京' },
   'CN-12': { id: 'tianjin', name: '天津' },
   'CN-13': { id: 'hebei', name: '河北' },
   'CN-14': { id: 'shanxi', name: '山西' },
-  'CN-15': { id: 'neimeng', name: '内蒙古' },
+  'CN-15': { id: 'neimenggu', name: '内蒙古' },
   'CN-21': { id: 'liaoning', name: '辽宁' },
   'CN-22': { id: 'jilin', name: '吉林' },
-  'CN-23': { id: 'heilong', name: '黑龙江' },
+  'CN-23': { id: 'heilongjiang', name: '黑龙江' },
   'CN-31': { id: 'shanghai', name: '上海' },
   'CN-32': { id: 'jiangsu', name: '江苏' },
   'CN-33': { id: 'zhejiang', name: '浙江' },
@@ -35,7 +35,10 @@ const REGION_CODE_MAP = {
   'CN-62': { id: 'gansu', name: '甘肃' },
   'CN-63': { id: 'qinghai', name: '青海' },
   'CN-64': { id: 'ningxia', name: '宁夏' },
-  'CN-65': { id: 'xinjiang', name: '新疆' }
+  'CN-65': { id: 'xinjiang', name: '新疆' },
+  'CN-HK': { id: 'hongkong', name: '香港' },
+  'CN-MO': { id: 'macau', name: '澳门' },
+  'CN-TW': { id: 'taiwan', name: '台湾' },
 }
 
 const COUNTRY_CODE_MAP = {
