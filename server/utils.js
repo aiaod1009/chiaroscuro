@@ -1,5 +1,5 @@
 // server/routes/utils.js
-const { cos } = require('../config/cos');
+const { cos } = require('./config/cos');
 
 // ==========================================
 // 🚨 统一错误响应
