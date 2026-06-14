@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="archive-page">
+  <div class="archive-page page-bg">
     <div class="archive-wrapper">
       <!-- 头部标题区 -->
       <div class="header-section">
@@ -66,13 +66,9 @@ export default {
 
 <style scoped>
 .archive-page {
-  background-color: #0b101e;
-  min-height: 100vh;
   margin-top: -5rem;
-  /* 抵消上层可能的 padding */
   padding-top: 8rem;
   padding-bottom: 5rem;
-  color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 

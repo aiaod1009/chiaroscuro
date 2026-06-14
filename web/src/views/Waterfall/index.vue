@@ -1,5 +1,5 @@
 <template>
-  <main class="waterfall-page">
+  <main class="waterfall-page page-bg">
     <header class="waterfall-header">
       <button class="btn-back" @click="$router.push('/footprints')">&larr; 足迹地图</button>
       <div class="header-info">
@@ -92,8 +92,6 @@ const formatDate = (d) => {
 <style scoped>
 .waterfall-page {
   min-height: 100vh;
-  background: #050a15;
-  color: #fff;
   margin-top: -5rem;
   padding: 5rem 40px 60px;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="scifi-container">
+  <div class="scifi-container page-bg">
     <header class="scifi-header">
       <div class="header-left">
         <span class="section-tag">Section 03</span>
@@ -153,7 +153,6 @@ watch(() => route.params.id, fetchPhoto)
    ========================================================================== */
 .scifi-container {
   min-height: 100vh;
-  background-color: #0d1117;
   color: #adb5bd;
   margin-top: -5rem;
   padding-top: 6rem;

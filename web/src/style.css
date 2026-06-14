@@ -17,3 +17,9 @@ body {
   background-color: #576c90;
   min-height: 100vh;
 }
+
+.page-bg {
+  background-color: #0b101e;
+  min-height: 100vh;
+  color: #fff;
+}

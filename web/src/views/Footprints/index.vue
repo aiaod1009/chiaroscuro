@@ -1,5 +1,5 @@
 <template>
-  <main class="footprints-page">
+  <main class="footprints-page page-bg">
     <section ref="mapContainer" class="map-stage" :class="{ 'is-dragging': isDragging }" @mousedown="handleMouseDown"
       @mousemove="handleMouseMove" @mouseup="handleMouseUp" @mouseleave="handleMouseUp" @wheel.prevent="handleWheel">
       <svg class="travel-map" :viewBox="`0 0 ${svgWidth} ${svgHeight}`" role="img" aria-label="旅行足迹地图">
@@ -447,8 +447,6 @@ export default {
   min-height: 100vh;
   margin-top: -5rem;
   padding-top: 5rem;
-  background: #050a15;
-  color: #fff;
   overflow: hidden;
 }
 

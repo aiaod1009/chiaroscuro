@@ -8,6 +8,13 @@
           <div class="lever-track"></div>
           <div class="lever-knob"></div>
         </div>
+        <button class="save-btn" @click="savePostcard" title="保存明信片">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </button>
       </div>
 
       <div class="postcard-stack">
@@ -23,6 +30,7 @@
 <script>
 import { fetchPhotosByRegion } from '../../../utils/photoApi';
 import PostcardItem from './PostcardItem.vue';
+import html2canvas from 'html2canvas';
 
 export default {
   name: 'MailboxPostcards',
@@ -85,6 +93,19 @@ export default {
       setTimeout(() => {
         this.isPulled = false;
       }, 800);
+    },
+    async savePostcard() {
+      const el = this.$el.querySelector('.postcard.is-active');
+      if (!el) return;
+      try {
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+        const link = document.createElement('a');
+        link.download = `postcard-${this.activeIndex + 1}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('保存失败:', err);
+      }
     }
   }
 };
@@ -93,7 +114,7 @@ export default {
 <style scoped>
 .postcard-section {
   min-height: 100vh;
-  background: #000;
+  background: #0b101e;
   color: #fff;
   overflow: hidden;
 }
@@ -114,7 +135,7 @@ export default {
   left: 0;
   right: 0;
   height: calc(6rem + 8px);
-  background: #000;
+  background: #0b101e;
 }
 
 .letterbox {
@@ -259,5 +280,26 @@ export default {
 
 .lever:active .lever-knob {
   top: 80px;
+}
+
+.save-btn {
+  position: absolute;
+  z-index: 25;
+  right: -56px;
+  top: calc(50% + 100px);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 195, 157, 0.3);
+  background: rgba(125, 24, 8, 0.8);
+  color: #fff6ee;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-btn:hover {
+  background: rgba(125, 24, 8, 1);
 }
 </style>

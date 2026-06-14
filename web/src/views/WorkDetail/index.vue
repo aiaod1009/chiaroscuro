@@ -1,5 +1,5 @@
 <template>
-  <div class="work-detail-page">
+  <div class="work-detail-page page-bg">
     <aside class="sidebar-panel">
       <div class="brand-header">
         <button class="btn-back" @click="router.push('/console')">&larr; 返回控制台</button>
@@ -170,7 +170,6 @@ watch(() => route.params.id, fetchWorkDetail)
 <style scoped>
 .work-detail-page {
   min-height: 100vh;
-  background-color: #0d0f12;
   color: #c9d1d9;
   display: grid;
   grid-template-columns: 280px 1fr;

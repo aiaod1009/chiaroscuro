@@ -1,5 +1,5 @@
 <template>
-  <div class="visual-notes-container">
+  <div class="visual-notes-container page-bg">
 
     <header class="notes-header">
       <div class="header-left">
@@ -330,7 +330,6 @@ const handleSave = async () => {
    ========================================================================== */
 .visual-notes-container {
   min-height: 100vh;
-  background-color: #090d12;
   color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin-top: -5rem;

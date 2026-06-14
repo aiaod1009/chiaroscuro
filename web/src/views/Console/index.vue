@@ -1,5 +1,5 @@
 <template>
-  <div class="drafts-dashboard">
+  <div class="drafts-dashboard page-bg">
     <aside class="sidebar-panel">
       <div class="brand-header">
         <h1 class="main-title-zh">控制台</h1>
@@ -149,7 +149,6 @@ onUnmounted(() => {
    ========================================================================== */
 .drafts-dashboard {
   min-height: 100vh;
-  background-color: #0d0f12;
   color: #c9d1d9;
   display: grid;
   grid-template-columns: 280px 1fr;

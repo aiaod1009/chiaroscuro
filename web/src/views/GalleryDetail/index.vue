@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="gallery-detail-page">
+  <div class="gallery-detail-page page-bg">
     <div class="content-wrapper">
 
       <!-- 翻页 + 歌词区 -->
@@ -152,12 +152,9 @@ export default {
 
 <style scoped>
 .gallery-detail-page {
-  background-color: #0b101e;
-  min-height: 100vh;
   margin-top: -5rem;
   padding-top: 8rem;
   padding-bottom: 5rem;
-  color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 

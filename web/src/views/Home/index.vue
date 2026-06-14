@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="home-page">
+  <div class="home-page page-bg">
     <div class="home-container">
       <!-- 全屏背景遮罩与图片 (带淡入淡出过渡动画) -->
       <transition name="bg-fade">
@@ -71,8 +71,6 @@ export default {
   min-height: 100vh;
   margin-top: -5rem;
   padding-top: 5rem;
-  background-color: #0b101e;
-  color: #fff;
   overflow: hidden;
 }
 
