@@ -30,7 +30,7 @@ router.get('/footprints', async (req, res) => {
           _id: { region: '$region', locationName: '$locationName' },
           photoCount: { $sum: 1 },
           allAlbumIds: { $push: '$albumIds' },
-          allPhotos: { $push: { src: { $cond: { if: { $in: ['$displayImageUrl', [null, '']] }, then: '$imageUrl', else: '$displayImageUrl' } }, alt: '$fileName' } }
+          allPhotos: { $push: { src: { $cond: { if: { $eq: [{ $ifNull: ['$displayImageUrl', ''] }, ''] }, then: '$imageUrl', else: '$displayImageUrl' } }, alt: '$fileName' } }
         }
       },
       {
