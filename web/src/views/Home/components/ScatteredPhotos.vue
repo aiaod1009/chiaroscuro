@@ -2,15 +2,9 @@
   <section class="scattered-section">
     <h2 class="section-title">散落的回忆</h2>
     <div class="photo-desk" ref="desk">
-      <div
-        v-for="(photo, index) in photos"
-        :key="photo.id"
-        class="scattered-photo"
-        :style="photo.style"
-        @mouseenter="hoverIndex = index"
-        @mouseleave="hoverIndex = -1"
-        @click="$router.push(`/photo-detail/${photo.id}`)"
-      >
+      <div v-for="(photo, index) in photos" :key="photo.id" class="scattered-photo" :style="photo.style"
+        @mouseenter="hoverIndex = index" @mouseleave="hoverIndex = -1"
+        @click="$router.push(`/photo-detail/${photo.id}`)">
         <div class="photo-card" :class="{ 'is-hovered': hoverIndex === index }">
           <div class="photo-front">
             <img :src="photo.src" :alt="photo.title" />
@@ -56,7 +50,7 @@ export default {
           const col = i % cols;
           const row = Math.floor(i / cols);
           const baseX = col * cellW + cellW / 2;
-          const baseY = row * 280 + 140;
+          const baseY = row * 320 + 140;
           const offsetX = (Math.random() - 0.5) * 40;
           const offsetY = (Math.random() - 0.5) * 30;
           const rotate = (Math.random() - 0.5) * 16;
@@ -120,6 +114,7 @@ export default {
     opacity: 0;
     transform: translate(-50%, -50%) rotate(var(--rotate)) scale(0.7);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, -50%) rotate(var(--rotate)) scale(1);

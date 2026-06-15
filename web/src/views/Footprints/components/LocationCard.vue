@@ -6,7 +6,7 @@
       <span>{{ albums }} 个相册 · {{ photoCount }} 张</span>
     </div>
     <div class="photo-grid">
-      <img v-for="photo in photos" :key="photo.src" :src="photo.src" :alt="photo.alt" />
+      <img v-for="photo in photos" :key="photo.src" :src="photo.src" :alt="photo.alt" @error="onImgError" />
     </div>
     <button class="view-all" type="button" @click="$emit('view-all')">查看全部 →</button>
   </aside>
@@ -23,6 +23,14 @@ export default {
     cardStyle: { type: Object, default: () => ({}) },
   },
   emits: ['close', 'view-all'],
+  methods: {
+    onImgError(e) {
+      e.target.src = 'data:image/svg+xml,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 148"><rect fill="#1a2035" width="200" height="148" rx="8"/><text x="100" y="78" text-anchor="middle" fill="#4a5568" font-size="14">图片加载失败</text></svg>'
+      );
+      e.target.style.objectFit = 'contain';
+    },
+  },
 };
 </script>
 
