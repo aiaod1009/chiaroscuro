@@ -8,8 +8,8 @@
       <router-link to="/">HOME</router-link>
       <router-link to="/postcards">POSTCARDS</router-link>
       <router-link to="/archive">ARCHIVE</router-link>
-      <router-link to="/console">CONSOLE</router-link>
       <router-link to="/footprints">FOOTPRINTS</router-link>
+      <router-link to="/console">CONSOLE</router-link>
     </div>
     <div class="nav-icons">
       <a href="#"><i class="icon-placeholder"></i></a>
