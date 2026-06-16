@@ -116,6 +116,69 @@ router.get('/postcards', async (req, res) => {
 });
 
 // ==========================================
+// 🎨 获取没有颜色数据的照片（批量补色用）
+// ==========================================
+router.get('/without-colors', async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+    const photos = await Photo.find({
+      isDraft: { $ne: true },
+      $or: [
+        { colors: { $exists: false } },
+        { colors: { $size: 0 } }
+      ]
+    })
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      data: photos.map(p => ({
+        id: p._id,
+        imageUrl: p.displayImageUrl || p.imageUrl
+      }))
+    });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+});
+
+// ==========================================
+// 🎨 色谱统计：聚合所有照片的颜色数据
+// ==========================================
+router.get('/colors/stats', async (req, res) => {
+  try {
+    const results = await Photo.aggregate([
+      { $match: { isDraft: { $ne: true }, 'colors.0': { $exists: true } } },
+      { $unwind: '$colors' },
+      {
+        $group: {
+          _id: '$colors.hex',
+          name: { $first: '$colors.name' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    const total = results.reduce((sum, r) => sum + r.count, 0);
+
+    const data = results.map(r => ({
+      hex: r._id,
+      name: r.name || '',
+      count: r.count,
+      percent: total ? Math.round(r.count / total * 1000) / 10 : 0
+    }));
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('色谱统计查询失败:', error);
+    sendError(res, 500, error.message);
+  }
+});
+
+// ==========================================
 // 🖼️ 画廊详情：按地区获取全部照片
 // ==========================================
 router.get('/gallery/:mapCode', async (req, res) => {
