@@ -72,7 +72,7 @@ const loadPhotos = async () => {
 
     photos.value = valid.map((p, i) => {
       const { w, h } = sizes[i]
-      const ratio = w / h
+      const ratio = w / h < 1 ? 4 / 5 : w / h
       const cardW = CARD_H * ratio
       const cardH = CARD_H
 
