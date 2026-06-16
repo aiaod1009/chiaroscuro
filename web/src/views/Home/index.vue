@@ -24,16 +24,18 @@
       </div>
     </div>
     <CameraViewfinder />
+    <FootprintPreview />
   </div>
 </template>
 
 <script>
 import CollectionCards from './components/CollectionCards.vue';
 import CameraViewfinder from './components/CameraViewfinder.vue';
+import FootprintPreview from './components/FootprintPreview.vue';
 
 export default {
   name: 'HomeView',
-  components: { CollectionCards, CameraViewfinder },
+  components: { CollectionCards, CameraViewfinder, FootprintPreview },
   data() {
     return {
       activeIndex: 0,
