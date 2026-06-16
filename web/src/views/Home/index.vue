@@ -3,7 +3,8 @@
     <div class="home-container">
       <!-- 全屏背景遮罩与图片 (带淡入淡出过渡动画) -->
       <transition name="bg-fade">
-        <div class="hero-bg" :key="activeCollection.image" :style="{ backgroundImage: `url(${activeCollection.image})` }">
+        <div class="hero-bg" :key="activeCollection.image"
+          :style="{ backgroundImage: `url(${activeCollection.image})` }">
         </div>
       </transition>
 
@@ -19,12 +20,12 @@
         </transition>
 
         <!-- 右侧精选集卡片区域 -->
-        <CollectionCards :collections="collections" :active-index="activeIndex"
-          @select="selectCard" @prev="prevCard" @next="nextCard" />
+        <CollectionCards :collections="collections" :active-index="activeIndex" @select="selectCard" @prev="prevCard"
+          @next="nextCard" />
       </div>
     </div>
-    <CameraViewfinder />
     <FootprintPreview />
+    <CameraViewfinder />
   </div>
 </template>
 

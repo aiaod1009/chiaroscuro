@@ -87,7 +87,7 @@ const isVisited = (d) => false // 简化版不做国家高亮，靠标记点
 
 const markers = computed(() => {
   return regions.value
-    .filter(r => r.mapCode && REGION_COORDS[r.mapCode])
+    .filter(r => r.mapCode && r.mapCode !== 'CN' && REGION_COORDS[r.mapCode])
     .map(r => {
       const [lng, lat] = REGION_COORDS[r.mapCode]
       const pos = projection([lng, lat])
@@ -96,7 +96,7 @@ const markers = computed(() => {
 })
 
 const regionCount = computed(() => {
-  const codes = new Set(regions.value.filter(r => r.mapCode).map(r => r.mapCode))
+  const codes = new Set(regions.value.filter(r => r.mapCode && r.mapCode !== 'CN').map(r => r.mapCode))
   return codes.size
 })
 
