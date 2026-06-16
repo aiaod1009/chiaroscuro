@@ -1,6 +1,6 @@
 <template>
-  <main class="waterfall-page page-bg">
-    <header class="waterfall-header">
+  <main class="photo-desk-page page-bg">
+    <header class="photo-desk-header">
       <button class="btn-back" @click="$router.push('/footprints')">&larr; 足迹地图</button>
       <div class="header-info">
         <h1 class="region-title">{{ title }}</h1>
@@ -101,20 +101,20 @@ watch(() => route.params.mapCode, loadPhotos)
 </script>
 
 <style scoped>
-.waterfall-page {
+.photo-desk-page {
   min-height: 100vh;
   margin-top: -5rem;
   padding: 5rem 40px 60px;
 }
 
 @media (max-width: 768px) {
-  .waterfall-page {
+  .photo-desk-page {
     padding: 5rem 16px 40px;
   }
 }
 
 /* 头部 */
-.waterfall-header {
+.photo-desk-header {
   display: flex;
   align-items: center;
   gap: 24px;
@@ -162,7 +162,7 @@ watch(() => route.params.mapCode, loadPhotos)
   position: relative;
   min-height: 600px;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 100px auto;
 }
 
 /* 单张照片容器 */
@@ -180,6 +180,7 @@ watch(() => route.params.mapCode, loadPhotos)
     opacity: 0;
     transform: translate(-50%, -50%) rotate(var(--rotate)) scale(0.7);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, -50%) rotate(var(--rotate)) scale(1);

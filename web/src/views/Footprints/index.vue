@@ -52,7 +52,7 @@
 
       <LocationCard v-if="activeRegion" :name="activeRegion.name" :albums="activeRegion.albums"
         :photo-count="activeRegion.photoCount" :photos="activeRegion.photos" :card-style="locationCardStyle"
-        @close="activeRegionId = null" @view-all="$router.push(`/waterfall/${activeRegion.mapCode}`)" />
+        @close="activeRegionId = null" @view-all="$router.push(`/photo-desk/${activeRegion.mapCode}`)" />
 
       <div class="map-controls" @mousedown.stop @wheel.stop>
         <button type="button" @click="resetWorld">世界视图</button>
