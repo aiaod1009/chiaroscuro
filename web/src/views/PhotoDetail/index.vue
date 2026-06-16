@@ -20,7 +20,8 @@
 
       <div class="grid-left-col">
 
-        <ComparisonViewer :originalSrc="originalSrc" :versions="versions" :activeVersionId="activeVersionId" />
+        <ComparisonViewer :originalSrc="originalSrc" :versions="versions" :activeVersionId="activeVersionId"
+          @rename-version="onRenameVersion" @delete-version="onDeleteVersion" />
 
         <VersionCards :originalPhoto="originalPhoto" :versions="versions" :activeVersionId="activeVersionId"
           :displayVersionId="displayVersionId" @select="activeVersionId = $event"
@@ -38,7 +39,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { fetchPhotoDetail as apiFetchPhotoDetail, setDisplayVersion as apiSetDisplayVersion, savePhotoColors, fetchPhotoVersions } from '../../utils/photoApi'
+import { fetchPhotoDetail as apiFetchPhotoDetail, setDisplayVersion as apiSetDisplayVersion, savePhotoColors, fetchPhotoVersions, updatePhoto, deletePhoto } from '../../utils/photoApi'
 import ComparisonViewer from './components/ComparisonViewer.vue'
 import VersionCards from './components/VersionCards.vue'
 import DetailPanels from './components/DetailPanels.vue'
@@ -73,6 +74,26 @@ const setDisplayVersion = async (versionId) => {
     displayVersionId.value = versionId || null
   } catch (err) {
     console.error('设置展示版失败:', err)
+  }
+}
+
+const onRenameVersion = async ({ id, versionName }) => {
+  try {
+    await updatePhoto(id, { versionName })
+    const v = versions.value.find(v => v._id === id)
+    if (v) v.versionName = versionName
+  } catch (err) {
+    console.error('重命名失败:', err)
+  }
+}
+
+const onDeleteVersion = async (id) => {
+  try {
+    await deletePhoto(id)
+    versions.value = versions.value.filter(v => v._id !== id)
+    if (activeVersionId.value === id) activeVersionId.value = null
+  } catch (err) {
+    console.error('删除版本失败:', err)
   }
 }
 

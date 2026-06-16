@@ -66,14 +66,18 @@ router.patch('/:id/copy', async (req, res) => {
 })
 
 // ==========================================
-// ✏️ 更新照片标题与配文
+// ✏️ 更新照片标题、配文、版本名
 // ==========================================
 router.patch('/:id', async (req, res) => {
   try {
-    const { title, caption } = req.body
+    const { title, caption, versionName } = req.body
+    const update = {}
+    if (title !== undefined) update.title = title
+    if (caption !== undefined) update.caption = caption
+    if (versionName !== undefined) update.versionName = versionName
     const photo = await Photo.findByIdAndUpdate(
       req.params.id,
-      { $set: { title, caption } },
+      { $set: update },
       { new: true }
     )
     if (!photo) return sendError(res, 404, '照片不存在');

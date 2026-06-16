@@ -17,11 +17,23 @@
       </button>
       <transition name="dropdown">
         <div v-if="openLeft" class="dropdown-menu">
-          <button v-for="v in allVersions" :key="v._id" class="dropdown-item"
-            :class="{ active: leftId === v._id }" @click="leftId = v._id; openLeft = false">
-            <span class="item-dot" :class="{ active: leftId === v._id }"></span>
-            {{ v.label }}
-          </button>
+          <div v-for="v in allVersions" :key="v._id" class="dropdown-item"
+            :class="{ active: leftId === v._id }">
+            <button class="item-select" @click="leftId = v._id; openLeft = false">
+              <span class="item-dot" :class="{ active: leftId === v._id }"></span>
+              <template v-if="renamingId === v._id">
+                <input class="rename-input" v-model="renameText" @keyup.enter="confirmRename(v._id)"
+                  @keyup.escape="cancelRename" @click.stop ref="renameInput" />
+              </template>
+              <template v-else>{{ v.label }}</template>
+            </button>
+            <button v-if="v._id !== '__original__'" class="item-action" @click.stop="startRename(v)" title="重命名">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M12.146.854a.5.5 0 0 1 .708 0l2.292 2.292a.5.5 0 0 1 0 .708l-9.5 9.5a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l9.5-9.5z"/></svg>
+            </button>
+            <button v-if="v._id !== '__original__'" class="item-action danger" @click.stop="confirmDelete(v._id, v.label)" title="删除">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1z"/></svg>
+            </button>
+          </div>
         </div>
       </transition>
     </div>
@@ -36,11 +48,23 @@
       </button>
       <transition name="dropdown">
         <div v-if="openRight" class="dropdown-menu">
-          <button v-for="v in allVersions" :key="v._id" class="dropdown-item"
-            :class="{ active: rightId === v._id }" @click="rightId = v._id; openRight = false">
-            <span class="item-dot" :class="{ active: rightId === v._id }"></span>
-            {{ v.label }}
-          </button>
+          <div v-for="v in allVersions" :key="v._id" class="dropdown-item"
+            :class="{ active: rightId === v._id }">
+            <button class="item-select" @click="rightId = v._id; openRight = false">
+              <span class="item-dot" :class="{ active: rightId === v._id }"></span>
+              <template v-if="renamingId === v._id">
+                <input class="rename-input" v-model="renameText" @keyup.enter="confirmRename(v._id)"
+                  @keyup.escape="cancelRename" @click.stop ref="renameInput" />
+              </template>
+              <template v-else>{{ v.label }}</template>
+            </button>
+            <button v-if="v._id !== '__original__'" class="item-action" @click.stop="startRename(v)" title="重命名">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M12.146.854a.5.5 0 0 1 .708 0l2.292 2.292a.5.5 0 0 1 0 .708l-9.5 9.5a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l9.5-9.5z"/></svg>
+            </button>
+            <button v-if="v._id !== '__original__'" class="item-action danger" @click.stop="confirmDelete(v._id, v.label)" title="删除">
+              <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1z"/></svg>
+            </button>
+          </div>
         </div>
       </transition>
     </div>
@@ -50,6 +74,25 @@
     </div>
 
     <input type="range" min="0" max="100" v-model="sliderPosition" class="hidden-range-input" />
+
+    <!-- 删除确认弹窗 -->
+    <transition name="modal">
+      <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+        <div class="modal-box">
+          <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <h4 class="modal-title">删除版本</h4>
+          <p class="modal-desc">确定删除「{{ deleteTarget.label }}」？此操作不可撤销。</p>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" @click="deleteTarget = null">取消</button>
+            <button class="modal-btn danger" @click="doDelete">删除</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -67,7 +110,10 @@ export default {
       leftId: '__original__',
       rightId: '__original__',
       openLeft: false,
-      openRight: false
+      openRight: false,
+      renamingId: null,
+      renameText: '',
+      deleteTarget: null
     }
   },
   computed: {
@@ -89,6 +135,36 @@ export default {
     },
     rightSrc() {
       return this.allVersions.find(v => v._id === this.rightId)?.imageUrl || this.originalSrc
+    }
+  },
+  methods: {
+    startRename(v) {
+      this.renamingId = v._id
+      this.renameText = v.label
+      this.$nextTick(() => {
+        const input = this.$refs.renameInput
+        if (input) (Array.isArray(input) ? input[0] : input).focus()
+      })
+    },
+    cancelRename() {
+      this.renamingId = null
+      this.renameText = ''
+    },
+    async confirmRename(id) {
+      if (!this.renameText.trim()) return
+      this.$emit('rename-version', { id, versionName: this.renameText.trim() })
+      this.cancelRename()
+    },
+    confirmDelete(id, label) {
+      this.deleteTarget = { id, label }
+      this.openLeft = false
+      this.openRight = false
+    },
+    doDelete() {
+      if (this.deleteTarget) {
+        this.$emit('delete-version', this.deleteTarget.id)
+        this.deleteTarget = null
+      }
     }
   },
   watch: {
@@ -213,28 +289,177 @@ export default {
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 6px;
+  background: transparent;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.item-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  padding: 6px 8px;
   background: transparent;
   border: none;
-  border-radius: 10px;
   color: #9ca3af;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.03em;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s;
   text-align: left;
+  min-width: 0;
 }
 
-.dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+.item-select:hover {
   color: #e5e7eb;
 }
 
-.dropdown-item.active {
+.dropdown-item.active .item-select {
   color: #22d3ee;
+}
+
+.item-action {
+  flex-shrink: 0;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+}
+
+.item-action:hover {
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.item-action.danger:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.rename-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #22d3ee;
+  border-radius: 4px;
+  color: #e5e7eb;
+  font-size: 12px;
+  padding: 2px 6px;
+  width: 100px;
+  outline: none;
+}
+
+/* 删除确认弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: #1a2235;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 32px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+.modal-icon {
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin: 0 0 8px;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modal-btn {
+  padding: 8px 24px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.modal-btn.cancel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+}
+
+.modal-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+.modal-btn.danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.modal-btn.danger:hover {
+  background: #ef4444;
+}
+
+/* 弹窗动画 */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-active .modal-box,
+.modal-leave-active .modal-box {
+  transition: transform 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-box {
+  transform: scale(0.95);
+}
+
+.modal-leave-to .modal-box {
+  transform: scale(0.95);
 }
 
 .item-dot {
