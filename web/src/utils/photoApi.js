@@ -105,26 +105,6 @@ export async function fetchPhotoPostcards(limit = 11) {
   return data.success ? data.data : []
 }
 
-/**
- * 获取色谱统计数据
- * @returns {Promise<Array>} 颜色统计数组 [{hex, name, count, percent}]
- */
-export async function fetchColorStats() {
-  const { data } = await axios.get(`${API_BASE}/photos/colors/stats`)
-  return data.success ? data.data : []
-}
-
-/**
- * 获取没有颜色数据的照片（批量补色用）
- * @param {number} limit - 每批数量
- * @returns {Promise<Array>} 照片数组 [{id, imageUrl}]
- */
-export async function fetchPhotosWithoutColors(limit = 20) {
-  const { data } = await axios.get(`${API_BASE}/photos/without-colors`, {
-    params: { limit }
-  })
-  return data.success ? data.data : []
-}
 
 /**
  * 更新照片标题和配文

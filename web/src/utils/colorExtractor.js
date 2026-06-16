@@ -39,11 +39,11 @@ export async function extractColors(imageUrl, colorCount = 10) {
 function quantize(pixels, colorCount) {
   const colorMap = {}
 
-  // 采样像素
-  for (let i = 0; i < pixels.length; i += 16) { // 每4个像素采样一次
-    const r = Math.round(pixels[i] / 32) * 32
-    const g = Math.round(pixels[i + 1] / 32) * 32
-    const b = Math.round(pixels[i + 2] / 32) * 32
+  // 采样像素（每2个像素采样一次，精度更高）
+  for (let i = 0; i < pixels.length; i += 8) {
+    const r = Math.round(pixels[i] / 16) * 16
+    const g = Math.round(pixels[i + 1] / 16) * 16
+    const b = Math.round(pixels[i + 2] / 16) * 16
     const key = `${r},${g},${b}`
 
     if (!colorMap[key]) {
@@ -55,15 +55,15 @@ function quantize(pixels, colorCount) {
   // 按出现次数排序
   const sorted = Object.values(colorMap).sort((a, b) => b.count - a.count)
 
-  // 过滤掉太接近的颜色
+  // 过滤掉太接近的颜色（阈值更小，保留更多色彩差异）
   const result = []
   for (const color of sorted) {
     if (result.length >= colorCount) break
 
     const tooClose = result.some(c =>
-      Math.abs(c.r - color.r) < 64 &&
-      Math.abs(c.g - color.g) < 64 &&
-      Math.abs(c.b - color.b) < 64
+      Math.abs(c.r - color.r) < 40 &&
+      Math.abs(c.g - color.g) < 40 &&
+      Math.abs(c.b - color.b) < 40
     )
 
     if (!tooClose) {
@@ -72,7 +72,7 @@ function quantize(pixels, colorCount) {
   }
 
   return result.map(c => ({
-    hex: `#${c.r.toString(16).padStart(2, '0')}${c.g.toString(16).padStart(2, '0')}${c.b.toString(16).padStart(2, '0')}`,
+    hex: '#' + [c.r, c.g, c.b].map(v => Math.min(255, v).toString(16).padStart(2, '0')).join(''),
     name: getColorName(c)
   }))
 }

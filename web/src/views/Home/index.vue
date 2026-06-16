@@ -24,18 +24,16 @@
       </div>
     </div>
     <CameraViewfinder />
-    <ColorSpectrum />
   </div>
 </template>
 
 <script>
 import CollectionCards from './components/CollectionCards.vue';
 import CameraViewfinder from './components/CameraViewfinder.vue';
-import ColorSpectrum from './components/ColorSpectrum.vue';
 
 export default {
   name: 'HomeView',
-  components: { CollectionCards, CameraViewfinder, ColorSpectrum },
+  components: { CollectionCards, CameraViewfinder },
   data() {
     return {
       activeIndex: 0,

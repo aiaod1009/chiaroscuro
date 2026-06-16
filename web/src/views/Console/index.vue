@@ -16,10 +16,6 @@
 
       <UploadCard @upload="openUpload()" />
 
-      <button class="batch-color-btn" @click="startBatchColor" :disabled="batchRunning">
-        {{ batchRunning ? `补色中... ${batchDone}` : '批量补色' }}
-      </button>
-
     </aside>
 
     <main class="content-main">
@@ -62,7 +58,6 @@
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchDrafts as apiFetchDrafts, fetchWorks as apiFetchWorks } from '../../utils/photoApi'
-import { batchExtractColors } from '../../utils/batchColorExtract'
 import WorkCard from './components/WorkCard.vue'
 import AlbumPlaceholder from './components/AlbumPlaceholder.vue'
 import Pagination from './components/Pagination.vue'
@@ -81,24 +76,6 @@ const pageSize = 12
 
 const drafts = ref([])
 const worksList = ref([])
-const batchRunning = ref(false)
-const batchDone = ref(0)
-
-const startBatchColor = async () => {
-  batchRunning.value = true
-  batchDone.value = 0
-  try {
-    const total = await batchExtractColors((count) => {
-      batchDone.value = count
-    })
-    alert(`补色完成，共处理 ${total} 张照片`)
-  } catch (err) {
-    console.error('批量补色失败:', err)
-    alert('补色出错: ' + err.message)
-  } finally {
-    batchRunning.value = false
-  }
-}
 
 const filteredWorks = computed(() => {
   let result = worksList.value
@@ -239,28 +216,6 @@ onUnmounted(() => {
   line-height: 1.6;
   color: #57606a;
   margin: 0 0 32px 0;
-}
-
-.batch-color-btn {
-  margin-top: 16px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #94a3b8;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.batch-color-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.batch-color-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* ==========================================================================
