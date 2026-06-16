@@ -4,12 +4,13 @@
       <!-- 左侧地图 -->
       <div class="map-side" @click="$router.push('/footprints')">
         <svg :viewBox="`0 0 ${svgW} ${svgH}`" class="map-svg">
-          <rect :width="svgW" :height="svgH" fill="#050a15" />
+          <rect :width="svgW" :height="svgH" fill="#0f1729" />
           <g v-for="(d, i) in countryPaths" :key="i">
-            <path :d="d" :fill="isVisited(d) ? '#1a2744' : '#0f172a'" :stroke="isVisited(d) ? '#2a4a7a' : '#1a2540'" stroke-width="0.3" />
+            <path :d="d" fill="#1c2d4a" stroke="#2e4670" stroke-width="0.3" />
           </g>
           <g v-for="(r, i) in markers" :key="r.mapCode">
-            <circle :cx="r.x" :cy="r.y" r="6" fill="#f59e0b" opacity="0.15" class="marker-glow" :style="{ animationDelay: `${i * 0.15}s` }" />
+            <circle :cx="r.x" :cy="r.y" r="6" fill="#f59e0b" opacity="0.15" class="marker-glow"
+              :style="{ animationDelay: `${i * 0.15}s` }" />
             <circle :cx="r.x" :cy="r.y" r="2.5" fill="#fbbf24" stroke="#fff" stroke-width="0.5" />
           </g>
         </svg>
@@ -46,18 +47,18 @@ const regions = ref([])
 const countryPaths = ref([])
 
 const REGION_COORDS = {
-  'CN-11': [116.4, 39.9],  'CN-12': [117.2, 39.1],  'CN-13': [114.5, 38.0],
-  'CN-14': [112.5, 37.9],  'CN-15': [111.7, 40.8],  'CN-21': [123.4, 41.8],
-  'CN-22': [126.6, 43.9],  'CN-23': [126.6, 45.8],  'CN-31': [121.5, 31.2],
-  'CN-32': [118.8, 32.1],  'CN-33': [120.2, 30.3],  'CN-34': [117.3, 31.8],
-  'CN-35': [119.3, 26.1],  'CN-36': [115.9, 28.7],  'CN-37': [117.0, 36.7],
-  'CN-41': [113.7, 34.8],  'CN-42': [114.3, 30.6],  'CN-43': [112.9, 28.2],
-  'CN-44': [113.3, 23.1],  'CN-45': [108.3, 22.8],  'CN-46': [110.3, 20.0],
-  'CN-50': [106.5, 29.6],  'CN-51': [104.1, 30.6],  'CN-52': [106.7, 26.6],
-  'CN-53': [102.7, 25.0],  'CN-54': [91.1, 29.6],   'CN-61': [108.9, 34.3],
-  'CN-62': [103.8, 36.1],  'CN-63': [101.8, 36.6],  'CN-64': [106.3, 38.5],
-  'CN-65': [87.6, 43.8],   'CN-HK': [114.2, 22.3],  'CN-MO': [113.5, 22.2],
-  'CN-TW': [121.5, 25.0],  'CN': [104.0, 35.0],
+  'CN-11': [116.4, 39.9], 'CN-12': [117.2, 39.1], 'CN-13': [114.5, 38.0],
+  'CN-14': [112.5, 37.9], 'CN-15': [111.7, 40.8], 'CN-21': [123.4, 41.8],
+  'CN-22': [126.6, 43.9], 'CN-23': [126.6, 45.8], 'CN-31': [121.5, 31.2],
+  'CN-32': [118.8, 32.1], 'CN-33': [120.2, 30.3], 'CN-34': [117.3, 31.8],
+  'CN-35': [119.3, 26.1], 'CN-36': [115.9, 28.7], 'CN-37': [117.0, 36.7],
+  'CN-41': [113.7, 34.8], 'CN-42': [114.3, 30.6], 'CN-43': [112.9, 28.2],
+  'CN-44': [113.3, 23.1], 'CN-45': [108.3, 22.8], 'CN-46': [110.3, 20.0],
+  'CN-50': [106.5, 29.6], 'CN-51': [104.1, 30.6], 'CN-52': [106.7, 26.6],
+  'CN-53': [102.7, 25.0], 'CN-54': [91.1, 29.6], 'CN-61': [108.9, 34.3],
+  'CN-62': [103.8, 36.1], 'CN-63': [101.8, 36.6], 'CN-64': [106.3, 38.5],
+  'CN-65': [87.6, 43.8], 'CN-HK': [114.2, 22.3], 'CN-MO': [113.5, 22.2],
+  'CN-TW': [121.5, 25.0], 'CN': [104.0, 35.0],
   'JP': [138.0, 36.0], 'US': [-95.0, 38.0], 'KR': [127.5, 36.5],
   'SG': [103.8, 1.4], 'IS': [-19.0, 65.0], 'TH': [100.5, 13.8],
   'VN': [108.0, 16.0], 'GB': [-2.0, 54.0], 'FR': [2.0, 46.0],
@@ -135,8 +136,9 @@ onMounted(async () => {
 
 .map-side {
   flex: 1;
+  max-width: 1200px;
   cursor: pointer;
-  background: #050a15;
+  background: #0f1729;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   overflow: hidden;
@@ -219,8 +221,15 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.35; }
+
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
 }
 
 @media (max-width: 900px) {
@@ -228,6 +237,7 @@ onMounted(async () => {
     flex-direction: column;
     gap: 24px;
   }
+
   .text-side {
     flex: none;
     width: 100%;

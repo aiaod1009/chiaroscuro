@@ -299,7 +299,7 @@ export default {
           };
         }
 
-        if (!item.mapCode) return null;
+        if (!item.mapCode || item.mapCode === 'CN') return null;
         return {
           id: item.mapCode.toLowerCase(),
           name: item.locationName,
