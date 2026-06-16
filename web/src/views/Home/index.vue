@@ -24,18 +24,16 @@
       </div>
     </div>
     <CameraViewfinder />
-    <ScatteredPhotos />
   </div>
 </template>
 
 <script>
 import CollectionCards from './components/CollectionCards.vue';
 import CameraViewfinder from './components/CameraViewfinder.vue';
-import ScatteredPhotos from './components/ScatteredPhotos.vue';
 
 export default {
   name: 'HomeView',
-  components: { CollectionCards, CameraViewfinder, ScatteredPhotos },
+  components: { CollectionCards, CameraViewfinder },
   data() {
     return {
       activeIndex: 0,
