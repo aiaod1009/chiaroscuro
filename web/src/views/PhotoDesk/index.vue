@@ -62,7 +62,7 @@ const loadPhotos = async () => {
       const col = i % cols
       const row = Math.floor(i / cols)
       const baseX = col * cellW + cellW / 2
-      const baseY = row * 320 + 60
+      const baseY = row * 350 + 60
       const offsetX = (Math.random() - 0.5) * 40
       const offsetY = (Math.random() - 0.5) * 30
       const rotate = (Math.random() - 0.5) * 16
@@ -85,7 +85,7 @@ const loadPhotos = async () => {
 
     // 动态撑开容器高度
     if (desk.value) {
-      desk.value.style.height = `${rows * 320 + 120}px`
+      desk.value.style.height = `${rows * 350 + 120}px`
     }
   } catch (err) {
     console.error('加载照片失败:', err)
