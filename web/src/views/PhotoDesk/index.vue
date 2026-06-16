@@ -45,6 +45,14 @@ const hoverIndex = ref(-1)
 
 const tapeStyles = ['tape-yellow', 'tape-white', 'tape-pink', 'tape-blue']
 
+// 预加载图片获取原始尺寸
+const loadImageSize = (src) => new Promise((resolve) => {
+  const img = new Image()
+  img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight })
+  img.onerror = () => resolve({ w: 3, h: 4 })
+  img.src = src
+})
+
 const loadPhotos = async () => {
   loading.value = true
   try {
@@ -54,15 +62,25 @@ const loadPhotos = async () => {
     total.value = data.total
 
     const valid = (data.photos || []).filter(p => p.src)
+
+    // 预加载所有图片尺寸
+    const sizes = await Promise.all(valid.map(p => loadImageSize(p.src)))
+
+    const TARGET_H = 260
+    const MIN_W = 140
+    const MAX_W = 300
     const cols = 4
     const cellW = 100 / cols
-    const rows = Math.ceil(valid.length / cols)
 
     photos.value = valid.map((p, i) => {
+      const { w, h } = sizes[i]
+      const ratio = w / h
+      const cardW = Math.max(MIN_W, Math.min(MAX_W, TARGET_H * ratio))
+
       const col = i % cols
       const row = Math.floor(i / cols)
       const baseX = col * cellW + cellW / 2
-      const baseY = row * 350 + 60
+      const baseY = row * 400 + 60
       const offsetX = (Math.random() - 0.5) * 40
       const offsetY = (Math.random() - 0.5) * 30
       const rotate = (Math.random() - 0.5) * 16
@@ -76,6 +94,7 @@ const loadPhotos = async () => {
         style: {
           left: `calc(${baseX}% + ${offsetX}px)`,
           top: `${baseY + offsetY}px`,
+          width: `${cardW}px`,
           '--rotate': `${rotate}deg`,
           zIndex: i,
           animationDelay: `${i * 0.06}s`
@@ -84,8 +103,9 @@ const loadPhotos = async () => {
     })
 
     // 动态撑开容器高度
+    const rows = Math.ceil(valid.length / cols)
     if (desk.value) {
-      desk.value.style.height = `${rows * 350 + 120}px`
+      desk.value.style.height = `${rows * 400 + 120}px`
     }
   } catch (err) {
     console.error('加载照片失败:', err)
@@ -168,7 +188,6 @@ watch(() => route.params.mapCode, loadPhotos)
 /* 单张照片容器 */
 .scattered-photo {
   position: absolute;
-  width: 200px;
   transform: translate(-50%, -50%) rotate(var(--rotate));
   cursor: pointer;
   animation: photo-appear 0.6s ease both;
@@ -196,7 +215,6 @@ watch(() => route.params.mapCode, loadPhotos)
 .photo-card {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4;
   transition: transform 0.5s;
   transform-style: preserve-3d;
 }
@@ -205,18 +223,13 @@ watch(() => route.params.mapCode, loadPhotos)
   transform: rotateY(180deg);
 }
 
-.photo-front,
-.photo-back {
-  position: absolute;
-  inset: 0;
+.photo-front {
+  position: relative;
   backface-visibility: hidden;
   border-radius: 2px;
   overflow: hidden;
-}
-
-.photo-front {
   background: #fffdf5;
-  padding: 8px 8px 28px;
+  padding: 8px 8px 48px;
   box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.15),
     0 8px 24px rgba(0, 0, 0, 0.1);
@@ -224,12 +237,16 @@ watch(() => route.params.mapCode, loadPhotos)
 
 .photo-front img {
   width: 100%;
-  height: calc(100% - 20px);
-  object-fit: cover;
+  height: auto;
   display: block;
 }
 
 .photo-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 2px;
+  overflow: hidden;
   background: #fffdf5;
   transform: rotateY(180deg);
   padding: 24px 20px;
@@ -302,7 +319,7 @@ watch(() => route.params.mapCode, loadPhotos)
 
 @media (max-width: 760px) {
   .scattered-photo {
-    width: 140px;
+    max-width: 160px;
   }
 }
 </style>
