@@ -90,9 +90,8 @@ const formattedDate = computed(() =>
 
 .folder-info {
   padding: 14px 16px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  background: linear-gradient(to top, #1a2030, #161b22);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .folder-name {

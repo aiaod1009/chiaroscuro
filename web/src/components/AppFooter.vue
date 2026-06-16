@@ -30,10 +30,9 @@
       <div class="footer-col links-col">
         <h3 class="col-title">NAVIGATE</h3>
         <ul>
+          <li><router-link to="/">Home</router-link></li>
           <li><router-link to="/archive">Archive</router-link></li>
-          <li><router-link to="/ai-lab">AI Lab</router-link></li>
           <li><router-link to="/footprints">Footprints</router-link></li>
-          <li><router-link to="/notes">Story</router-link></li>
         </ul>
       </div>
 
@@ -41,18 +40,16 @@
       <div class="footer-col links-col">
         <h3 class="col-title">CONNECT</h3>
         <ul>
-          <li><a href="#">Instagram</a></li>
-          <li><a href="#">Behance</a></li>
-          <li><a href="#">Vogue</a></li>
-          <li><a href="#">Twitter (X)</a></li>
+          <li><a href="https://github.com/aiaod1009" target="_blank">GitHub</a></li>
+          <li><a href="https://aiaod.cn" target="_blank">Blog</a></li>
         </ul>
       </div>
 
-      <!-- 列 4：联系按钮与版权 -->
+      <!-- 列 4：联系与版权 -->
       <div class="footer-col contact-col">
         <h3 class="col-title">LET'S WORK TOGETHER</h3>
-        <button class="contact-btn">CONTACT ME</button>
-        <p class="copyright">© 2024 Lumen Chronicles. Captured in Light.</p>
+        <a href="mailto:3449508132@qq.com" class="contact-btn">CONTACT ME</a>
+        <p class="copyright">© 2026 Chiaroscuro. Captured in Light.</p>
       </div>
     </div>
   </footer>

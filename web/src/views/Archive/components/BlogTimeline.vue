@@ -15,7 +15,9 @@
         </div>
 
         <div class="timeline-right">
-          <img v-if="blog.image" :src="blog.image" alt="blog cover" class="blog-img" />
+          <router-link v-if="blog.image" :to="`/gallery-detail/${blog.id}`">
+            <img :src="blog.image" alt="blog cover" class="blog-img" />
+          </router-link>
           <div v-else class="blog-img-placeholder">暂无图片</div>
           <div class="blog-content">
             <div class="blog-meta">
