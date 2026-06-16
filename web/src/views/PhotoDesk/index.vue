@@ -66,16 +66,15 @@ const loadPhotos = async () => {
     // 预加载所有图片尺寸
     const sizes = await Promise.all(valid.map(p => loadImageSize(p.src)))
 
-    const TARGET_H = 260
-    const MIN_W = 140
-    const MAX_W = 300
+    const CARD_H = 260
     const cols = 4
     const cellW = 100 / cols
 
     photos.value = valid.map((p, i) => {
       const { w, h } = sizes[i]
       const ratio = w / h
-      const cardW = Math.max(MIN_W, Math.min(MAX_W, TARGET_H * ratio))
+      const cardW = CARD_H * ratio
+      const cardH = CARD_H
 
       const col = i % cols
       const row = Math.floor(i / cols)
@@ -95,6 +94,7 @@ const loadPhotos = async () => {
           left: `calc(${baseX}% + ${offsetX}px)`,
           top: `${baseY + offsetY}px`,
           width: `${cardW}px`,
+          '--card-h': `${cardH}px`,
           '--rotate': `${rotate}deg`,
           zIndex: i,
           animationDelay: `${i * 0.06}s`
@@ -237,7 +237,8 @@ watch(() => route.params.mapCode, loadPhotos)
 
 .photo-front img {
   width: 100%;
-  height: auto;
+  height: var(--card-h, 260px);
+  object-fit: cover;
   display: block;
 }
 
