@@ -10,11 +10,6 @@
         </div>
       </div>
     </div>
-
-    <div class="carousel-controls">
-      <button class="control-btn" @click="$emit('prev')">&lt;</button>
-      <button class="control-btn" @click="$emit('next')">&gt;</button>
-    </div>
   </div>
 </template>
 

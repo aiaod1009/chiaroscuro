@@ -10,6 +10,27 @@
         </div>
       </div>
 
+      <!-- 作品集信息 -->
+      <div class="work-info-section">
+        <div class="info-row">
+          <span class="info-label">名称</span>
+          <span class="info-value">{{ workInfo.name || '-' }}</span>
+          <button class="btn-edit-info" @click="openEditModal">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12">
+              <path d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.253.253 0 0 0-.064.108l-.558 1.953 1.953-.558a.253.253 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44 1.263-1.263a.25.25 0 0 0 0-.354Z" />
+            </svg>
+          </button>
+        </div>
+        <div class="info-row">
+          <span class="info-label">描述</span>
+          <span class="info-value desc">{{ workInfo.description || '暂无描述' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">时间</span>
+          <span class="info-value">{{ formattedDate }}</span>
+        </div>
+      </div>
+
       <nav class="filter-navigation">
         <button v-for="nav in filterNavs" :key="nav.id" class="nav-item" :class="{ active: currentCategory === nav.id }"
           @click="currentCategory = nav.id">
@@ -93,6 +114,27 @@
           </div>
         </div>
       </transition>
+
+      <!-- 编辑作品集信息弹窗 -->
+      <transition name="modal">
+        <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+          <div class="modal-box">
+            <h4 class="modal-title">编辑作品集信息</h4>
+            <div class="edit-form">
+              <label class="form-label">名称</label>
+              <input v-model="editName" class="form-input" placeholder="作品集名称" />
+              <label class="form-label">描述</label>
+              <textarea v-model="editDesc" class="form-textarea" placeholder="描述（可选）" rows="4"></textarea>
+              <label class="form-label">时间</label>
+              <input v-model="editDate" type="month" class="form-input" />
+            </div>
+            <div class="modal-actions">
+              <button class="modal-btn cancel" @click="showEditModal = false">取消</button>
+              <button class="modal-btn primary" @click="saveEdit">保存</button>
+            </div>
+          </div>
+        </div>
+      </transition>
     </main>
   </div>
 </template>
@@ -117,6 +159,10 @@ const selectMode = ref(false)
 const selectedIds = ref(new Set())
 const showMoveModal = ref(false)
 const showDeleteModal = ref(false)
+const showEditModal = ref(false)
+const editName = ref('')
+const editDesc = ref('')
+const editDate = ref('')
 
 const toggleSelectMode = () => {
   selectMode.value = !selectMode.value
@@ -162,6 +208,14 @@ const isCompleted = (photo) => {
 
 const completedCount = computed(() => photos.value.filter(p => isCompleted(p)).length)
 const uncompletedCount = computed(() => photos.value.filter(p => !isCompleted(p)).length)
+
+const formattedDate = computed(() => {
+  if (!workInfo.value.realDate) return '-'
+  return new Date(workInfo.value.realDate).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long'
+  })
+})
 
 const filterNavs = computed(() => [
   { id: 'all', name: 'ALL', count: String(photos.value.length).padStart(2, '0'), dotColor: '#ffffff' },
@@ -255,6 +309,29 @@ const handleSetCover = async (imageUrl) => {
   }
 }
 
+const openEditModal = () => {
+  editName.value = workInfo.value.name || ''
+  editDesc.value = workInfo.value.description || ''
+  editDate.value = workInfo.value.realDate ? workInfo.value.realDate.slice(0, 10) : ''
+  showEditModal.value = true
+}
+
+const saveEdit = async () => {
+  try {
+    await updateWork(route.params.id, {
+      name: editName.value,
+      description: editDesc.value,
+      realDate: editDate.value || undefined
+    })
+    workInfo.value.name = editName.value
+    workInfo.value.description = editDesc.value
+    workInfo.value.realDate = editDate.value
+    showEditModal.value = false
+  } catch {
+    alert('保存失败')
+  }
+}
+
 const goToPhotoDetail = (item) => {
   router.push({ path: '/notes', query: { photoId: item._id, imageUrl: item.imageUrl } })
 }
@@ -324,6 +401,110 @@ watch(() => route.params.id, fetchWorkDetail)
   margin-top: 4px;
   font-family: monospace;
   font-size: 13px;
+}
+
+/* 作品集信息 */
+.work-info-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-size: 11px;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  min-width: 32px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-value {
+  font-size: 13px;
+  color: #e5e7eb;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.info-value.desc {
+  color: #8b949e;
+  font-size: 12px;
+}
+
+.btn-edit-info {
+  background: transparent;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-edit-info:hover {
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* 编辑表单 */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-label {
+  font-size: 11px;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.form-input,
+.form-textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+  resize: vertical;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.modal-btn.primary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e5e7eb;
+}
+
+.modal-btn.primary:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .sub-en {

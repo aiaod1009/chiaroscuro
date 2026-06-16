@@ -42,8 +42,8 @@ export default {
       activeIndex: 0,
       collections: [
         { subtitle: 'COLLECTION 01', title: '秘境之森<br>凝视万物生灵', desc: '探寻林间的微光与翠意，<br>感受大自然最原始的呼吸与宁静。', image: '/DSC_6510.jpg' },
-        { subtitle: 'COLLECTION 02', title: '光影之间<br>记录世界的呼吸', desc: '十年光阴，穿行于城市与旷野之间，<br>用镜头收藏那些转瞬即逝的真实。', image: '/DSC_6174.jpg' },
         { subtitle: 'COLLECTION 03', title: '极寒构造<br>冰雪中的物理美学', desc: '在零下三十度的冰雪巨构中，<br>捕捉极致的冰棱刻线与冷酷之美。', image: '/DSC_6760.JPG' },
+        { subtitle: 'COLLECTION 02', title: '光影之间<br>记录世界的呼吸', desc: '十年光阴，穿行于城市与旷野之间，<br>用镜头收藏那些转瞬即逝的真实。', image: '/jingyu.png' },
       ]
     };
   },

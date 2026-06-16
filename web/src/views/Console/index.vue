@@ -44,7 +44,7 @@
         <AlbumPlaceholder :album-count="filteredWorks.length" @create="openCreateWorks" />
 
         <WorkCard v-for="work in pagedWorks" :key="work._id" :work="work"
-          @open="openWork" />
+          @open="openWork" @deleted="handleWorkDeleted" />
 
       </div>
 
@@ -125,6 +125,10 @@ const fetchWorks = async () => {
 
 const openWork = (work) => {
   router.push(`/console/work/${work._id}`)
+}
+
+const handleWorkDeleted = (workId) => {
+  works.value = works.value.filter(w => w._id !== workId)
 }
 
 const onUploadComplete = () => { fetchWorks(); fetchDrafts() }

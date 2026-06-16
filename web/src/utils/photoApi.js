@@ -228,6 +228,16 @@ export async function updateWork(workId, updateData) {
 }
 
 /**
+ * 删除作品集
+ * @param {string} workId - 作品集 ID
+ * @returns {Promise<object>} API 响应
+ */
+export async function deleteWork(workId) {
+  const { data } = await axios.delete(`${API_BASE}/works/${workId}`)
+  return data
+}
+
+/**
  * AI 首轮生成
  * @param {string} photoId - 照片 ID
  * @param {string} imageUrl - 照片 URL
