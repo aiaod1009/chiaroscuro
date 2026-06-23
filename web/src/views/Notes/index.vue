@@ -408,6 +408,20 @@ const handleSave = async () => {
   }
 }
 
+@media (max-width: 768px) {
+  .visual-notes-container {
+    padding: 6.5rem 16px 24px 16px;
+  }
+  .notes-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .interactive-panel {
+    padding: 20px;
+    min-height: auto;
+  }
+}
+
 /* Toast 提示条 */
 .toast-bar {
   display: flex;

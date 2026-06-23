@@ -126,4 +126,69 @@ export default {
   -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.4 12.5c0 .3-.1.6-.2.9l1.7 1.3c.4.3.5.9.2 1.3l-1.6 2.8c-.3.4-.9.5-1.3.2l-2-1.2c-.5.4-1 .7-1.6.9v2.1c0 .5-.4.9-.9.9h-3.2c-.5 0-.9-.4-.9-.9v-2.1c-.6-.2-1.2-.5-1.6-.9l-2 1.2c-.4.3-.9.2-1.3-.2l-1.6-2.8c-.3-.4-.2-.9.2-1.3l1.7-1.3c-.1-.3-.2-.6-.2-.9s.1-.6.2-.9l-1.7-1.3c-.4-.3-.5-.9-.2-1.3l1.6-2.8c.3-.4.9-.5 1.3-.2l2 1.2c.5-.4 1-.7 1.6-.9V4.4c0-.5.4-.9.9-.9h3.2c.5 0 .9.4.9.9v2.1c.6.2 1.2.5 1.6.9l2-1.2c.4-.3.9-.2 1.3.2l1.6 2.8c.3.4.2.9-.2 1.3l-1.7 1.3c.1.3.2.6.2.9zm-7.4 2.5c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3z"/></svg>') no-repeat 50% 50%;
   mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.4 12.5c0 .3-.1.6-.2.9l1.7 1.3c.4.3.5.9.2 1.3l-1.6 2.8c-.3.4-.9.5-1.3.2l-2-1.2c-.5.4-1 .7-1.6.9v2.1c0 .5-.4.9-.9.9h-3.2c-.5 0-.9-.4-.9-.9v-2.1c-.6-.2-1.2-.5-1.6-.9l-2 1.2c-.4.3-.9.2-1.3-.2l-1.6-2.8c-.3-.4-.2-.9.2-1.3l1.7-1.3c-.1-.3-.2-.6-.2-.9s.1-.6.2-.9l-1.7-1.3c-.4-.3-.5-.9-.2-1.3l1.6-2.8c.3-.4.9-.5 1.3-.2l2 1.2c.5-.4 1-.7 1.6-.9V4.4c0-.5.4-.9.9-.9h3.2c.5 0 .9.4.9.9v2.1c.6.2 1.2.5 1.6.9l2-1.2c.4-.3.9-.2 1.3.2l1.6 2.8c.3.4.2.9-.2 1.3l-1.7 1.3c.1.3.2.6.2.9zm-7.4 2.5c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3z"/></svg>') no-repeat 50% 50%;
 }
+
+/* 汉堡按钮 — 默认隐藏 */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 110;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  margin: 5px 0;
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(11, 16, 30, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    flex-direction: column;
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .nav-links.open {
+    display: flex;
+  }
+  .nav-links a {
+    padding: 12px 0;
+    margin: 0;
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .nav-links a:last-child {
+    border-bottom: none;
+  }
+  .nav-icons {
+    display: none;
+  }
+  .logo-text {
+    font-size: 1rem;
+  }
+}
 </style>

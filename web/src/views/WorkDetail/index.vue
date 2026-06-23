@@ -838,4 +838,39 @@ watch(() => route.params.id, fetchWorkDetail)
   transform: scale(0.95);
 }
 
+/* 移动端适配 */
+@media (max-width: 1024px) {
+  .work-detail-page {
+    grid-template-columns: 1fr;
+    padding: 5rem 24px 0 24px;
+  }
+  .sidebar-panel {
+    display: none;
+  }
+}
+@media (max-width: 768px) {
+  .work-detail-page {
+    padding: 5rem 16px 0 16px;
+  }
+  .content-main {
+    padding: 20px 0;
+  }
+  .assets-grid-flow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .top-filter-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .modal-box {
+    width: min(90vw, 340px);
+  }
+}
+@media (max-width: 480px) {
+  .assets-grid-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
