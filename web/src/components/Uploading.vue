@@ -431,11 +431,19 @@ const handleUpload = async () => {
       // 步骤 C：通过 STS 临时凭证直传腾讯云 COS
       uploadProgressText.value = `[${index + 1}/${selectedFilesCount.value}] 正在直传腾讯云 COS...`
       const cos = await getCosInstance()
+      // 预取一次 STS 凭证，确保 bucket/region 已就绪
+      if (!cosBucket || !cosRegion) {
+        const preFetch = await fetchCOSCredentials()
+        if (preFetch.success) {
+          cosBucket = preFetch.bucket
+          cosRegion = preFetch.region
+        }
+      }
       const cosKey = `gallery/${Date.now()}-${webpFile.name}`
       const cosData = await new Promise((resolve, reject) => {
         cos.putObject({
-          Bucket: import.meta.env.VITE_COS_BUCKET,
-          Region: import.meta.env.VITE_COS_REGION,
+          Bucket: cosBucket,
+          Region: cosRegion,
           Key: cosKey,
           Body: webpFile,
         }, (err, data) => err ? reject(err) : resolve(data))
