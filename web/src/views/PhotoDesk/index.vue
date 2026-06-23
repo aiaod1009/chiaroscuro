@@ -14,7 +14,7 @@
         @click="$router.push(`/photo-detail/${photo.id}`)">
         <div class="photo-card" :class="{ 'is-hovered': hoverIndex === index }">
           <div class="photo-front">
-            <img :src="photo.src" :alt="photo.alt" />
+            <img :src="photo.src" :alt="photo.alt" loading="lazy" />
             <div class="photo-tape" :class="photo.tapeClass"></div>
           </div>
           <div class="photo-back">

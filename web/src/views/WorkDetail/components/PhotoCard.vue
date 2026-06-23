@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <img :src="imageUrl" :alt="fileName" class="asset-img" />
+    <img :src="imageUrl" :alt="fileName" class="asset-img" loading="lazy" />
 
     <div class="card-bottom-glass">
       <h3 class="asset-title">{{ title || fileName }}</h3>

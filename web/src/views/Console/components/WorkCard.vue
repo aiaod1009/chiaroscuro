@@ -1,7 +1,7 @@
 <template>
   <div class="folder-card" @click="$emit('open', work)">
     <div class="folder-cover">
-      <img v-if="coverSrc" :src="coverSrc" :alt="work.name" @error="onCoverError" />
+      <img v-if="coverSrc" :src="coverSrc" :alt="work.name" loading="lazy" @error="onCoverError" />
       <span v-if="!coverSrc" class="folder-empty-hint">暂无照片</span>
     </div>
     <div class="folder-info">

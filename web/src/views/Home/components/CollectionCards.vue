@@ -3,7 +3,7 @@
     <div class="cards-section">
       <div class="collection-card" v-for="(card, index) in collections" :key="index"
         :class="{ 'is-active': index === activeIndex }" @click="$emit('select', index)">
-        <img :src="card.image" :alt="card.title" class="card-img" />
+        <img :src="card.image" :alt="card.title" class="card-img" loading="lazy" />
         <div class="card-overlay">
           <span class="card-subtitle">{{ card.subtitle }}</span>
           <h3 class="card-title" v-html="card.title"></h3>

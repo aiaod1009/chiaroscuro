@@ -6,7 +6,7 @@
       <span>{{ albums }} 个相册 · {{ photoCount }} 张</span>
     </div>
     <div class="photo-grid">
-      <img v-for="photo in photos" :key="photo.src" :src="photo.src" :alt="photo.alt" @error="onImgError" />
+      <img v-for="photo in photos" :key="photo.src" :src="photo.src" :alt="photo.alt" loading="lazy" @error="onImgError" />
     </div>
     <button class="view-all" type="button" @click="$emit('view-all')">查看全部 →</button>
   </aside>

@@ -8,7 +8,7 @@
       <div class="corner-grid" aria-hidden="true">
         <i v-for="n in 6" :key="n"></i>
       </div>
-      <img :src="card.image" :alt="card.title" />
+      <img :src="card.image" :alt="card.title" loading="lazy" />
     </div>
 
     <div class="message-panel">

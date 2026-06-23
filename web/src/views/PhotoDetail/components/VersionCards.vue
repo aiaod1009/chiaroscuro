@@ -21,7 +21,7 @@
         @click="$emit('select', v.isOriginal ? null : v._id)"
       >
         <div class="card-thumb">
-          <img :src="v.imageUrl" />
+          <img :src="v.imageUrl" loading="lazy" />
           <button class="display-btn" :class="{ 'is-display': isDisplay(v) }"
             @click.stop="onStarClick(v)" :title="isDisplay(v) ? '当前展示版' : '设为展示版'">
             <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">

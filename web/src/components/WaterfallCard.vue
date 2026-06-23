@@ -1,6 +1,6 @@
 <template>
   <div class="waterfall-card" @click="$emit('click')">
-    <img :src="src" :alt="alt" class="card-img" />
+    <img :src="src" :alt="alt" class="card-img" loading="lazy" />
     <div class="card-overlay">
       <h3 class="card-title">{{ title || alt || '未命名' }}</h3>
       <p class="card-caption">{{ caption || '暂无配文' }}</p>
