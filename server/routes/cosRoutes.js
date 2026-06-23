@@ -10,7 +10,7 @@ const stsClient = new StsClient({
     secretId: process.env.COS_SECRET_ID,
     secretKey: process.env.COS_SECRET_KEY,
   },
-  region: 'ap-guangzhou',
+  region: process.env.COS_REGION || 'ap-guangzhou',
   profile: {
     httpProfile: {
       endpoint: 'sts.tencentcloudapi.com',
@@ -23,11 +23,25 @@ router.get('/sts', async (req, res) => {
   try {
     const bucket = process.env.COS_BUCKET;
     const region = process.env.COS_REGION;
+    const allowPrefix = 'gallery/*';
 
-    const roleArn = process.env.STS_ROLE_ARN;
+    const policy = {
+      version: '2.0',
+      statement: [
+        {
+          action: ['name/cos:PutObject'],
+          effect: 'allow',
+          resource: [
+            `qcs::cos:${region}:uid/${bucket}:prefix///${bucket}/${allowPrefix}`,
+          ],
+        },
+      ],
+    };
+
     const data = await stsClient.AssumeRole({
-      RoleArn: roleArn,
+      RoleArn: process.env.STS_ROLE_ARN,
       RoleSessionName: `chiaroscuro-${Date.now()}`,
+      Policy: JSON.stringify(policy),
       DurationSeconds: 1800,
     });
 
@@ -44,7 +58,7 @@ router.get('/sts', async (req, res) => {
     });
   } catch (error) {
     console.error('STS 签发失败:', error);
-    sendError(res, 500, 'STS 签发失败');
+    sendError(res, 500, 'STS 签发失败: ' + (error.message || error));
   }
 });
 
