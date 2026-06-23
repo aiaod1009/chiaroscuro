@@ -23,25 +23,10 @@ router.get('/sts', async (req, res) => {
   try {
     const bucket = process.env.COS_BUCKET;
     const region = process.env.COS_REGION;
-    const allowPrefix = 'gallery/*';
-
-    const policy = {
-      version: '2.0',
-      statement: [
-        {
-          action: ['name/cos:PutObject'],
-          effect: 'allow',
-          resource: [
-            `qcs::cos:${region}:uid/${bucket}:prefix///${bucket}/${allowPrefix}`,
-          ],
-        },
-      ],
-    };
 
     const data = await stsClient.AssumeRole({
       RoleArn: process.env.STS_ROLE_ARN,
       RoleSessionName: `chiaroscuro-${Date.now()}`,
-      Policy: JSON.stringify(policy),
       DurationSeconds: 1800,
     });
 
