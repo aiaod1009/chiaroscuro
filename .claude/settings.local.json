@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(ls -la /c/Users/34495/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/node_modules/@anthropic-ai/claude-code-win32-x64/ 2>&1)",
-      "Read(//c/Users/34495/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/node_modules/@anthropic-ai/claude-code-win32-x64//**)"
+      "Read(//c/Users/34495/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/node_modules/@anthropic-ai/claude-code-win32-x64//**)",
+      "Bash(npm prefix *)",
+      "Bash(ls \"$\\(npm prefix -g\\)/node_modules/@anthropic-ai/claude-code/bin/\")"
     ]
   }
 }

@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // 核心连接本地 MongoDB（如果发现没有 chiaroscuro 库，它会自动建库！）
-const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/chiaroscuro';
+const mongoUri = process.env.MONGO_URI;
 mongoose.connect(mongoUri)
   .then(() => console.log('🍃 1. MongoDB 数据库已全自动就位！'))
   .catch(err => console.error('❌ 数据库连接失败:', err.message));
