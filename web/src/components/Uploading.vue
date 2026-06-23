@@ -139,6 +139,8 @@ import { fetchWorks as apiFetchWorks, uploadRawPhoto, fetchCOSCredentials } from
 const openCreateWorks = inject('openCreateWorks')
 
 let cosInstance = null
+let cosBucket = ''
+let cosRegion = ''
 const getCosInstance = async () => {
   if (cosInstance) return cosInstance
   const COS = (await import('cos-js-sdk-v5')).default
@@ -146,6 +148,8 @@ const getCosInstance = async () => {
     getAuthorization: (options, callback) => {
       fetchCOSCredentials().then(data => {
         if (!data.success) throw new Error(data.message)
+        cosBucket = data.bucket
+        cosRegion = data.region
         callback({
           TmpSecretId: data.tmpSecretId,
           TmpSecretKey: data.tmpSecretKey,
