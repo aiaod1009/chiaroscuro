@@ -43,7 +43,8 @@
 
         <g>
           <g v-for="marker in markerPositions" :key="marker.id" class="map-marker"
-            :transform="`translate(${marker.x}, ${marker.y})`" @click.stop="selectRegion(marker.id)">
+            :transform="`translate(${marker.x}, ${marker.y})`"
+            @mouseenter="onMarkerEnter(marker.id)" @mouseleave="onMarkerLeave">
             <circle :r="marker.hovered ? 18 : 12" fill="#f59e0b" :opacity="marker.hovered ? 0.42 : 0.25" />
             <circle :r="marker.hovered ? 6.5 : 4.8" fill="#fbbf24" stroke="#fff" stroke-width="1.2" />
           </g>
@@ -52,6 +53,7 @@
 
       <LocationCard v-if="activeRegion" :name="activeRegion.name" :albums="activeRegion.albums"
         :photo-count="activeRegion.photoCount" :photos="activeRegion.photos" :card-style="locationCardStyle"
+        @mouseenter="onCardEnter" @mouseleave="onCardLeave"
         @close="activeRegionId = null" @view-all="$router.push(`/photo-desk/${activeRegion.mapCode}`)" />
 
       <div class="map-controls" @mousedown.stop @wheel.stop>
@@ -148,6 +150,7 @@ export default {
       dragFrame: null,
       pendingPan: null,
       activeRegionId: null,
+      _hideTimer: null,
       unvisitedFill: '#1a2035',
       unvisitedStroke: '#2a3555',
       visitedFill: '#f59e0b',
@@ -426,6 +429,23 @@ export default {
     },
     selectRegion(regionId) {
       this.activeRegionId = regionId;
+    },
+    onMarkerEnter(regionId) {
+      clearTimeout(this._hideTimer);
+      this.activeRegionId = regionId;
+    },
+    onMarkerLeave() {
+      this._hideTimer = setTimeout(() => {
+        this.activeRegionId = null;
+      }, 200);
+    },
+    onCardEnter() {
+      clearTimeout(this._hideTimer);
+    },
+    onCardLeave() {
+      this._hideTimer = setTimeout(() => {
+        this.activeRegionId = null;
+      }, 200);
     },
     screenProject(coordinates) {
       const projected = this.baseProjection(coordinates);
