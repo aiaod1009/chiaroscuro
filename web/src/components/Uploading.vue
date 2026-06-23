@@ -989,6 +989,7 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
 
 /* 上传进度条 */
 .upload-progress {
+  margin-top: auto;
   margin-bottom: 16px;
 }
 .progress-bar {
@@ -1013,6 +1014,7 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
 
 /* 上传结果提示 */
 .upload-result {
+  margin-top: auto;
   margin-bottom: 16px;
   padding: 12px 16px;
   border-radius: 10px;

@@ -39,12 +39,12 @@ router.post('/upload-raw', async (req, res) => {
 
     await newPhotoDraft.save();
 
-    // 自动封面：给没有封面的作品集设置第一张上传图
+    // 自动封面：异步执行，不阻塞响应
     if (albumIds.length > 0) {
-      await Works.updateMany(
+      Works.updateMany(
         { _id: { $in: albumIds }, $or: [{ coverImage: '' }, { coverImage: { $exists: false } }] },
         { $set: { coverImage: imageUrl } }
-      );
+      ).catch(err => console.error('封面更新失败:', err));
     }
 
     res.json({
