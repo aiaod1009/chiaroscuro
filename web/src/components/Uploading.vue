@@ -116,10 +116,19 @@
             </div>
           </div>
 
+          <div v-if="uploadResult" class="upload-result" :class="uploadResult.ok ? 'result-success' : 'result-error'">
+            <span>{{ uploadResult.message }}</span>
+          </div>
+
+          <div v-if="isUploading" class="upload-progress">
+            <div class="progress-bar"><div class="progress-fill" :style="{ width: uploadPercent + '%' }"></div></div>
+            <span class="progress-text">{{ uploadProgressText }}</span>
+          </div>
+
           <div class="form-actions">
-            <button class="btn-cancel" @click="isOpen = false">取消</button>
-            <button class="btn-submit" :disabled="selectedFilesCount === 0" @click="handleUpload">
-              开始上传
+            <button class="btn-cancel" @click="isOpen = false" :disabled="isUploading">取消</button>
+            <button class="btn-submit" :disabled="selectedFilesCount === 0 || isUploading" @click="handleUpload">
+              {{ isUploading ? '上传中...' : '开始上传' }}
             </button>
           </div>
 
@@ -180,6 +189,8 @@ const dragOffset = ref({ x: 0, y: 0 })
 const rawFilesQueue = ref([])         // 本地原始文件暂存队列
 const isUploading = ref(false)         // 上传状态机
 const uploadProgressText = ref('')    // 动态进度提示
+const uploadPercent = ref(0)
+const uploadResult = ref(null)        // { ok: bool, message: string }
 
 // 保持原本的双向绑定表单，动态对齐你的后端新 Schema
 const formData = reactive({
@@ -413,10 +424,15 @@ const processFiles = (files) => {
 
 // --- 6. 核心动作：点击“开始上传”触发工业级并发流水线 ---
 const handleUpload = async () => {
-  if (rawFilesQueue.value.length === 0) return
+  if (rawFilesQueue.value.length === 0 || isUploading.value) return
   isUploading.value = true
+  uploadResult.value = null
+  uploadPercent.value = 0
 
-  // 建立大厂标准的“串行压图，并行上传”异步调度阵列
+  const total = rawFilesQueue.value.length
+  let done = 0
+
+  // 建立大厂标准的”串行压图，并行上传”异步调度阵列
   const uploadTasks = rawFilesQueue.value.map(async (rawFile, index) => {
     try {
       // 步骤 A：剥离 Exif
@@ -461,21 +477,39 @@ const handleUpload = async () => {
         exif: exifData || {},
       })
 
+      done++
+      uploadPercent.value = Math.round((done / total) * 100)
       return { success: true }
     } catch (err) {
       console.error(`${rawFile.name} 调度中断:`, err)
+      done++
+      uploadPercent.value = Math.round((done / total) * 100)
       return { success: false, name: rawFile.name, error: err.message || String(err) }
     }
   })
 
   const results = await Promise.all(uploadTasks)
   const successLen = results.filter(r => r.success).length
+  const failLen = total - successLen
 
-  // 收尾工作：清空队列，关闭面板，通知外部刷新
-  rawFilesQueue.value = []
   isUploading.value = false
-  isOpen.value = false
+  rawFilesQueue.value = []
+
+  if (failLen === 0) {
+    uploadResult.value = { ok: true, message: `全部 ${successLen} 张上传成功 ✓` }
+  } else if (successLen === 0) {
+    uploadResult.value = { ok: false, message: `全部 ${failLen} 张上传失败` }
+  } else {
+    uploadResult.value = { ok: false, message: `${successLen} 张成功，${failLen} 张失败` }
+  }
+
   if (successLen > 0) window.dispatchEvent(new CustomEvent('upload-complete'))
+
+  // 3秒后自动关闭面板
+  setTimeout(() => {
+    uploadResult.value = null
+    isOpen.value = false
+  }, 3000)
 }
 
 // --- 以下为原本悬浮窗拖拽交互逻辑，一字未动 ---
@@ -946,5 +980,54 @@ const handleDrop = (event) => { isDragOver.value = false; const files = event.da
   box-shadow: none;
   transform: none;
   filter: none;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 上传进度条 */
+.upload-progress {
+  margin-bottom: 16px;
+}
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #93c5fd, #60a5fa);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.progress-text {
+  font-size: 11px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* 上传结果提示 */
+.upload-result {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+.result-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+.result-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
 }
 </style>
