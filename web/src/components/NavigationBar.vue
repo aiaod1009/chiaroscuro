@@ -4,23 +4,29 @@
       <img src="/相机1.svg" alt="Logo" class="logo-img" />
       <span class="logo-text">光影纪 · CHRONICLES</span>
     </router-link>
-    <div class="nav-links">
-      <router-link to="/">HOME</router-link>
-      <router-link to="/postcards">POSTCARDS</router-link>
-      <router-link to="/archive">ARCHIVE</router-link>
-      <router-link to="/footprints">FOOTPRINTS</router-link>
-      <router-link to="/console">CONSOLE</router-link>
+    <div class="nav-links" :class="{ open: menuOpen }">
+      <router-link to="/" @click="menuOpen = false">HOME</router-link>
+      <router-link to="/postcards" @click="menuOpen = false">POSTCARDS</router-link>
+      <router-link to="/archive" @click="menuOpen = false">ARCHIVE</router-link>
+      <router-link to="/footprints" @click="menuOpen = false">FOOTPRINTS</router-link>
+      <router-link to="/console" @click="menuOpen = false">CONSOLE</router-link>
     </div>
     <div class="nav-icons">
       <a href="#"><i class="icon-placeholder"></i></a>
       <a href="#"><i class="icon-placeholder-gear"></i></a>
     </div>
+    <button class="hamburger" :class="{ active: menuOpen }" @click="menuOpen = !menuOpen" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 </template>
 
 <script>
 export default {
   name: 'NavigationBar',
+  data() {
+    return { menuOpen: false }
+  },
 };
 </script>
 
