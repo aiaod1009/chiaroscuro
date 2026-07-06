@@ -49,6 +49,9 @@
       <div class="footer-col contact-col">
         <h3 class="col-title">LET'S WORK TOGETHER</h3>
         <a href="mailto:3449508132@qq.com" class="contact-btn">CONTACT ME</a>
+        <p class="icp-record">
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026083523号-1</a>
+        </p>
         <p class="copyright">© 2026 Chiaroscuro. Captured in Light.</p>
       </div>
     </div>
@@ -172,6 +175,21 @@ export default {
 .contact-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 25px rgba(220, 227, 255, 0.3);
+}
+
+.icp-record {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.75rem;
+}
+
+.icp-record a {
+  color: #a0aec0;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.icp-record a:hover {
+  color: #dce3ff;
 }
 
 .copyright {
