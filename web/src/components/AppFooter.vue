@@ -52,6 +52,10 @@
         <p class="icp-record">
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">粤ICP备2026083523号-1</a>
         </p>
+        <p class="gov-record">
+          <img src="/1.png" alt="公安备案图标" class="gov-icon" />
+          <a href="https://beian.mps.gov.cn/#/query/webSearch?code=44170202000468" rel="noreferrer" target="_blank">粤公网安备44170202000468号</a>
+        </p>
         <p class="copyright">© 2026 Chiaroscuro. Captured in Light.</p>
       </div>
     </div>
@@ -190,6 +194,30 @@ export default {
 
 .icp-record a:hover {
   color: #dce3ff;
+}
+
+.gov-record {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gov-record a {
+  color: #a0aec0;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.gov-record a:hover {
+  color: #dce3ff;
+}
+
+.gov-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .copyright {
